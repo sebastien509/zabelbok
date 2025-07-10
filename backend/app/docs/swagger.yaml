@@ -1,0 +1,194 @@
+swagger: "2.0"
+info:
+  title: Haiti Educational Platform API
+  version: 1.0.0
+  description: Offline-friendly API for quizzes, exercises, results, and progress tracking.
+
+schemes:
+  - http
+
+host: localhost:5050
+basePath: /
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"'
+
+paths:
+  /quizzes/full:
+    post:
+      tags:
+        - Quizzes
+      summary: Create Quiz with Questions
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - title
+              - course_id
+              - questions
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              course_id:
+                type: integer
+              deadline:
+                type: string
+                format: date
+              questions:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - question_text
+                    - choices
+                    - correct_answer
+                  properties:
+                    question_text:
+                      type: string
+                    choices:
+                      type: object
+                    correct_answer:
+                      type: string
+      responses:
+        201:
+          description: Quiz and questions created successfully.
+
+  /quizzes/{quiz_id}:
+    put:
+      tags:
+        - Quizzes
+      summary: Update Quiz with Questions
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              deadline:
+                type: string
+                format: date
+              questions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question_text:
+                      type: string
+                    choices:
+                      type: object
+                    correct_answer:
+                      type: string
+      responses:
+        200:
+          description: Quiz and questions updated successfully.
+
+  /results/quiz/{result_id}/publish:
+    put:
+      tags:
+        - Results
+      summary: Publish Quiz Result
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: result_id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Quiz result published or already published.
+
+  /exercises/full:
+    post:
+      tags:
+        - Exercises
+      summary: Create Exercise with Questions
+      security:
+        - BearerAuth: []
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - title
+              - course_id
+              - questions
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              course_id:
+                type: integer
+              deadline:
+                type: string
+                format: date
+              questions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question_text:
+                      type: string
+                    question_url:
+                      type: string
+      responses:
+        201:
+          description: Exercise and questions created successfully.
+
+  /progress/me:
+    get:
+      tags:
+        - Progress
+      summary: Get Student Personal Progress
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Student progress data
+
+  /progress/class/{course_id}:
+    get:
+      tags:
+        - Progress
+      summary: Get Class Progress
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Class progress statistics
