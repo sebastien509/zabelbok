@@ -15,8 +15,7 @@ def create_app():
     CORS(app, supports_credentials=True, origins=[
     "http://localhost:5173",
     "https://e-strateji.vercel.app"
-    ], origins_regex=r"^https:\/\/.*\.vercel\.app$")
-    
+    ])
     # Init extensions
     db.init_app(app)
     migrate.init_app(app, db)
@@ -47,8 +46,8 @@ def create_app():
     # Log environment
     app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').strip()
-    app.logger.info(f"🌐 All CORS Origins: {[repr(frontend_url), 'https://e-strateji.vercel.app']}")
-
+    cors_origins = [frontend_url, 'https://e-strateji.vercel.app']
+    app.logger.info(f"🌐 All CORS Origins: {cors_origins}")
 
     # Register routes
     from app.routes.auth_routes import auth_bp
