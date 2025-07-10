@@ -19,5 +19,5 @@ def home():
     return "✅ Haiti EduPlatform is live on Railway!"
 
 # Register routes (optional)
-from app.routes import main as main_routes
+from routes import main as main_routes
 app.register_blueprint(main_routes)
