@@ -12,7 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { MessageSquare, Mail, User, Send, RefreshCw, PlusCircle } from 'lucide-react';
 import SyncStatusBadge from '@/components/system/SyncStatusBadge';
 import { retrySync } from '@/utils/retrySync';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { format } from 'date-fns';
 
 export default function MessageDashboard({ role = 'student' }) {

@@ -7,7 +7,7 @@ import { Loader2, Clock, CheckCircle2, Lock } from 'lucide-react';
 import SecureContainer from '@/components/assessment/SecureContainer';
 import { getExercise, submitExercise, getAllExercises } from '@/services/exercices';
 import { useTranslation } from 'react-i18next';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useParams } from 'react-router-dom';
 
 
