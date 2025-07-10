@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
 // Setup baseURL from .env
-const BASE_URL = 'http://localhost:5050';
+const BASE_URL = 'https://e-strateji.onrender.com';
 
 export const api = axios.create({
   baseURL: BASE_URL,

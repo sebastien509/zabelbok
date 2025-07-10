@@ -26,7 +26,7 @@ export default function PWAInstallPrompt() {
 
   return (
     <div className="fixed bottom-4 right-4 bg-white border rounded shadow p-4 z-50">
-      <h4 className="font-semibold">Install Haiti EduPlatform?</h4>
+      <h4 className="font-semibold">Install E-strateji?</h4>
       <button onClick={handleInstall} className="mt-2 px-3 py-1 bg-blue-500 text-white rounded">Install</button>
     </div>
   );
