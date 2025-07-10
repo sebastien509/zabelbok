@@ -55,3 +55,41 @@ export const getAllStudents = () => api.get('/auth/role/student');
 export const getUsersByRole = (role) => api.get(`/auth/role/${role}`);
 // services/users.js
 export const getMyStudents = () => api.get('/auth/my-students');
+
+
+/**
+ * Update the logged-in user's profile settings.
+ * Can include: bio, language, profile_image_url
+ * 
+ * @param {Object} data - Partial update fields.
+ * @returns {Object} Updated user data
+ */
+export async function updateProfile(data) {
+  try {
+    const res = await api.put('/auth/me/profile', data);
+    return res.data.user;
+  } catch (err) {
+    console.error('[updateProfile Error]', err);
+    throw err;
+  }
+}
+
+export const getAllCreators = () => api.get('/auth/creators');
+
+// services/auth.js
+export const updateStyle = async ({ theme, banner_url }) => {
+  return api.put('/auth/me/style', { theme, banner_url });
+};
+
+export const getMe = () => api.get('/auth/me').then((res) => res.data);
+
+
+export async function getUserById(id) {
+  try {
+    const res = await api.get(`/auth/creators/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error(`[getUserById Error for ID ${id}]`, err);
+    return null;
+  }
+}

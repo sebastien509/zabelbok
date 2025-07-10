@@ -8,6 +8,9 @@ import SecureContainer from '@/components/assessment/SecureContainer';
 import { getExercise, submitExercise, getAllExercises } from '@/services/exercices';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'react-router-dom';
+
+
 
 export default function StudentExercises() {
   const { t } = useTranslation();
@@ -22,6 +25,9 @@ export default function StudentExercises() {
   const [toastMsg, setToastMsg] = useState(null);
   const [page, setPage] = useState(1);
   const pageSize = 3;
+  const { id: exerciseIdFromURL } = useParams();
+
+
 
   const fetchData = async () => {
     try {
@@ -54,6 +60,13 @@ export default function StudentExercises() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (exerciseIdFromURL) {
+      startExercise(exerciseIdFromURL);
+    }
+  }, [exerciseIdFromURL]);
+
 
   useEffect(() => {
     fetchData();
@@ -187,22 +200,38 @@ export default function StudentExercises() {
           <CardHeader><CardTitle>{t('availableExercises')}</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {paginatedNonSubmitted.map(exercise => (
-                <div key={`exercise-${exercise.id}`} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{exercise.title}</h3>
-                      <p className="text-sm text-gray-600">{exercise.description}</p>
-                    </div>
-                    <Button size="sm" onClick={() => startExercise(exercise.id)} className="bg-green-600 hover:bg-green-700 text-white">{t('start')}</Button>
-                  </div>
-                  {exercise.deadline && (
-                    <div className="mt-2 text-xs text-gray-500">
-                      {t('deadline')}: {new Date(exercise.deadline).toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              ))}
+            {paginatedNonSubmitted.map(exercise => {
+  const isExpired = exercise.deadline && new Date(exercise.deadline) < new Date();
+  return (
+    <div key={`exercise-${exercise.id}`} className="border rounded-lg p-4">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="font-medium">{exercise.title}</h3>
+          <p className="text-sm text-gray-600">{exercise.description}</p>
+        </div>
+        {isExpired ? (
+          <Button size="sm" variant="destructive" disabled>
+            {t('deadlinePassed') || 'Deadline Passed'}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            onClick={() => startExercise(exercise.id)}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {t('start')}
+          </Button>
+        )}
+      </div>
+      {exercise.deadline && (
+        <div className="mt-2 text-xs text-gray-500">
+          {t('deadline')}: {new Date(exercise.deadline).toLocaleString()}
+        </div>
+      )}
+    </div>
+  );
+})}
+
             </div>
             {nonSubmitted.length > pageSize && (
               <div className="flex justify-end mt-4 gap-2">

@@ -4,12 +4,12 @@ import {
   deleteExercise, 
   getExerciseSubmissionsByExercise 
 } from '@/services/exercices';
+import { getAllCourses } from '@/services/courses';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { PlusCircle, Pencil, Trash2, FileText } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { FiCalendar, FiUsers, FiBookOpen } from 'react-icons/fi';
 import ExerciseModal from '@/components/modals/ExerciseModal';
@@ -22,9 +22,24 @@ export default function ProfessorExercises() {
   const [toastMsg, setToastMsg] = useState(null);
   const [modalExercise, setModalExercise] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   useEffect(() => {
     fetchExercises();
+  }, []);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await getAllCourses();
+        setCourses(res.data);
+        setSelectedCourse(res.data?.[0]?.id || null);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchCourses();
   }, []);
 
   const fetchExercises = async () => {
@@ -67,8 +82,20 @@ export default function ProfessorExercises() {
         </div>
       )}
 
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">All Exercises</h1>
+      <div className="flex flex-col sm:flex-row items-center gap-3 justify-between">
+        <select
+          value={selectedCourse || ''}
+          onChange={e => setSelectedCourse(e.target.value)}
+          className="border px-3 py-2 rounded text-sm"
+        >
+          <option value="" disabled>Select a Course</option>
+          {courses.map(course => (
+            <option key={course.id} value={course.id}>
+              {course.title}
+            </option>
+          ))}
+        </select>
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setIsDialogOpen(true)}>
@@ -80,7 +107,11 @@ export default function ProfessorExercises() {
             <DialogHeader>
               <DialogTitle>Create New Exercise</DialogTitle>
             </DialogHeader>
-            <ExerciseModal onClose={() => setIsDialogOpen(false)} onSave={fetchExercises} />
+            <ExerciseModal 
+              courseId={selectedCourse} 
+              onClose={() => setIsDialogOpen(false)} 
+              onSuccess={fetchExercises} 
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -123,7 +154,12 @@ export default function ProfessorExercises() {
             <DialogHeader>
               <DialogTitle>Edit Exercise</DialogTitle>
             </DialogHeader>
-            <ExerciseModal exercise={modalExercise} onClose={() => setModalExercise(null)} onSave={fetchExercises} />
+            <ExerciseModal 
+              courseId={modalExercise.course_id}
+              exercise={modalExercise}
+              onClose={() => setModalExercise(null)} 
+              onSuccess={fetchExercises} 
+            />
           </DialogContent>
         </Dialog>
       )}

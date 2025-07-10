@@ -112,7 +112,7 @@ export default function StudentDashboard() {
                   <li 
                     key={course.id} 
                     className="flex items-center space-x-3 p-3 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer group"
-                    onClick={() => navigate(`/courses/${course.id}`)}
+                    onClick={() => navigate(`/student/courses/${course.id}`)}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors truncate">
@@ -137,7 +137,7 @@ export default function StudentDashboard() {
               variant="ghost" 
               size="sm" 
               className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              onClick={() => navigate('/courses')}
+              onClick={() => navigate('/student/my-courses')}
             >
               {t('viewAllCourses')}
             </Button>
@@ -174,7 +174,7 @@ export default function StudentDashboard() {
                       variant="outline" 
                       size="sm" 
                       className="opacity-0 group-hover:opacity-100 transition-opacity bg-white border-amber-200 text-amber-600 hover:bg-amber-50"
-                      onClick={() => navigate(item.type === 'quiz' ? `/quizzes/${item.id}` : `/exercises/${item.id}`)}
+                      onClick={() => navigate(item.type === 'quiz' ? `/student/quiz/${item.id}` : `/exercise/${item.id}`)}
                     >
                       {t('startNow')}
                     </Button>
@@ -190,7 +190,7 @@ export default function StudentDashboard() {
               variant="ghost" 
               size="sm" 
               className="w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-              onClick={() => navigate('/assignments')}
+              onClick={() => navigate('/student/my-courses')}
             >
               {t('viewAllAssignments')}
             </Button>
@@ -239,7 +239,7 @@ export default function StudentDashboard() {
               variant="ghost" 
               size="sm" 
               className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-              onClick={() => navigate('/discussions')}
+              onClick={() => navigate('/student/message')}
             >
               {t('viewAllThreads')}
             </Button>

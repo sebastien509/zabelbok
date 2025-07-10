@@ -1,99 +1,127 @@
 import { useState } from 'react';
-import { Dialog } from '@headlessui/react';
-import { api } from '@/services/api';
-import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import UploadBook from '../uploads/UploadBook';
+import { useToast } from '@/components/ui/use-toast';
+import { api } from '@/services/api';
+import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
+import { enqueueOffline } from '@/utils/offlineQueue';
 
-export default function UploadBookModal({ isOpen, onClose }) {
+export default function UploadBookModal({ isOpen, onClose, courseId }) {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [pdf_url, setPdfUrl] = useState('');
-  const [course_id, setCourseId] = useState('');
-  const toast = useToast();
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const resetForm = () => {
+    setTitle('');
+    setAuthor('');
+    setPdfUrl('');
+    setFile(null);
+  };
+
+  const handleFileUpload = async () => {
+    if (!file) return toast({ title: 'No file selected', variant: 'destructive' });
+    setUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setPdfUrl(url);
+      toast({ title: '✅ File uploaded to Cloudinary' });
+    } catch {
+      toast({ title: '❌ Upload failed', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !course_id) {
+    if (!title || !courseId) {
       toast({
         title: 'Missing Fields',
-        description: 'Title and Course ID are required.',
+        description: 'Title and course are required.',
         variant: 'destructive',
       });
       return;
     }
 
+    const payload = {
+      title,
+      author,
+      pdf_url,
+      course_id: parseInt(courseId),
+    };
+
     try {
-      await api.post('/books', {
-        title,
-        author,
-        pdf_url,
-        course_id: parseInt(course_id),
-      });
-      toast({ title: 'Success', description: 'Book uploaded successfully.' });
-      setTitle('');
-      setAuthor('');
-      setPdfUrl('');
-      setCourseId('');
-      onClose(); // close modal
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to upload book.',
-        variant: 'destructive',
-      });
+      if (navigator.onLine) {
+        await api.post('/books', payload);
+        toast({ title: '✅ Book uploaded online' });
+      } else {
+        throw new Error('Offline mode');
+      }
+    } catch {
+      await enqueueOffline('booksQueue', payload);
+      toast({ title: '📦 Book queued for sync' });
     }
+
+    resetForm();
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl space-y-4">
-          <Dialog.Title className="text-xl font-bold text-blue-700">
-            📘 Upload a New Book
-          </Dialog.Title>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>📘 Upload New Book</DialogTitle>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Title *</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label>Title *</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </div>
 
-            <div>
-              <Label>Author</Label>
-              <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
-            </div>
+          <div>
+            <Label>Author</Label>
+            <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
+          </div>
 
-            <div>
-              <Label>PDF URL</Label>
-              <Input type="url" value={pdf_url} onChange={(e) => setPdfUrl(e.target.value)} />
-            </div>
+          <div>
+            <Label>Upload PDF File (optional)</Label>
+            <Input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setFile(e.target.files[0])}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleFileUpload}
+              disabled={!file || uploading}
+            >
+              {uploading ? 'Uploading...' : 'Upload to Cloudinary'}
+            </Button>
+            {pdf_url && <p className="text-xs text-green-600">File ready: {pdf_url}</p>}
+          </div>
 
-            <div>
-              <Label>Course ID *</Label>
-              <Input
-                type="number"
-                value={course_id}
-                onChange={(e) => setCourseId(e.target.value)}
-                required
-              />
-            </div>
+          <div>
+            <Label>or Paste PDF URL</Label>
+            <Input
+              type="url"
+              value={pdf_url}
+              onChange={(e) => setPdfUrl(e.target.value)}
+              placeholder="https://..."
+            />
+          </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                Upload Book
-              </Button>
-              <Button variant="ghost" onClick={onClose}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Dialog.Panel>
-      </div>
+          <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700">
+            Submit Book
+          </Button>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
-

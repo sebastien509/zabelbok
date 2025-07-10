@@ -14,6 +14,8 @@ import SyncStatusBadge from '@/components/system/SyncStatusBadge';
 import { retrySync } from '@/utils/retrySync';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+
 
 export default function MessageDashboard({ role = 'student' }) {
   const [conversations, setConversations] = useState([]);
@@ -26,6 +28,8 @@ export default function MessageDashboard({ role = 'student' }) {
   const [isComposing, setIsComposing] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -213,6 +217,8 @@ export default function MessageDashboard({ role = 'student' }) {
   };
 
   if (isLoading.threads) {
+
+
     return (
       <div className="flex h-[calc(100vh-64px)] p-6 gap-6">
         {/* Sidebar Skeleton */}
@@ -255,242 +261,229 @@ export default function MessageDashboard({ role = 'student' }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-64px)] p-6 gap-6">
-      {/* Sidebar */}
-      <Card className="w-80 p-4 flex flex-col">
-        <CardHeader className="p-0 pb-4">
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-blue-600" />
-              <span>Inbox</span>
-              <SyncStatusBadge queueKey="messageQueue" />
-            </CardTitle>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={refreshConversations}
-              disabled={isLoading.threads}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading.threads ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </CardHeader>
-
-        <ScrollArea className="flex-1">
-          {conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 text-center">
-              <MessageSquare className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">No messages yet</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {conversations.map(conv => (
-                <div
-                  key={conv.thread_id}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedThread === conv.thread_id 
-                      ? 'bg-blue-50 border border-blue-200' 
-                      : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => {
-                    setSelectedThread(conv.thread_id);
-                    setIsComposing(false);
-                  }}
-                >
-                  <div className="flex gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                        {getContactName(conv.contact_id).charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center">
-                        <p className="font-medium truncate">{getContactName(conv.contact_id)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : '—'}
-                        </p>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {getContactRole(conv.contact_id)}
-                      </p>
-                      <p className="text-sm truncate mt-1">
-                        {conv.last_message || 'No messages'}
-                      </p>
-                      {conv.unread_count > 0 && (
-                        <Badge className="mt-1 text-xs">{conv.unread_count} unread</Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-
-        <div className="mt-4 pt-4 border-t">
-          <h3 className="font-medium flex items-center gap-2 mb-3">
-            <PlusCircle className="h-4 w-4" />
-            New Message
-          </h3>
-          <Select onValueChange={setSelectedContact} value={selectedContact}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a contact" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {availableContacts
-                .map(contact => (
-                  <SelectItem key={contact.id} value={contact.id}>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs bg-muted">
-                          {contact.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>
-                        {contact.name} <span className="text-muted-foreground">({contact.role})</span>
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+  <div className="flex h-[calc(100vh-64px)] p-6 gap-6">
+    {/* Sidebar */}
+    <Card className="w-80 p-4 flex flex-col">
+      <CardHeader className="p-0 pb-4">
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-blue-600" />
+            <span>{t('inbox')}</span>
+            <SyncStatusBadge queueKey="messageQueue" />
+          </CardTitle>
           <Button 
-            className="mt-2 w-full" 
-            onClick={startNewMessage}
-            disabled={!selectedContact}
+            variant="ghost" 
+            size="icon" 
+            onClick={refreshConversations}
+            disabled={isLoading.threads}
           >
-            Start Conversation
+            <RefreshCw className={`h-4 w-4 ${isLoading.threads ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-      </Card>
+      </CardHeader>
 
-      {/* Main Content */}
-      <Card className="flex-1 flex flex-col">
-        {selectedThread || isComposing ? (
-          <>
-            <CardHeader className="border-b p-4">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                    {selectedThread 
-                      ? getContactName(
-                          conversations.find(c => c.thread_id === selectedThread)?.contact_id
-                        ).charAt(0)
-                      : getContactName(selectedContact).charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle>
-                    {selectedThread
-                      ? getContactName(
-                          conversations.find(c => c.thread_id === selectedThread)?.contact_id
-                        )
-                      : getContactName(selectedContact)}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedThread
-                      ? getContactRole(
-                          conversations.find(c => c.thread_id === selectedThread)?.contact_id
-                        )
-                      : getContactRole(selectedContact)}
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="flex-1 p-0 overflow-hidden">
-              {isLoading.messages ? (
-                <div className="flex items-center justify-center h-full">
-                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <div className="h-full flex flex-col">
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="flex flex-col space-y-4">
-                      {messages.length === 0 && !isComposing ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                          <MessageSquare className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-muted-foreground">No messages in this conversation</p>
-                        </div>
-                      ) : (
-                        <>
-                          {messages.map((msg) => (
-                            <div
-                              key={msg.id}
-                              className={`flex gap-3 max-w-[85%] ${
-                                msg.is_me ? 'ml-auto' : 'mr-auto'
-                              }`}
-                            >
-                              {!msg.is_me && (
-                                <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
-                                  <AvatarFallback className="text-xs">
-                                    {getContactName(msg.sender_id).charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                              )}
-                              <div
-                                className={`p-3 rounded-lg break-words ${
-                                  msg.is_me
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-muted'
-                                }`}
-                              >
-                                <p className="whitespace-pre-wrap">{msg.content}</p>
-                                <p
-                                  className={`text-xs mt-1 ${
-                                    msg.is_me ? 'text-blue-100' : 'text-muted-foreground'
-                                  }`}
-                                >
-                                  {msg.created_at ? format(new Date(msg.created_at), 'MMM d, h:mm a') : '—'}
-                                  {msg.offline && (
-                                    <span className="ml-2">🔄 Pending sync</span>
-                                  )}
-                                </p>
-                              </div>
-                              {msg.is_me && (
-                                <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
-                                  <AvatarFallback className="text-xs">You</AvatarFallback>
-                                </Avatar>
-                              )}
-                            </div>
-                          ))}
-                          <div ref={messagesEndRef} />
-                        </>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
-              )}
-            </CardContent>
-
-            <div className="border-t p-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="flex-1"
-                />
-                <Button onClick={handleSendMessage}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send
-                </Button>
-              </div>
-            </div>
-          </>
+      <ScrollArea className="flex-1">
+        {conversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 text-center">
+            <MessageSquare className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">{t('noMessagesYet')}</p>
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <MessageSquare className="h-12 w-12 text-muted-foreground" />
-            <h3 className="text-xl font-medium">Select a conversation</h3>
-            <p className="text-muted-foreground max-w-md px-6">
-              {role === 'professor'
-                ? 'Choose a student conversation from the sidebar or start a new message'
-                : 'Choose a professor conversation from the sidebar or start a new message'}
-            </p>
+          <div className="space-y-2">
+            {conversations.map(conv => (
+              <div
+                key={conv.thread_id}
+                className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                  selectedThread === conv.thread_id 
+                    ? 'bg-blue-50 border border-blue-200' 
+                    : 'hover:bg-muted/50'
+                }`}
+                onClick={() => {
+                  setSelectedThread(conv.thread_id);
+                  setIsComposing(false);
+                }}
+              >
+                <div className="flex gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                      {getContactName(conv.contact_id).charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium truncate">{getContactName(conv.contact_id)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : '—'}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {getContactRole(conv.contact_id)}
+                    </p>
+                    <p className="text-sm truncate mt-1">
+                      {conv.last_message || t('noMessages')}
+                    </p>
+                    {conv.unread_count > 0 && (
+                      <Badge className="mt-1 text-xs">{conv.unread_count} {t('unread')}</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-      </Card>
-    </div>
-  );
+      </ScrollArea>
+
+      <div className="mt-4 pt-4 border-t">
+        <h3 className="font-medium flex items-center gap-2 mb-3">
+          <PlusCircle className="h-4 w-4" />
+          {t('newMessage')}
+        </h3>
+        <Select onValueChange={setSelectedContact} value={selectedContact}>
+          <SelectTrigger>
+            <SelectValue placeholder={t('selectContact')} />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {availableContacts.map(contact => (
+              <SelectItem key={contact.id} value={contact.id}>
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className="text-xs bg-muted">
+                      {contact.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>
+                    {contact.name} <span className="text-muted-foreground">({contact.role})</span>
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button 
+          className="mt-2 w-full" 
+          onClick={startNewMessage}
+          disabled={!selectedContact}
+        >
+          {t('startConversation')}
+        </Button>
+      </div>
+    </Card>
+
+    {/* Main Content */}
+    <Card className="flex-1 flex flex-col">
+      {selectedThread || isComposing ? (
+        <>
+          <CardHeader className="border-b p-4">
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  {(selectedThread
+                    ? getContactName(conversations.find(c => c.thread_id === selectedThread)?.contact_id)
+                    : getContactName(selectedContact)
+                  ).charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle>
+                  {selectedThread
+                    ? getContactName(conversations.find(c => c.thread_id === selectedThread)?.contact_id)
+                    : getContactName(selectedContact)}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {selectedThread
+                    ? getContactRole(conversations.find(c => c.thread_id === selectedThread)?.contact_id)
+                    : getContactRole(selectedContact)}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex-1 p-0 overflow-hidden">
+            {isLoading.messages ? (
+              <div className="flex items-center justify-center h-full">
+                <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="h-full flex flex-col">
+                <ScrollArea className="flex-1 p-4">
+                  <div className="flex flex-col space-y-4">
+                    {messages.length === 0 && !isComposing ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center">
+                        <MessageSquare className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-muted-foreground">{t('noMessagesInThread')}</p>
+                      </div>
+                    ) : (
+                      <>
+                        {messages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`flex gap-3 max-w-[85%] ${
+                              msg.is_me ? 'ml-auto' : 'mr-auto'
+                            }`}
+                          >
+                            {!msg.is_me && (
+                              <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                                <AvatarFallback className="text-xs">
+                                  {getContactName(msg.sender_id).charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+                            <div
+                              className={`p-3 rounded-lg break-words ${
+                                msg.is_me ? 'bg-blue-500 text-white' : 'bg-muted'
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap">{msg.content}</p>
+                              <p className={`text-xs mt-1 ${msg.is_me ? 'text-blue-100' : 'text-muted-foreground'}`}>
+                                {msg.created_at ? format(new Date(msg.created_at), 'MMM d, h:mm a') : '—'}
+                                {msg.offline && <span className="ml-2">{t('pendingSync')}</span>}
+                              </p>
+                            </div>
+                            {msg.is_me && (
+                              <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                                <AvatarFallback className="text-xs">{t('you')}</AvatarFallback>
+                              </Avatar>
+                            )}
+                          </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                      </>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+          </CardContent>
+
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder={t('typeMessage')}
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1"
+              />
+              <Button onClick={handleSendMessage}>
+                <Send className="h-4 w-4 mr-2" />
+                {t('send')}
+              </Button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+          <MessageSquare className="h-12 w-12 text-muted-foreground" />
+          <h3 className="text-xl font-medium">{t('selectConversation')}</h3>
+          <p className="text-muted-foreground max-w-md px-6">
+            {role === 'professor'
+              ? t('selectOrStartProfessor')
+              : t('selectOrStartStudent')}
+          </p>
+        </div>
+      )}
+    </Card>
+  </div>
+);
+
 }

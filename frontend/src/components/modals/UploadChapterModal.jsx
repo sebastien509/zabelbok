@@ -1,22 +1,25 @@
+
 import { useState } from 'react';
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export default function UploadChapterModal({ isOpen, onClose, bookId }) {
+export default function UploadChapterModal() {
+  const [open, setOpen] = useState(true);
   const [title, setTitle] = useState('');
   const [content_url, setContentUrl] = useState('');
-  const toast = useToast();
+  const [bookId, setBookId] = useState('');
+  const { toast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !content_url) {
+    if (!title || !content_url || !bookId) {
       toast({
         title: 'Missing Fields',
-        description: 'All fields required.',
+        description: 'All fields are required.',
         variant: 'destructive',
       });
       return;
@@ -28,9 +31,7 @@ export default function UploadChapterModal({ isOpen, onClose, bookId }) {
         content_url,
       });
       toast({ title: 'Success', description: 'Chapter uploaded.' });
-      setTitle('');
-      setContentUrl('');
-      onClose();
+      setOpen(false);
     } catch (error) {
       toast({
         title: 'Error',
@@ -41,41 +42,40 @@ export default function UploadChapterModal({ isOpen, onClose, bookId }) {
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl space-y-4">
-          <Dialog.Title className="text-xl font-bold text-blue-700">
-            ➕ Add Chapter to Book #{bookId}
-          </Dialog.Title>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Chapter Title *</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
-            </div>
-
-            <div>
-              <Label>Content URL *</Label>
-              <Input
-                type="url"
-                value={content_url}
-                onChange={(e) => setContentUrl(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                Upload Chapter
-              </Button>
-              <Button variant="ghost" onClick={onClose}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Dialog.Panel>
-      </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>➕ Add Chapter to Book</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div>
+            <Label>Book ID *</Label>
+            <Input
+              type="number"
+              value={bookId}
+              onChange={(e) => setBookId(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label>Chapter Title *</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </div>
+          <div>
+            <Label>Content URL *</Label>
+            <Input
+              type="url"
+              value={content_url}
+              onChange={(e) => setContentUrl(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="submit">Upload Chapter</Button>
+            <Button variant="ghost" type="button" onClick={() => setOpen(false)}>Cancel</Button>
+          </div>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }

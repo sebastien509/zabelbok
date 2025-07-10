@@ -23,13 +23,14 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (!error.response) {
-      toast({ title: "Network Error", description: "Check your internet connection.", variant: "destructive" });
+      toast( "Network Error",{ description: "Check your internet connection.", variant: "destructive" });
     } else if (error.response.status === 401) {
-      toast({ title: "Unauthorized", description: "Please login again.", variant: "destructive" });
+      toast( "Unauthorized", {description: "Please login again.", variant: "destructive" });
       // Optional: redirect to login page
     } else {
-      toast({ title: `Error ${error.response.status}`, description: error.response.data.message || "Something went wrong.", variant: "destructive" });
+      toast( `Error ${error.response.status}`, {description: error.response.data.message || "Something went wrong.", variant: "destructive" });
     }
     return Promise.reject(error);
   }
 );
+export default api

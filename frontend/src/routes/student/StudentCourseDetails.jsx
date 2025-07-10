@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '@/services/api';
 import { toast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, BookOpen, Video, FileText, Clock, Users, Bookmark } from 'lucide-react';
+import { Loader2, BookOpen, Video, FileText, Clock, Users, Bookmark, Lock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 
@@ -84,7 +84,7 @@ export default function StudentCourseDetails() {
                     <h3 className="font-bold text-md text-green-900 truncate">{lecture.title}</h3>
                     <p className="text-sm text-gray-600 mt-1 line-clamp-3">{lecture.description}</p>
                     <Button variant="outline" className="mt-4 w-full" asChild>
-                      <Link to={`/lectures/watch/${lecture.id}`}>{t('watchLecture')}</Link>
+                      <Link to={`/lectures/content`}>{t('AccessLecture')}</Link>
                     </Button>
                   </div>
                 ))}
@@ -101,6 +101,7 @@ export default function StudentCourseDetails() {
             <div className="space-y-4">
               {course.quizzes?.map(quiz => {
                 const grade = getQuizGrade(quiz.id);
+                const deadlinePassed = quiz.deadline && new Date(quiz.deadline) < new Date();
                 return (
                   <div key={quiz.id} className="border rounded-xl p-4 shadow-sm hover:shadow-md bg-white">
                     <div className="flex justify-between items-center mb-2">
@@ -108,9 +109,19 @@ export default function StudentCourseDetails() {
                       {grade && <span className="text-sm text-yellow-600">{t('grade')}: {grade.score}</span>}
                     </div>
                     <p className="text-sm text-gray-600">{quiz.description}</p>
-                    <Button variant="outline" className="mt-4 w-full" asChild>
-                      <Link to={`/student/Quiz/${quiz.id}`}>{grade ? t('viewQuiz') : t('takeQuiz')}</Link>
-                    </Button>
+                    {grade ? (
+                      <div className="mt-4 text-green-600 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" /> {t('submitted')}
+                      </div>
+                    ) : deadlinePassed ? (
+                      <div className="mt-4 text-red-500 flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> {t('deadlinePassed')}
+                      </div>
+                    ) : (
+                      <Button variant="outline" className="mt-4 w-full" asChild>
+                        <Link to={`/quiz/${quiz.id}`}>{t('takeQuiz')}</Link>
+                      </Button>
+                    )}
                   </div>
                 );
               })}
@@ -118,6 +129,7 @@ export default function StudentCourseDetails() {
             <div className="space-y-4">
               {course.exercises?.map(ex => {
                 const submission = getExerciseSubmission(ex.id);
+                const deadlinePassed = ex.deadline && new Date(ex.deadline) < new Date();
                 return (
                   <div key={ex.id} className="border rounded-xl p-4 shadow-sm hover:shadow-md bg-white">
                     <div className="flex justify-between items-center mb-2">
@@ -125,9 +137,19 @@ export default function StudentCourseDetails() {
                       {submission && <span className="text-sm text-green-600">{t('grade')}: {submission.grade}</span>}
                     </div>
                     <p className="text-sm text-gray-600">{ex.description}</p>
-                    <Button variant="outline" className="mt-4 w-full" asChild>
-                      <Link to={`/exercises/solve/${ex.id}`}>{submission ? t('viewSubmission') : t('startExercise')}</Link>
-                    </Button>
+                    {submission ? (
+                      <div className="mt-4 text-green-600 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" /> {t('submitted')}
+                      </div>
+                    ) : deadlinePassed ? (
+                      <div className="mt-4 text-red-500 flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> {t('deadlinePassed')}
+                      </div>
+                    ) : (
+                      <Button variant="outline" className="mt-4 w-full" asChild>
+                        <Link to={`/exercise/${ex.id}`}>{t('startExercise')}</Link>
+                      </Button>
+                    )}
                   </div>
                 );
               })}

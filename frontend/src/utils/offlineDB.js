@@ -1,121 +1,112 @@
 import { getAllCourses, getCourseDetails } from '@/services/courses';
 
-const DB_NAME = 'EduPlatformOfflineDB';
-const STORE_NAME = 'course_materials';
+const STORAGE_KEY = 'EduPlatformOfflineDB';
 
 export const offlineDB = {
-  async initDB() {
-    return new Promise((resolve) => {
-      const request = indexedDB.open(DB_NAME, 1);
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          store.createIndex('type', 'type', { unique: false });
-          store.createIndex('courseId', 'courseId', { unique: false });
-        }
-      };
-      request.onsuccess = () => resolve(true);
-      request.onerror = () => resolve(false);
-    });
+  load() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : { courses: {}, syncedAt: null };
+    } catch (error) {
+      console.error('[OfflineDB] Failed to load:', error);
+      return { courses: {}, syncedAt: null };
+    }
   },
 
-  async addItem(item) {
-    return new Promise((resolve) => {
-      const request = indexedDB.open(DB_NAME, 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const tx = db.transaction([STORE_NAME], 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        store.put(item); // overwrite if exists
-        resolve(true);
-      };
-      request.onerror = () => resolve(false);
-    });
+  save(data) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      console.log('[OfflineDB] Saved successfully');
+    } catch (error) {
+      console.error('[OfflineDB] Failed to save:', error);
+    }
   },
 
-  async getItems(type) {
-    return new Promise((resolve) => {
-      const request = indexedDB.open(DB_NAME, 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          console.error(`❌ Object store '${STORE_NAME}' not found.`);
-          return resolve([]);
-        }
-        const tx = db.transaction([STORE_NAME], 'readonly');
-        const store = tx.objectStore(STORE_NAME);
-        const index = store.index('type');
-        const req = index.getAll(type);
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
-      };
-      request.onerror = () => resolve([]);
-    });
+  clear() {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('[OfflineDB] Cleared');
   },
 
-  async deleteItem(id) {
-    return new Promise((resolve) => {
-      const request = indexedDB.open(DB_NAME, 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const tx = db.transaction([STORE_NAME], 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        store.delete(id);
-        resolve(true);
-      };
-      request.onerror = () => resolve(false);
-    });
+  getAllCourses() {
+    const db = this.load();
+    return Object.entries(db.courses).map(([id, course]) => ({
+      id: Number(id),
+      title: course.title
+    }));
   },
 
-  async syncAllUserCoursesToOffline() {
+  getCourse(courseId) {
+    const db = this.load();
+    console.log(db)
+
+    return db.courses?.[courseId] || null;
+  },
+
+  getResources(courseId, type = null) {
+    const course = this.getCourse(courseId);
+    if (!course) return [];
+    if (!type || type === 'all') {
+      return [
+        ...(course.books || []).map(b => ({ ...b, type: 'book' })),
+        ...(course.lectures || []).map(l => ({ ...l, type: 'lecture' })),
+        ...(course.exercises || []).map(e => ({ ...e, type: 'exercise' })),
+        ...(course.quizzes || []).map(q => ({ ...q, type: 'quiz' }))
+      ];
+    }
+    return (course[type + 's'] || []).map(r => ({ ...r, type }));
+  },
+
+  async syncAllUserCourses() {
     try {
       const { data: courses } = await getAllCourses();
+      const db = {
+        courses: {},
+        syncedAt: new Date().toISOString()
+      };
+  
       for (const course of courses) {
-        const { data: fullCourse } = await getCourseDetails(course.id);
-
-        const base = {
-          courseId: course.id,
-          downloadedAt: new Date().toISOString()
-        };
-
-        for (const book of fullCourse.books || []) {
-          await offlineDB.addItem({
-            ...book,
-            ...base,
-            type: 'book'
-          });
+        const { data: details } = await getCourseDetails(course.id);
+        
+        // 🧠 Fetch book blobs
+      // In offlineDB.syncAllUserCourses()
+const books = await Promise.all(
+    (details.books || []).map(async (book) => {
+      try {
+        if (book.content_url) {
+          const res = await fetch(book.content_url);
+          const blob = await res.blob();
+          return { 
+            ...book, 
+            blob,
+            file_type: book.content_url.split('.').pop().toLowerCase() // Add file type
+          };
         }
-
-        for (const lecture of fullCourse.lectures || []) {
-          await offlineDB.addItem({
-            ...lecture,
-            ...base,
-            type: 'lecture'
-          });
-        }
-
-        for (const exercise of fullCourse.exercises || []) {
-          await offlineDB.addItem({
-            ...exercise,
-            ...base,
-            type: 'exercise'
-          });
-        }
-
-        for (const quiz of fullCourse.quizzes || []) {
-          await offlineDB.addItem({
-            ...quiz,
-            ...base,
-            type: 'quiz'
-          });
-        }
+        return { ...book };
+      } catch (err) {
+        console.error('[SYNC] Failed to fetch book blob:', err);
+        return { ...book };
       }
-
-      return { success: true };
+    })
+  );
+  
+        db.courses[course.id] = {
+          title: course.title,
+          lectures: details.lectures || [],
+          books, // ✅ now includes blobs
+          exercises: details.exercises || [],
+          quizzes: details.quizzes || []
+        };
+  
+        console.log(`[SYNC] Stored course ${course.id}: ${course.title}`, details);
+      }
+  
+      this.save(db);
+      console.log('[SYNC] Offline data updated successfully');
+      return db;
     } catch (error) {
-      console.error('❌ Failed to sync user courses:', error);
-      return { success: false, error: error.message };
+      console.error('[SYNC] Failed to sync:', error);
+      throw error;
     }
   }
+  
 };

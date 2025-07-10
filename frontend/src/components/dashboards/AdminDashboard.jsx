@@ -5,7 +5,6 @@ import BackgroundSyncService from '@/components/system/BackgroundSyncService';
 import MiniDownloadManager from '@/components/system/MiniDownloadManager';
 import MiniSyncLogOverlay from '@/components/system/MiniSyncLogOverlay';
 import ActivityTracker from '@/components/analytics/ActivityTracker';
-import AdminCards from '../AdminCards';
 
 export default function AdminDashboard() {
   return (
@@ -21,7 +20,6 @@ export default function AdminDashboard() {
         </div>
 
         <ActivityTracker />
-        <AdminCards />
       </motion.div>
     </div>
   );

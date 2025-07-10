@@ -1,60 +1,139 @@
-// ✅ FullQuizBuilder.jsx (Unified - Supports MCQ + Short Answer + Offline + Online)
 import { useState } from 'react';
-import { toast } from '@/components/ui/use-toast';
-import { api } from '@/services/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
+import { api } from '@/services/api';
+import { enqueueOffline } from '@/utils/offlineQueue';
 import { nanoid } from 'nanoid';
 
-export default function FullQuizBuilder() {
-  const [question, setQuestion] = useState('');
-  const [answerType, setAnswerType] = useState('short'); // 'short' | 'mcq'
-  const [answer, setAnswer] = useState('');
-  const [options, setOptions] = useState(['', '', '', '']);
-  const [correct, setCorrect] = useState(0);
-  const [quizQueue, setQuizQueue] = useState(JSON.parse(localStorage.getItem('quizQueue') || '[]'));
+export default function FullQuizBuilder({ courseId, onClose }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [questions, setQuestions] = useState([
+    {
+      id: nanoid(),
+      type: 'short',
+      question_text: '',
+      answer: '',
+      choices: ['', '', '', ''],
+      correct_answer: '',
+    },
+  ]);
 
-  const handleSubmit = () => {
-    if (!question || (answerType === 'mcq' && options.some(o => !o)) || (answerType === 'short' && !answer)) {
-      toast({ title: 'Please complete all required fields', variant: 'destructive' });
-      return;
+  const addQuestion = () => {
+    setQuestions([
+      ...questions,
+      {
+        id: nanoid(),
+        type: 'short',
+        question_text: '',
+        answer: '',
+        choices: ['', '', '', ''],
+        correct_answer: '',
+      },
+    ]);
+  };
+
+  const removeQuestion = (id) => {
+    if (questions.length === 1) return;
+    setQuestions(questions.filter((q) => q.id !== id));
+  };
+
+  const handleQuestionChange = (id, key, value) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, [key]: value } : q))
+    );
+  };
+
+  const handleChoiceChange = (qid, idx, value) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id === qid) {
+          const updated = [...q.choices];
+          updated[idx] = value;
+          return { ...q, choices: updated };
+        }
+        return q;
+      })
+    );
+  };
+
+  const validateQuiz = () => {
+    if (!title || !courseId) {
+      toast({
+        title: 'Missing fields',
+        description: 'Quiz title and course ID are required.',
+        variant: 'destructive',
+      });
+      return false;
     }
 
-    const quiz = {
-      id: nanoid(),
-      type: answerType,
-      question,
-      options: answerType === 'mcq' ? options : undefined,
-      correct: answerType === 'mcq' ? correct : undefined,
-      answer: answerType === 'short' ? answer : undefined,
-      timestamp: new Date().toISOString()
+    const valid = questions.every((q) => {
+      if (!q.question_text) return false;
+      if (q.type === 'short') return !!q.answer;
+      if (q.type === 'mcq') {
+        const filledChoices = q.choices.filter((c) => c.trim()).length >= 2;
+        return filledChoices && q.correct_answer;
+      }
+      return true;
+    });
+
+    if (!valid) {
+      toast({
+        title: 'Validation error',
+        description: 'Make sure all questions are fully filled.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateQuiz()) return;
+
+    const payload = {
+      title,
+      description,
+      deadline,
+      course_id: parseInt(courseId),
+      questions: questions.map((q) => ({
+        question_text: q.question_text,
+        choices: q.type === 'mcq' ? q.choices : [],
+        correct_answer: q.type === 'mcq' ? q.correct_answer : q.answer,
+      })),
     };
 
-    if (navigator.onLine) {
-      api.post('/quizzes/create', quiz)
-        .then(() => toast({ title: 'Quiz created online ✅' }))
-        .catch(() => queueOffline(quiz));
-    } else {
-      queueOffline(quiz);
+    try {
+      if (navigator.onLine) {
+        await api.post('/quizzes/full', payload);
+        toast({ title: 'Quiz created ✅' });
+      } else {
+        throw new Error('Offline');
+      }
+    } catch {
+      await enqueueOffline('quizQueue', payload);
+      toast({ title: '📦 Quiz queued for sync' });
     }
 
-    resetForm();
-  };
-
-  const queueOffline = (quiz) => {
-    const updatedQueue = [...quizQueue, quiz];
-    localStorage.setItem('quizQueue', JSON.stringify(updatedQueue));
-    setQuizQueue(updatedQueue);
-    toast({ title: 'Quiz Queued for Sync ✅' });
-  };
-
-  const resetForm = () => {
-    setQuestion('');
-    setAnswer('');
-    setOptions(['', '', '', '']);
-    setCorrect(0);
+    setTitle('');
+    setDescription('');
+    setDeadline('');
+    setQuestions([
+      {
+        id: nanoid(),
+        type: 'short',
+        question_text: '',
+        answer: '',
+        choices: ['', '', '', ''],
+        correct_answer: '',
+      },
+    ]);
+    onClose?.();
   };
 
   return (
@@ -62,32 +141,103 @@ export default function FullQuizBuilder() {
       <CardHeader>
         <CardTitle>Create Quiz (Offline Ready)</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="space-x-2">
-          <Button variant={answerType === 'short' ? 'default' : 'outline'} onClick={() => setAnswerType('short')}>Short Answer</Button>
-          <Button variant={answerType === 'mcq' ? 'default' : 'outline'} onClick={() => setAnswerType('mcq')}>Multiple Choice</Button>
-        </div>
+      <CardContent className="space-y-4">
+        <Input
+          placeholder="Quiz Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <Input
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <Input
+          type="date"
+          value={deadline}
+          onChange={(e) => setDeadline(e.target.value)}
+        />
 
-        <Input placeholder="Question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+        {questions.map((q, i) => (
+          <div key={q.id} className="border rounded-lg p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <Label>Question {i + 1}</Label>
+              {questions.length > 1 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => removeQuestion(q.id)}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
 
-        {answerType === 'short' && (
-          <Textarea placeholder="Expected Answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
-        )}
+            <Input
+              placeholder="Question text"
+              value={q.question_text}
+              onChange={(e) =>
+                handleQuestionChange(q.id, 'question_text', e.target.value)
+              }
+            />
 
-        {answerType === 'mcq' && (
-          <div className="space-y-1">
-            {options.map((opt, i) => (
-              <Input key={i} placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
-                const newOptions = [...options];
-                newOptions[i] = e.target.value;
-                setOptions(newOptions);
-              }} />
-            ))}
-            <Input type="number" min="0" max="3" value={correct} onChange={e => setCorrect(Number(e.target.value))} placeholder="Correct Option Index (0-3)" />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={q.type === 'short' ? 'default' : 'outline'}
+                onClick={() => handleQuestionChange(q.id, 'type', 'short')}
+              >
+                Short Answer
+              </Button>
+              <Button
+                size="sm"
+                variant={q.type === 'mcq' ? 'default' : 'outline'}
+                onClick={() => handleQuestionChange(q.id, 'type', 'mcq')}
+              >
+                Multiple Choice
+              </Button>
+            </div>
+
+            {q.type === 'short' && (
+              <Input
+                placeholder="Expected answer"
+                value={q.answer}
+                onChange={(e) =>
+                  handleQuestionChange(q.id, 'answer', e.target.value)
+                }
+              />
+            )}
+
+            {q.type === 'mcq' && (
+              <div className="space-y-1">
+                {[0, 1, 2, 3].map((idx) => (
+                  <Input
+                    key={idx}
+                    placeholder={`Option ${idx + 1}`}
+                    value={q.choices[idx]}
+                    onChange={(e) =>
+                      handleChoiceChange(q.id, idx, e.target.value)
+                    }
+                  />
+                ))}
+                <Input
+                  placeholder="Correct Answer Text"
+                  value={q.correct_answer}
+                  onChange={(e) =>
+                    handleQuestionChange(q.id, 'correct_answer', e.target.value)
+                  }
+                />
+              </div>
+            )}
           </div>
-        )}
+        ))}
 
-        <Button onClick={handleSubmit} className="w-full">Save Quiz</Button>
+        <Button variant="outline" onClick={addQuestion}>
+          + Add Question
+        </Button>
+        <Button className="w-full" onClick={handleSubmit}>
+          Submit Quiz
+        </Button>
       </CardContent>
     </Card>
   );

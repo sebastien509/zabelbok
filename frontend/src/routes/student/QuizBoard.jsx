@@ -13,6 +13,10 @@ import {
 } from '@/services/quizzes';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { useParams } from 'react-router-dom';
+import AccessDeniedAlert from '@/components/alerts/AccessDeniedAlert';
+
+
 
 export default function QuizBoard() {
   const [quizzes, setQuizzes] = useState([]);
@@ -25,7 +29,11 @@ export default function QuizBoard() {
   const [isLoading, setIsLoading] = useState(true);
   const [quizStarted, setQuizStarted] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const toast = useToast(); // ✅ RIGHT
+  const { id: quizIdFromURL } = useParams();
+  const [accessDenied, setAccessDenied] = useState(null);
+
+
 
   const refreshData = async () => {
     try {
@@ -43,8 +51,13 @@ export default function QuizBoard() {
 
       setSubmittedQuizzes(submittedMap);
     } catch (err) {
-      toast({ title: 'Error', description: 'Failed to load quizzes', variant: 'destructive' });
-    } finally {
+      toast({
+        title: 'Cannot fetch quizzes',
+        description: 'Something went wrong while loading data.',
+        variant: 'destructive',
+      });
+
+          } finally {
       setIsLoading(false);
     }
   };
@@ -53,13 +66,21 @@ export default function QuizBoard() {
     refreshData();
   }, []);
 
+  useEffect(() => {
+    if (quizIdFromURL) {
+      console.log('Detected quizIdFromURL:', quizIdFromURL);
+      startQuiz(quizIdFromURL);
+    }
+  }, [quizIdFromURL]);
+  
+  
   const startQuiz = async (quizId) => {
     try {
       const verification = await verifyQuizAttempt(quizId);
       if (!verification.data.allowed) {
-        toast({ title: 'Cannot start quiz', description: verification.data.reason, variant: 'destructive' });
-        return;
-      }
+  setAccessDenied(verification.data.reason); // ← trigger the alert
+  return;
+}
 
       setIsLoading(true);
       const response = await getQuiz(quizId);
@@ -137,7 +158,7 @@ export default function QuizBoard() {
   const submittedQuizzesList = quizzes.filter(q => submittedQuizzes[q.id]);
 
   if (isLoading) return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-
+  
   if (quizStarted && activeQuiz) {
     const question = activeQuiz.questions[currentQuestion];
     return (
@@ -190,20 +211,28 @@ export default function QuizBoard() {
           <CardHeader><CardTitle>Available Quizzes</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {nonSubmittedQuizzes.map(quiz => (
+            {nonSubmittedQuizzes.map(quiz => {
+              const isExpired = quiz.deadline && new Date(quiz.deadline) < new Date();
+              return (
                 <div key={quiz.id} className="border rounded-lg p-4">
                   <div className="flex justify-between">
                     <div>
                       <h3 className="font-medium">{quiz.title}</h3>
                       <p className="text-sm text-gray-600">{quiz.description}</p>
                     </div>
-                    <Button size="sm" onClick={() => startQuiz(quiz.id)}>Start</Button>
+                    {isExpired ? (
+                      <Button size="sm" variant="destructive" disabled>Deadline Passed</Button>
+                    ) : (
+                      <Button size="sm" onClick={() => startQuiz(quiz.id)}>Start</Button>
+                    )}
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
                     {quiz.questions?.length || 0} questions • {quiz.deadline ? `Deadline: ${new Date(quiz.deadline).toLocaleString()}` : 'No deadline'}
                   </div>
                 </div>
-              ))}
+              );
+            })}
+
             </div>
           </CardContent>
         </Card>
@@ -244,6 +273,8 @@ export default function QuizBoard() {
         </Card>
       )}
 
+
+
       {quizzes.length === 0 && (
         <Card>
           <CardHeader><CardTitle>Available Quizzes</CardTitle></CardHeader>
@@ -252,6 +283,17 @@ export default function QuizBoard() {
           </CardContent>
         </Card>
       )}
+
+{accessDenied && (
+  <AccessDeniedAlert 
+    reason={accessDenied}
+    onClose={() => {
+      setAccessDenied(null);
+      navigate('/dashboard/student');
+    }}
+  />
+)}
+
     </div>
   );
 }

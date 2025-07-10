@@ -284,7 +284,7 @@ className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Button 
           variant="outline" 
           className="w-full border-green-200 hover:bg-green-50 hover:text-green-600"
-          onClick={() => navigate('/submissions')}
+          onClick={() => navigate('/tracking')}
         >
           {t('gradeSubmissions')}
         </Button>

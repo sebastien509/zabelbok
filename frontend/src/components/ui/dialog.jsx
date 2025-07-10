@@ -19,7 +19,7 @@ function DialogClose(props) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
-function DialogOverlay({
+function DialogOverlay({ 
   className,
   blur = true,
   ...props
@@ -42,6 +42,13 @@ function DialogContent({
   children,
   ...props
 }) {
+  const hasTitle =
+    React.Children.toArray(children).some(
+      (child) =>
+        child?.type?.displayName === 'DialogTitle' ||
+        child?.type?.name === 'DialogTitle'
+    );
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -57,17 +64,25 @@ function DialogContent({
           size === "full" && "max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]",
           className
         )}
-        {...props}>
+        {...props}
+      >
+        {!hasTitle && (
+          <DialogTitle className="sr-only">Dialog</DialogTitle>
+        )}
+
         {children}
+
         <DialogPrimitive.Close
-          className="absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
+          className="absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none"
+        >
           <XIcon className="size-5" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>
-  )
+  );
 }
+
 
 function DialogHeader({
   className,

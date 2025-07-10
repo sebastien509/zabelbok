@@ -11,11 +11,13 @@ import LanguageSwitcher from '@/languageSwitcher';
 import NotificationBell from '../notification/NotificationBell';
 import { useNotification } from '@/context/NotificationContext';
 import { useTranslation, Trans } from 'react-i18next';
+import { useAuth } from '@/components/auth/AuthProvider'; // adjust import
+
+
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [courses, setCourses] = useState([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
@@ -23,17 +25,15 @@ export default function Sidebar() {
   const { unreadCount } = useNotification();
   const { t } = useTranslation();
 
+
+  const { user } = useAuth();
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      api.get('/auth/me')
-        .then(res => setUser(res.data))
-        .catch(() => {
-          localStorage.clear();
-          navigate('/login');
-        });
+    if (!user) {
+      navigate('/login');
     }
-  }, [navigate]);
+  }, [user, navigate]);
+
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -94,11 +94,10 @@ export default function Sidebar() {
     if (coursesError) {
       return <div className="pl-4 py-2 text-sm text-red-500">{coursesError}</div>;
     }
-
-    if (courses.length === 0) {
+    if (!Array.isArray(courses) || courses.length === 0) {
       return <div className="pl-4 py-2 text-sm text-gray-500">{t('noCourses')}</div>;
     }
-
+    
     const basePath = user.role === 'student' ? '/student/courses' : '/courses';
     const filteredCourses = user.role === 'professor' 
       ? courses.filter(course => course.professor_id === user.id)
@@ -155,13 +154,9 @@ export default function Sidebar() {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
 
-          <div className="flex items-center justify-between px-1 py-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+          <div className=" items-center justify-between px-1 py-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg w-auto">
             <NotificationBell className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors" />
-            <NavLink
-              to="/notifications"
-              label={<Trans>notifications</Trans>}
-              className="hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-md px-3 py-2 transition-colors"
-            />
+      
           </div>
 
 

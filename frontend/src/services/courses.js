@@ -2,8 +2,11 @@
 import { api } from './api';
 
 // All Courses
-export const getAllCourses = () => api.get('/courses');
-export const getCourse = (id) => api.get(`/courses/${id}`);
+export const getAllCourses = async () => {
+    const res = await api.get('/courses');
+    return res.data; // ✅ returns array only
+  };
+  export const getCourse = (id) => api.get(`/courses/${id}`);
 export const getCourseDetails = (id) => api.get(`/courses/${id}`); // ⬅️ used in CourseDetails.jsx
 
 // Create, Update, Delete
@@ -15,3 +18,25 @@ export const enrollStudentsToCourse = (courseId, studentIds) =>
     api.post(`/courses/${courseId}/enroll`, { student_ids: studentIds });
   
 export const getEnrolledStudents = () => api.get('/auth/my-students');
+export const getCoursesByProfessor = (id) => api.get(`courses/`);
+
+
+export const getCourseById = (id) => api.get(`/courses/${id}`);
+
+// ✅ Get role-specific courses (professor, student, etc.)
+export async function getMyCourses() {
+    try {
+      const res = await api.get('/courses');
+      return res.data;
+    } catch (err) {
+      console.error('[getMyCourses Error]', err);
+      return [];
+    }
+  }
+  
+  // services/courses.js
+export const getCoursesBySchool = async (schoolId = 1) => {
+    const res = await api.get(`/courses/school/${schoolId}`);
+    return res.data;
+  };
+  

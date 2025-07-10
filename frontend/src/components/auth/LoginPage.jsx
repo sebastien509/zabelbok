@@ -2,9 +2,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider'; // adjust path if needed
-import axios from 'axios';
+import { api } from '@/services/api';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -12,18 +14,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { t } = useTranslation();
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const apiUrl = 'http://localhost:5050'; // Hardcoded API URL
-      const res = await axios.post(`${apiUrl}/auth/login`, {
-        email,
-        password,
-      });
+      const res = await api.post('/auth/login', { email, password });
+    
   
       const { access_token, role } = res.data;
       login(access_token, role);
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`; 
+
+
   
       // Navigate based on the role
       if (role === 'admin') {
@@ -68,8 +73,9 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
             </motion.div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">Welcome Back</h1>
-            <p className="text-blue-100 mt-1 text-sm sm:text-base">Sign in to your account</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">{t('welcomeBack')}
+            </h1>
+            <p className="text-blue-100 mt-1 text-sm sm:text-base">{t('signInPrompt')}</p>
           </div>
   
           <div className="p-6 sm:p-8">
@@ -79,7 +85,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
                 <input
                   id="email"
                   type="email"
@@ -96,7 +102,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
                 <input
                   id="password"
                   type="password"
@@ -121,7 +127,7 @@ export default function LoginPage() {
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    Remember me
+                    {t("rememberMe")}
                   </label>
                 </motion.div>
   
@@ -131,7 +137,7 @@ export default function LoginPage() {
                   transition={{ delay: 0.4 }}
                 >
                   <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
-                    Forgot password?
+                    {t('forgotPassword')}
                   </Link>
                 </motion.div>
               </div>
@@ -155,7 +161,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                Sign In
+                {t('signIn')}
               </motion.button>
             </form>
   
@@ -165,9 +171,9 @@ export default function LoginPage() {
               transition={{ delay: 0.6 }}
               className="mt-6 text-center text-sm text-gray-500"
             >
-              Don't have an account?{' '}
+             {t('dontHaveAccount')}{' '}
               <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                Register now
+              {t('registerNow')}
               </Link>
             </motion.div>
           </div>

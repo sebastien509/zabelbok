@@ -11,12 +11,19 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      api.get('/me')
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`; // ✅ ensure auth header
+      api.get('/auth/me')
         .then(res => setUser(res.data))
-        .catch(() => localStorage.removeItem('token'));
+        .catch(() => {
+          localStorage.removeItem('token');
+          setUser(null);
+        })
+        .finally(() => setLoading(false)); // ✅ only stop loading after finished
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
+  
 
   const login = (token) => {
     localStorage.setItem('token', token);
@@ -29,9 +36,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+    {children}
+  </AuthContext.Provider>
   );
 };
 

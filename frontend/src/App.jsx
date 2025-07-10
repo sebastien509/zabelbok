@@ -3,8 +3,13 @@ import { useEffect, useState } from 'react';
 import NetworkStatus from './components/system/NetworkStatus';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import GlobalBackgroundSync from './components/system/GlobalBackgroundSync';
+import { syncCompletedModules } from '@/components2/moduleSync';
+
 import Sidebar from './components/system/Sidebar';
 import i18n from 'i18next';
+
+import RedirectIfLoggedIn from './components/auth/RedirectIfLoggedIn';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 
 // Dashboards
@@ -20,6 +25,10 @@ import LandingPage from './components/auth/LandingPage';
 // Shared Routes
 
 import OfflineLibraryViewer from './components/offline/viewers/OfflineLibraryViewer';
+import NotificationPage from './components/notification/NotificationPage';
+
+
+
 
 // Admin
 import ManageSchools from './routes/admin/ManageSchools';
@@ -58,105 +67,237 @@ import QuizBoard from './routes/student/QuizBoard';
 import StudentMessageDashboard from './routes/student/StudentMessageDashboard';
 import RoleBasedOfflinePage from './components/system/RoleBasedOfflinePage';
 
+
+import DualLandingPage from './components2/pages/DualLandingPage';
+
+// E-strateji (Creator / Learner) imports
+import CreatorDashboard from './components2/pages/CreatorDashboard';
+import LearnerDashboard from './components2/pages/LearnerDashboard';
+import CreatorPage from './components2/pages/CreatorPage';
+import ModuleViewer from './learner/ModuleViewer';
+import LandingPageE from './components2/pages/LandingPage';
+import CreatorSignUp from './components2/pages/CreatorSignUp';
+import Login from './components2/pages/Login';
+import LearnerSignUp from './components2/pages/LearnerSignUp';
+import LearnerCourse from './components2/pages/LearnerCourse';
+
+
+
+import { useAuth } from '@/components/auth/AuthProvider'; // adjust path
+
+
 export default function App() {
-  const [role, setRole] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const { user, isLoading } = useAuth(); // 👈 include isLoading
+// 🔁 Dynamically override role based on school_id
+const adjustedRole = user?.school_id === 1
+  ? user.role === 'professor'
+    ? 'creator'
+    : user.role === 'student'
+      ? 'learner'
+      : user.role
+  : user?.role;
+  const token = user?.token;
 
   useEffect(() => {
-   
-      const lng = localStorage.getItem('i18nextLng') || 'fr';
-      i18n.changeLanguage(lng);
-      console.log('Language changed to', lng);
+    if (!user) return;
+  
+    const preferredLanguage = user?.language || localStorage.getItem('i18nextLng') || 'fr';
+i18n.changeLanguage(preferredLanguage);
+  
+    i18n.changeLanguage(preferredLanguage);
+    console.log('✅ Language loaded from user:', preferredLanguage);
+  
+    window.addEventListener('online', syncCompletedModules);
+    return () => window.removeEventListener('online', syncCompletedModules);
+  }, [user]);
 
-
-    
-    const storedRole = localStorage.getItem('role');
-    const storedToken = localStorage.getItem('token');
-    setRole(storedRole);
-    setToken(storedToken);
-    setLoading(false);
-  }, []);
-
-  if (loading) return null; 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
+  const AmaiderLayoutWrapper = ({ children }) => (
+    <div className="flex h-screen overflow-hidden">
+      {user && <Sidebar />}
+      <main className="flex-1 p-4 overflow-y-auto">
+        {children}
+      </main>
+    </div>
+  );
+  
+  
 
   return (
     <>
       <NetworkStatus />
       <GlobalBackgroundSync />
       <PWAInstallPrompt />
-      <div className="flex h-screen overflow-hidden">
-        {token && <Sidebar />}
-        <main className="flex-1 p-4 overflow-y-auto">
+     
           <Routes>
-            <Route path="/" element={<LandingPage />} />
 
-            {/* Auth */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            {/* Public routes */}
+            <Route path="/dual" element={ 
+               <RedirectIfLoggedIn>
+                <DualLandingPage />  
+                </RedirectIfLoggedIn>
+              } />
 
-            {/* Dashboards */}
-            <Route path="/dashboard/admin" element={<AdminDashboard />} />
-            <Route path="/dashboard/professor" element={<ProfessorDashboard />} />
-            <Route path="/dashboard/student" element={<StudentDashboard />} />
+            <Route path="/" element={<LandingPageE/>}/>
 
-            {/* Admin Only */}
-            <Route path="/schools" element={<ManageSchools />} />
-            <Route path="/users" element={<ManageUsers />} />
-            <Route path="/courses" element={<CoursesOverview />} />
-            <Route path="/books" element={<BooksViewOnly />} />
-            <Route path="/lectures" element={<LecturesViewOnly />} />
-            <Route path="/quizzes" element={<ExercisesAndQuizzesViewOnly />} />
-            <Route path="/analytics" element={<StudentAnalytics />} />
-            <Route path="/settings" element={<AdminSettings />} />
+            {/* <Route path="/amaider/login" element={
+            <RedirectIfLoggedIn>
+              <LoginPage />
+            </RedirectIfLoggedIn>
+          } /> */}
 
-            {/* Professor Only */}
-            <Route path="/my-courses" element={<MyCourses />} />
-            <Route path="/courses/:id" element={<CourseDetails />} />
-            <Route path="/students" element={<MyStudents />} />
-            <Route path="/books/manage" element={<ManageBookChapters />} />
-            <Route path="/lectures/manage" element={<ManageLectures />} />
-            <Route path="/exercises" element={<ProfessorExercises />} />
-            <Route path="/quizzes/manage" element={<ProfessorQuizzes />} />
-            <Route path="/tracking" element={<ProfessorTracking />} />
-            <Route path="/analytics/professor" element={<CourseAnalytics />} />
-            <Route path="/settings/professor" element={<ProfessorSettings />} />
-            <Route path="/professor/message" element={<ProfessorMessageDashboard />} />
-            <Route path="/offline/professor" element={<RoleBasedOfflinePage />} />
+            <Route path="/creator/:id" element={<CreatorPage />} />
+
+            {/* Amaider Auth */}
+            <Route path="/amaider/login" element={
+            <RedirectIfLoggedIn>
+              <LoginPage />
+            </RedirectIfLoggedIn>
+          } />            
+          
+            <Route path="/register" element={
+            <RedirectIfLoggedIn>
+              <RegisterPage />
+            </RedirectIfLoggedIn>
+          } />
 
 
+            {/* E-strateji Auth */}
+            <Route path="/login" element={
+            <RedirectIfLoggedIn>
+              <Login />
+            </RedirectIfLoggedIn>
+          } />           
+          
+          <Route path="/signup/creator" element={
+          <RedirectIfLoggedIn>
+            <CreatorSignUp />
+          </RedirectIfLoggedIn>
+        } />
+
+          <Route path="/signup/learner" element={
+            <RedirectIfLoggedIn>
+              <LearnerSignUp />
+            </RedirectIfLoggedIn>
+          } />
 
 
+            {/* E-strateji  Private */}
 
-            {/* Student Only */}
-            <Route path="/student/my-courses" element={<StudentCourses />} />
-            <Route path="/books/read" element={<StudentBooks />} />
-            <Route path="/lectures/watch" element={<StudentLectures />} />
-            <Route path="/exercises/solve" element={<StudentExercises />} />
-            <Route path="/progress" element={<ProgressTracker />} />
-            <Route path="/settings/student" element={<StudentSettings />} />
-            <Route path="/student/courses/:id" element={<StudentCourseDetails />} />
-            <Route path="/student/Quiz" element={<QuizBoard/>}  />
-            <Route path="/student/message" element={<StudentMessageDashboard />} />
-            <Route path="/offline/student" element={<RoleBasedOfflinePage />} />
+            {adjustedRole === 'creator' && (
+            <Route path="/creator/*" element={<CreatorDashboard />} />
+          )}
+
+          {adjustedRole === 'learner' && (
+          <Route path="/learner/*" element={<LearnerDashboard />} />
+        )}
+        
 
 
+          <Route path="/creator/dashboard" element={
+        <ProtectedRoute allowedRoles={['creator']}>
+          <CreatorDashboard />
+        </ProtectedRoute>
+      } />            
+      {/* 🔵 E-strateji Public + Auth Pages */}
+            {/* 🟢 Learner-Facing Course Pages */}
+            <Route path="/learner/courses/:id" element={<LearnerCourse />} />
 
+            <Route path="/learner/dashboard" element={
+          <ProtectedRoute allowedRoles={['learner']}>
+            <LearnerDashboard />
+          </ProtectedRoute>
+        } />            
 
-            {/* Shared */}
-      
-            {/* <Route path="/offline/" element={<RoleBasedOfflinePage />} /> */}
+            <Route path="/modules/:id" element={<ModuleViewer />} />
      
 
 
-            {/* Redirects */}
-            {role === 'admin' && <Route path="*" element={<Navigate to="/dashboard/admin" />} />}
-            {role === 'professor' && <Route path="*" element={<Navigate to="/dashboard/professor" />} />}
-            {role === 'student' && <Route path="*" element={<Navigate to="/dashboard/student" />} />}
-            {!role && <Route path="*" element={<Navigate to="/" />} />}
+
+
+
+
+{/* ALl other Amaider routes  */}
+<Route element={
+  <ProtectedRoute allowedRoles={['admin', 'professor', 'student']}>
+    <AmaiderLayoutWrapper />
+  </ProtectedRoute>
+}>
+  {/* Dashboards */}
+  <Route path="/dashboard/admin" element={<AdminDashboard />} />
+  <Route path="/dashboard/professor" element={<ProfessorDashboard />} />
+  <Route path="/dashboard/student" element={<StudentDashboard />} />
+
+  {/* Admin only */}
+  <Route path="/schools" element={<ManageSchools />} />
+  <Route path="/users" element={<ManageUsers />} />
+  <Route path="/courses" element={<CoursesOverview />} />
+  <Route path="/books" element={<BooksViewOnly />} />
+  <Route path="/lectures" element={<LecturesViewOnly />} />
+  <Route path="/quizzes" element={<ExercisesAndQuizzesViewOnly />} />
+  <Route path="/analytics" element={<StudentAnalytics />} />
+  <Route path="/settings" element={<AdminSettings />} />
+
+  {/* Professor only */}
+  <Route path="/my-courses" element={<MyCourses />} />
+  <Route path="/courses/:id" element={<CourseDetails />} />
+  <Route path="/students" element={<MyStudents />} />
+  <Route path="/books/manage" element={<ManageBookChapters />} />
+  <Route path="/lectures/manage" element={<ManageLectures />} />
+  <Route path="/exercises" element={<ProfessorExercises />} />
+  <Route path="/quizzes/manage" element={<ProfessorQuizzes />} />
+  <Route path="/tracking" element={<ProfessorTracking />} />
+  <Route path="/analytics/professor" element={<CourseAnalytics />} />
+  <Route path="/settings/professor" element={<ProfessorSettings />} />
+  <Route path="/professor/message" element={<ProfessorMessageDashboard />} />
+  <Route path="/offline/professor" element={<RoleBasedOfflinePage />} />
+
+  {/* Student only */}
+  <Route path="/student/my-courses" element={<StudentCourses />} />
+  <Route path="/books/read" element={<StudentBooks />} />
+  <Route path="/lectures/content" element={<StudentLectures />} />
+  <Route path="/exercise/:id" element={<StudentExercises />} />
+  <Route path="/quiz/:id" element={<QuizBoard />} />
+  <Route path="/exercises/solve" element={<StudentExercises />} />
+  <Route path="/student/Quiz" element={<QuizBoard />} />
+  <Route path="/progress" element={<ProgressTracker />} />
+  <Route path="/settings/student" element={<StudentSettings />} />
+  <Route path="/student/courses/:id" element={<StudentCourseDetails />} />
+  <Route path="/student/message" element={<StudentMessageDashboard />} />
+  <Route path="/offline/student" element={<RoleBasedOfflinePage />} />
+
+  {/* Shared */}
+  <Route path="/notifications" element={<NotificationPage />} />
+</Route>
+
+          
+
+          {/* {!adjustedRole && <Route path="*" element={<Navigate to="/" />} />} */}
+
+<Route path="*" element={
+  user ? (
+    <Navigate to={
+      adjustedRole === 'admin' ? '/dashboard/admin'
+      : adjustedRole === 'professor' ? '/dashboard/professor'
+      : adjustedRole === 'student' ? '/dashboard/student'
+      : adjustedRole === 'creator' ? '/creator/dashboard'
+      : adjustedRole === 'learner' ? '/learner/dashboard'
+      : '/dual'
+    } />
+  ) : <Navigate to="/" />
+} />
+
           </Routes>
-        </main>
-      </div>
     </>
   );
 }

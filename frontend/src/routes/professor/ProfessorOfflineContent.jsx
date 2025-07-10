@@ -71,6 +71,28 @@ export default function ProfessorOfflineContent() {
       </div>
 
       {/* Control Panel Toggle + View Controls */}
+      {activeControl && (
+  <div className="w-full bg-white border-t shadow-inner transition-all duration-300 max-h-[300px] overflow-y-auto">
+    <div className="max-w-6xl mx-auto p-4 space-y-4">
+      {/* Panel Content */}
+      {renderControlContent()}
+
+      {/* Collapse Toggle */}
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setActiveControl(null)}
+          className="text-gray-500 hover:text-gray-700 transition group"
+        >
+          <ChevronDown className="h-5 w-5 group-hover:translate-y-1 transition-transform duration-300" />
+          <span className="sr-only">Collapse</span>
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
       <div className="w-full bg-white border-t p-4 shadow-md z-10">
         <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto">
           {/* Dropdown + Refresh */}
@@ -150,13 +172,7 @@ export default function ProfessorOfflineContent() {
       </div>
 
       {/* Conditional Expanded Panel */}
-      {activeControl && (
-        <div className="w-full bg-white border-t shadow-inner transition-all duration-300 max-h-[300px] overflow-y-auto">
-          <div className="max-w-6xl mx-auto p-4">
-            {renderControlContent()}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
