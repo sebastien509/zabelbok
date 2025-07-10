@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { api } from '@/services/api';
-import { enqueueOffline } from '@/utils/offlineQueue';
+import { enqueueOffline } from '@/services/offlineQueue';
 import { nanoid } from 'nanoid';
 
 export default function FullQuizBuilder({ courseId, onClose }) {

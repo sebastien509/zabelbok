@@ -8,7 +8,7 @@ import { getAllCourses } from '@/services/courses';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/Table';
 import { PlusCircle, Pencil, Trash2, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { FiCalendar, FiUsers, FiBookOpen } from 'react-icons/fi';
