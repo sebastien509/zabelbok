@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getCourseAnalytics } from '@/services/analytics';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, BookOpen, Award, CalendarCheck, Activity } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
