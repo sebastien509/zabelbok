@@ -12,8 +12,11 @@ def create_app():
     # CORS(app, origins=["http://localhost:5173"])  # Allow requests only from your frontend    
     app.config.from_object('config.Config')
 
-    CORS(app, supports_credentials=True, origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")]) # for Production 
-
+    CORS(app, supports_credentials=True, origins=[
+    "http://localhost:5173",
+    "https://e-strateji.vercel.app"
+    ], origins_regex=r"^https:\/\/.*\.vercel\.app$")
+    
     # Init extensions
     db.init_app(app)
     migrate.init_app(app, db)
