@@ -9,24 +9,32 @@ import yaml
 def create_app():
     load_dotenv()
     app = Flask(__name__)
-    # CORS(app, origins=["http://localhost:5173"])  # Allow requests only from your frontend    
     app.config.from_object('config.Config')
 
-    CORS(app, supports_credentials=True, origins=[
-    "http://localhost:5173",
-    "https://e-strateji.vercel.app"], origins_regex=r"^https:\/\/e-strateji.*\.vercel\.app$")
+    # ✅ Load origins from .env
+    raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173")
+    origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    exact_origins = [o for o in origins_list if "*" not in o]
+    wildcard_patterns = [o.replace(".", r"\.").replace("*", r".*") for o in origins_list if "*" in o]
+    origins_regex = "|".join(wildcard_patterns) if wildcard_patterns else None
 
-    # Init extensions
+    # ✅ Apply CORS
+    CORS(app, supports_credentials=True,
+         origins=exact_origins if exact_origins else None,
+         origins_regex=origins_regex if origins_regex else None)
+
+    # ✅ Init extensions
     db.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
     jwt.init_app(app)
 
+    # ✅ Swagger config
     with open('app/docs/swagger.yaml', 'r') as f:
         swagger_template = yaml.safe_load(f)
 
     swagger_config = {
-        "headers": [],  # ✅ Add this line
+        "headers": [],
         "specs": [
             {
                 "endpoint": 'apispec_1',
@@ -42,14 +50,13 @@ def create_app():
 
     Swagger(app, template=swagger_template, config=swagger_config)
 
-
-    # Log environment
+    # ✅ Logging CORS setup
     app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
-    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').strip()
-    cors_origins = [frontend_url, 'https://e-strateji.vercel.app']
-    app.logger.info(f"🌐 All CORS Origins: {cors_origins}")
+    app.logger.info(f"🌐 Exact CORS Origins: {exact_origins}")
+    if origins_regex:
+        app.logger.info(f"🌐 Wildcard CORS Regex: {origins_regex}")
 
-    # Register routes
+    # ✅ Register blueprints
     from app.routes.auth_routes import auth_bp
     from app.routes.course_routes import course_bp
     from app.routes.lecture_routes import lecture_bp
@@ -67,36 +74,15 @@ def create_app():
     from app.routes.upload_bp import upload_bp
     from app.routes.enrollments_routes import enrollment_bp
 
-
-
-
-    # app.register_blueprint(auth_bp)
-    # app.register_blueprint(course_bp)
-    # app.register_blueprint(lecture_bp)
-    # app.register_blueprint(book_bp)
-    # app.register_blueprint(exercise_bp)
-    # app.register_blueprint(message_bp)
-    # app.register_blueprint(offline_bp)
-    # app.register_blueprint(quiz_bp)
-    # app.register_blueprint(result_bp)
-    # app.register_blueprint(school_bp)
-    # app.register_blueprint(notification_bp)
-    # app.register_blueprint(analytics_bp)
-    # app.register_blueprint(progress_bp)
-    # app.register_blueprint(module_bp)
-    # app.register_blueprint(upload_bp)
-
-
     blueprints = [
         auth_bp, course_bp, lecture_bp, book_bp, exercise_bp,
         message_bp, offline_bp, quiz_bp, result_bp, school_bp,
-        notification_bp, analytics_bp, progress_bp, module_bp, upload_bp, enrollment_bp
+        notification_bp, analytics_bp, progress_bp, module_bp,
+        upload_bp, enrollment_bp
     ]
 
     for bp in blueprints:
         app.register_blueprint(bp)
         app.logger.info(f"📦 Registered blueprint: {bp.name}")
-        
 
     return app
-
