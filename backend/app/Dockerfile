@@ -9,7 +9,7 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-ENV PORT=8000
-EXPOSE $PORT
+
+EXPOSE 8000  
 
 CMD ["sh", "-c", "exec gunicorn -w 4 -b 0.0.0.0:$PORT 'app:create_app()'"]
