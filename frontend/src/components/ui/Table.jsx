@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export const Table = React.forwardRef(({ className, striped = false, hover = true, ...props }, ref) => (
   <div className="w-full overflow-auto">
@@ -60,7 +60,7 @@ export const TableRow = React.forwardRef(({ className, selected = false, ...prop
     ref={ref}
     className={cn(
       "border-b transition-colors",
-      "hover:bg-gray-100 dark:hover:bg-gray-800/50",
+      hover && "hover:bg-gray-100 dark:hover:bg-gray-800/50",
       selected && "bg-gray-100 dark:bg-gray-800",
       className
     )}
@@ -69,14 +69,14 @@ export const TableRow = React.forwardRef(({ className, selected = false, ...prop
 ));
 TableRow.displayName = "TableRow";
 
-export const TableHead = React.forwardRef(({ className, align = 'left', ...props }, ref) => (
+export const TableHead = React.forwardRef(({ className, align = "left", ...props }, ref) => (
   <th
     ref={ref}
     className={cn(
       "h-12 px-4 align-middle font-medium text-gray-500 dark:text-gray-400 [&:has([role=checkbox])]:pr-0",
-      align === 'left' && 'text-left',
-      align === 'center' && 'text-center',
-      align === 'right' && 'text-right',
+      align === "left" && "text-left",
+      align === "center" && "text-center",
+      align === "right" && "text-right",
       className
     )}
     {...props}
@@ -84,14 +84,14 @@ export const TableHead = React.forwardRef(({ className, align = 'left', ...props
 ));
 TableHead.displayName = "TableHead";
 
-export const TableCell = React.forwardRef(({ className, align = 'left', ...props }, ref) => (
+export const TableCell = React.forwardRef(({ className, align = "left", ...props }, ref) => (
   <td
     ref={ref}
     className={cn(
       "p-4 align-middle [&:has([role=checkbox])]:pr-0",
-      align === 'left' && 'text-left',
-      align === 'center' && 'text-center',
-      align === 'right' && 'text-right',
+      align === "left" && "text-left",
+      align === "center" && "text-center",
+      align === "right" && "text-right",
       className
     )}
     {...props}
@@ -99,13 +99,13 @@ export const TableCell = React.forwardRef(({ className, align = 'left', ...props
 ));
 TableCell.displayName = "TableCell";
 
-export const TableCaption = React.forwardRef(({ className, position = 'bottom', ...props }, ref) => (
+export const TableCaption = React.forwardRef(({ className, position = "bottom", ...props }, ref) => (
   <caption
     ref={ref}
     className={cn(
       "text-sm text-gray-500 dark:text-gray-400",
-      position === 'top' && 'mb-4',
-      position === 'bottom' && 'mt-4',
+      position === "top" && "mb-4",
+      position === "bottom" && "mt-4",
       className
     )}
     {...props}
@@ -113,8 +113,7 @@ export const TableCaption = React.forwardRef(({ className, position = 'bottom', 
 ));
 TableCaption.displayName = "TableCaption";
 
-// Default export with all components for convenience
-const TableComponents = {
+export default {
   Table,
   TableHeader,
   TableBody,
@@ -124,5 +123,3 @@ const TableComponents = {
   TableCell,
   TableCaption,
 };
-
-export default TableComponents;
