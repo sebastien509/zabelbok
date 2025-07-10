@@ -71,3 +71,13 @@ export const offlineQueue = {
 window.addEventListener('online', () => {
   offlineQueue.retry();
 });
+
+export const enqueueOffline = (key, payload) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = [...existing, payload];
+    localStorage.setItem(key, JSON.stringify(updated));
+  } catch (err) {
+    console.error(`[OfflineQueue] Failed to queue ${key}`, err);
+  }
+};
