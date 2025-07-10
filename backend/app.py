@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flasgger import Swagger
 from flask_cors import CORS
-from backend.app.config import Config
+from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
