@@ -1,23 +1,15 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
-from flasgger import Swagger
-from flask_cors import CORS
-from config import Config
+# from flask import Flask
+# from flask_sqlalchemy import SQLAlchemy
+# from flask_jwt_extended import JWTManager
+# from flasgger import Swagger
+# from flask_cors import CORS
+# from config import Config
+from app import create_app
 
-app = Flask(__name__)
-app.config.from_object(Config)
 
-db = SQLAlchemy(app)
-jwt = JWTManager(app)
-swagger = Swagger(app)
-CORS(app)
+app = create_app()
 
 # Simple health check
 @app.route("/")
 def home():
-    return "✅ Haiti EduPlatform is live on Railway!"
-
-# Register routes (optional)
-from routes import main as main_routes
-app.register_blueprint(main_routes)
+    return "✅ E-strateji is live on Render!"
