@@ -14,8 +14,8 @@ def create_app():
 
     CORS(app, supports_credentials=True, origins=[
     "http://localhost:5173",
-    "https://e-strateji.vercel.app"
-    ])
+    "https://e-strateji.vercel.app"], origins_regex=r"^https:\/\/e-strateji.*\.vercel\.app$")
+
     # Init extensions
     db.init_app(app)
     migrate.init_app(app, db)
