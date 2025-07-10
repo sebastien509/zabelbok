@@ -8,7 +8,7 @@ import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
 import { Loader2, File, UploadCloud, X } from 'lucide-react';
 import { createLecture, updateLecture, getLecture } from '@/services/lectures';
 import { api } from '@/services/api';
-import { enqueueOffline } from '@/utils/offlineQueue';
+import { enqueueOffline } from '@/services/offlineQueue';
 
 export default function LectureModal({ 
   open, 

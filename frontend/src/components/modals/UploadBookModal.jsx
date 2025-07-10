@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/services/api';
 import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
-import { enqueueOffline } from '@/utils/offlineQueue';
+import { enqueueOffline } from '@/services/offlineQueue';
 
 export default function UploadBookModal({ isOpen, onClose, courseId }) {
   const [title, setTitle] = useState('');

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
 import { api } from '@/services/api';
-import { enqueueOffline } from '@/utils/offlineQueue';
+import { enqueueOffline } from '@/services/offlineQueue';
 
 export default function ExerciseModal({ courseId, exercise, onClose, onSuccess }) {
   const [form, setForm] = useState({
