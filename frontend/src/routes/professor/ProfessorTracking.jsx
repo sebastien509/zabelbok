@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getStudentPerformance, getQuizSubmissionsByStudent, getExerciseSubmissionsByStudent, gradeQuizSubmission, gradeExerciseSubmission } from '@/services/studentPerformance';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/Table';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components2/ui/skeleton';
