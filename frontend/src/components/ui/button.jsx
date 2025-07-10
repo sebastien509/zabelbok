@@ -112,9 +112,6 @@ Button.displayName = "Button"
 
 export { Button, buttonVariants }
 
-// src/components/ui/button.jsx
-import * as React from "react";
-import { cn } from "@/lib/utils";
 
 const Button = React.forwardRef(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
