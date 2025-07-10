@@ -24,8 +24,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const apiUrl = 'http://localhost:5050';
-      await api.post(`${apiUrl}/auth/register`, form);
+      const BASE_URL = import.meta.env.VITE_API_URL;
+      await api.post(`${BASE_URL}/auth/register`, form);
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please check your data.');
