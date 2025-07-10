@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { getStudentPerformance, getQuizSubmissionsByStudent, getExerciseSubmissionsByStudent, gradeQuizSubmission, gradeExerciseSubmission } from '@/services/studentPerformance';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/Table';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { Skeleton } from '@/components2/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/button';
 import { BookOpen, BarChart2, CheckCircle, User, Mail, Award, Activity, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
