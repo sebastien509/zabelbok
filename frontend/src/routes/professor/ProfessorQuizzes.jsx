@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { PlusCircle, Pencil, Trash2, FileText } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components2/ui/skeleton';
 import { format } from 'date-fns';
 import { FiCalendar, FiUsers, FiBookOpen } from 'react-icons/fi';
 import FullQuizBuilder from '@/components/quizzes/FullQuizBuilder';

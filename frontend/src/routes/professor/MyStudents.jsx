@@ -11,7 +11,7 @@ import {
   Mail, BookOpen, Award, FileText, Users
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components2/ui/skeleton';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
 import {

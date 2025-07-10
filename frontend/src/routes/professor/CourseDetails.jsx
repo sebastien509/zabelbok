@@ -7,7 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { BookOpen, FileText, ClipboardList, File, Users, Calendar, Clock, Bookmark, Award, GraduationCap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components2/ui/skeleton';
 import { format } from 'date-fns';
 
 export default function CourseDetails() {
