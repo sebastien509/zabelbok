@@ -4,7 +4,7 @@
 # from flasgger import Swagger
 # from flask_cors import CORS
 # from config import Config
-from wsgi import create_app
+from app import create_app
 
 
 app = create_app()
