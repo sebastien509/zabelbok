@@ -4,7 +4,7 @@ import { register, login, updateProfile } from '@/services/auth';
 import { Input } from '@/components2/ui/input';
 import { Button } from '@/components2/bento-UI/button';
 import { toast } from '@/components2/bento-UI/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components2/bento-ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components2/bento-UI/dialog';
 import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
 import Lottie from 'lottie-react';
 import bgAnimation from '@/assets/bgAnimation.json';
