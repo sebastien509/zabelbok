@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 ENV PORT=8000
 EXPOSE $PORT
 
-CMD sh -c "gunicorn -w 4 -b 0.0.0.0:${PORT} 'app:create_app()'"
+CMD ["sh", "-c", "exec gunicorn -w 4 -b 0.0.0.0:$PORT 'app:create_app()'"]
