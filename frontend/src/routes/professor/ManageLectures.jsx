@@ -30,7 +30,7 @@ export default function ManageLectures() {
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
     return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
