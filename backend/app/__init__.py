@@ -19,9 +19,13 @@ def create_app():
     origins_regex = "|".join(wildcard_patterns) if wildcard_patterns else None
 
     # ✅ Apply CORS
-    CORS(app, supports_credentials=True,
-         origins=exact_origins if exact_origins else None,
-         origins_regex=origins_regex if origins_regex else None)
+
+# Allow credentials + Vercel previews using regex
+    CORS(
+        app,
+        supports_credentials=True,
+        origins_regex=r"^https:\/\/(e-strateji\.vercel\.app|e-strateji(-[a-z0-9]+)?-sebastien-fenelons-projects\.vercel\.app)$"
+    )
 
     # ✅ Init extensions
     db.init_app(app)
