@@ -5,11 +5,30 @@ from flask import Flask
 import os
 from app.extensions import db, migrate, bcrypt, jwt
 import yaml
+import logging
+
+
 
 def create_app():
     load_dotenv()
     app = Flask(__name__)
     app.config.from_object('config.Config')
+    app.config["ENV"] = "production"
+    app.config["DEBUG"] = False
+    app.config["TESTING"] = False
+
+
+    # ✅ Logging setup
+    if not app.debug:
+        gunicorn_logger = logging.getLogger("gunicorn.error")
+        if gunicorn_logger.handlers:
+            app.logger.handlers = gunicorn_logger.handlers
+            app.logger.setLevel(gunicorn_logger.level)
+        else:
+            app.logger.setLevel(logging.INFO)
+
+    app.logger.info("✅ Logging system initialized")
+
 
     # ✅ Load origins from .env
     raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173")
@@ -60,6 +79,8 @@ def create_app():
     if origins_regex:
         app.logger.info(f"🌐 Wildcard CORS Regex: {origins_regex}")
 
+
+
     # ✅ Register blueprints
     from app.routes.auth_routes import auth_bp
     from app.routes.course_routes import course_bp
@@ -88,5 +109,10 @@ def create_app():
     for bp in blueprints:
         app.register_blueprint(bp)
         app.logger.info(f"📦 Registered blueprint: {bp.name}")
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.exception(f"❗️Unhandled Exception: {str(e)}")
+        return {"error": "Internal server error"}, 500
 
     return app
