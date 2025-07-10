@@ -47,7 +47,7 @@ def create_app():
     # Log environment
     app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').strip()
-    app.logger.info(f"🌐 All CORS Origins: {[repr(o) for o in [frontend_url, 'https://e-strateji.vercel.app']]}")
+    app.logger.info(f"🌐 All CORS Origins: {[repr(frontend_url), 'https://e-strateji.vercel.app']}")
 
 
     # Register routes
