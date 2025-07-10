@@ -3,30 +3,49 @@ import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 
 const ffmpeg = createFFmpeg({ log: true });
 
-export async function compressVideo(file, crf = 28) {
+export async function compressVideo(file, title = 'video', crf = 28) {
   if (!ffmpeg.isLoaded()) {
     await ffmpeg.load();
   }
 
-  try {
-    ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(file));
+  const inputName = 'input.mp4';
+  const outputName = 'output.mp4';
 
-    // Compress to output.mp4 with CRF setting
+  try {
+    // Step 1: Write input file to FFmpeg FS
+    ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+
+    // Step 2: Run compression
     await ffmpeg.run(
-      '-i', 'input.mp4',
+      '-i', inputName,
       '-vcodec', 'libx264',
       '-crf', crf.toString(),
-      'output.mp4'
+      outputName
     );
 
-    const data = ffmpeg.FS('readFile', 'output.mp4');
+    // Step 3: Read output file
+    const data = ffmpeg.FS('readFile', outputName);
 
-    return new File([data.buffer], 'compressed.mp4', { type: 'video/mp4' });
+    // Step 4: Return as new File object
+    return new File([data.buffer], `${slugify(title)}-compressed.mp4`, {
+      type: 'video/mp4',
+    });
+
   } catch (err) {
     console.error('[compressVideo] Compression failed:', err);
     throw err;
   } finally {
-    ffmpeg.FS('unlink', 'input.mp4');
-    ffmpeg.FS('unlink', 'output.mp4');
+    // Step 5: Clean up FS
+    try {
+      ffmpeg.FS('unlink', inputName);
+      ffmpeg.FS('unlink', outputName);
+    } catch (cleanupError) {
+      console.warn('[compressVideo] Cleanup warning:', cleanupError);
+    }
   }
+}
+
+// Optional: basic slugify utility (if not imported)
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }

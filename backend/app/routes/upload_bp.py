@@ -49,13 +49,17 @@ def upload_module_instant():
         if not os.path.exists(temp_video_path) or os.path.getsize(temp_video_path) == 0:
             raise ValueError("Downloaded video file is empty or missing")
 
+        print("📦 File size:", os.path.getsize(temp_video_path) / 1024 / 1024, "MB")
         print("🎧 Extracting audio from video...")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
             temp_audio_path = temp_audio.name
+
+        # Extract audio optimized for Whisper
         subprocess.run([
             "ffmpeg", "-y", "-i", temp_video_path,
-            "-vn", "-acodec", "libmp3lame", temp_audio_path
+            "-vn", "-ac", "1", "-ar", "16000", "-f", "mp3", temp_audio_path
         ], check=True)
+
 
         print("🔊 Transcribing audio with Faster-Whisper...")
         model = WhisperModel("base", device="cpu", compute_type="int8")

@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components2/ui/button';
 import UploadModuleLoading from '@/components2/ui/UploadModuleLoading';
 import { CheckCircle, Circle, Loader2, FileText, ClipboardList, UploadCloud } from 'lucide-react';
+import { compressVideo } from '@/utils/compressVideo';
 
 function slugify(str) {
   return str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
@@ -70,11 +71,6 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
       return;
     }
   
-    if (videoFile.size > 300 * 1024 * 1024) {
-      toast({ title: 'File too large', description: 'Maximum file size is 300MB' });
-      return;
-    }
-  
     const moduleData = {
       title,
       description,
@@ -85,37 +81,42 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
   
     try {
       setIsUploading(true);
+      setCurrentStep('compressing');
+  
+      // ⏬ Compress before upload
+      const compressed = await compressVideo(videoFile, title); // default CRF=28
+      if (compressed.size > 300 * 1024 * 1024) {
+        throw new Error('Compressed file still too large. Try a shorter video.');
+      }
+  
       setCurrentStep('uploading');
-      
-      // Process and upload video
-      const renamedFile = new File([videoFile], `${slugify(title)}.mp4`, {
-        type: videoFile.type,
+  
+      const renamedFile = new File([compressed], `${slugify(title)}.mp4`, {
+        type: 'video/mp4',
       });
-
-      setCurrentStep('transcribing');
+  
       const videoUrl = await uploadToCloudinary(renamedFile);
-      
-      // Create module with backend
-      setCurrentStep('quiz');
-      const res = await createModule({ 
-        ...moduleData, 
-        video_url: videoUrl 
+  
+      setCurrentStep('transcribing');
+  
+      const res = await createModule({
+        ...moduleData,
+        video_url: videoUrl,
       });
-
+  
       setReviewData({
         module: { ...moduleData, video_url: videoUrl },
         transcript: res.transcript,
         quiz: res.quiz_questions,
       });
-
+  
       setCurrentStep('complete');
       await new Promise(resolve => setTimeout(resolve, 1000));
-
     } catch (error) {
-      console.error("Upload failed:", error);
-      toast({ 
-        title: 'Upload failed', 
-        description: error.message || 'Please try again later' 
+      console.error('Upload failed:', error);
+      toast({
+        title: 'Upload failed',
+        description: error.message || 'Please try again later',
       });
     } finally {
       setIsUploading(false);
