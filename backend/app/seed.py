@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from app import create_app
+from backend.app.wsgi import create_app
 from app.extensions import db, bcrypt
 from app.models import School, User, Course, Exercise, ExerciseQuestion, Quiz, QuizQuestion
 
