@@ -46,7 +46,8 @@ def create_app():
 
     # Log environment
     app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
-    app.logger.info(f"✅ CORS Origin: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}")
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').strip()
+    app.logger.info(f"✅ CORS Origin: {frontend_url}")
 
 
     # Register routes
