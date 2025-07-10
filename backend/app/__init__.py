@@ -34,7 +34,7 @@ def create_app():
     raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173")
     origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
     exact_origins = [o for o in origins_list if "*" not in o]
-    wildcard_patterns = [o.replace(".", r"\.").replace("*", r".*") for o in origins_list if "*" in o]
+    wildcard_patterns = [o.replace(".", r"\.").replace("*", r"[a-z0-9]+") for o in origins_list if "*" in o]
     origins_regex = "|".join(wildcard_patterns) if wildcard_patterns else None
 
     # ✅ Apply CORS
