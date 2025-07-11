@@ -9,6 +9,8 @@ import subprocess
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from openai import OpenAI
+
 
 from app.extensions import db
 from app.models import Module, Quiz, QuizQuestion, User, ActivityLog
@@ -16,6 +18,8 @@ from app.utils.roles import role_required
 
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/upload')
+
+
 
 @upload_bp.route('/module', methods=['POST'])
 @jwt_required()
@@ -46,9 +50,9 @@ def upload_module_instant():
             temp_video_path = temp_video.name
 
         if not os.path.exists(temp_video_path) or os.path.getsize(temp_video_path) == 0:
-            raise ValueError("Downloaded video is empty or invalid.")
+            raise ValueError("Downloaded video file is empty or missing")
 
-        print("🎧 Extracting audio...")
+        print("🎧 Extracting audio from video...")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
             temp_audio_path = temp_audio.name
 
@@ -58,12 +62,16 @@ def upload_module_instant():
             temp_audio_path
         ], check=True)
 
-        print("🧠 Transcribing with OpenAI Whisper...")
+        print("🔊 Transcribing with OpenAI Whisper...")
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         with open(temp_audio_path, "rb") as f:
-            whisper_response = openai.Audio.transcribe("whisper-1", f)
-        transcript = whisper_response.get("text", "")
+            transcript_response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=f
+            )
+        transcript = transcript_response.text
 
-        print("📚 Generating quiz from transcript...")
+        print("🧠 Generating quiz from transcript...")
         prompt = f"""
 You are an expert education assistant.
 
@@ -88,17 +96,15 @@ Format:
   }}
 ]
 """
-        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4
         )
-
         content = response.choices[0].message.content.strip()
         quiz_data = []
-
         json_match = re.search(r"\[.*\]", content, re.DOTALL)
+
         if json_match:
             try:
                 quiz_data = json.loads(json_match.group(0))
@@ -106,11 +112,11 @@ Format:
                 try:
                     quiz_data = eval(json_match.group(0))
                 except Exception as e:
-                    print("❌ Quiz parse failed:", e)
+                    print("❌ Failed parsing quiz JSON:", e)
 
         quiz = None
         if isinstance(quiz_data, list) and all("question_text" in q for q in quiz_data):
-            print("✅ Saving quiz to DB...")
+            print("📝 Saving quiz...")
             quiz = Quiz(
                 title=f"{title} - AI Quiz",
                 description="Auto-generated quiz",
@@ -128,7 +134,7 @@ Format:
                     correct_answer=q["correct_answer"]
                 ))
 
-        print("📦 Saving module to DB...")
+        print("📦 Saving module...")
         module = Module(
             title=title,
             description=description,
@@ -140,7 +146,7 @@ Format:
             quiz_id=quiz.id if quiz else None,
             order=order
         )
-
+ 
 
         return jsonify({
             "msg": "Module published",
@@ -151,7 +157,7 @@ Format:
         }), 201
 
     except Exception as e:
-        print("❌ Error during module upload:", str(e))
+        print("❌ Upload error:", str(e))
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
@@ -160,7 +166,6 @@ Format:
             if temp_file and os.path.exists(temp_file):
                 os.remove(temp_file)
                 print(f"🧹 Cleaned up: {temp_file}")
-
 
 
 @upload_bp.route('/publish', methods=['POST'])
