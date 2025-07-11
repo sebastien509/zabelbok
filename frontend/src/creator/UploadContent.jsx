@@ -71,6 +71,15 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
       return;
     }
   
+    if (videoFile.size > 300 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Max size is 300MB' });
+      return;
+    }
+  
+    const renamedFile = new File([videoFile], `${slugify(title)}.mp4`, {
+      type: videoFile.type,
+    });
+  
     const moduleData = {
       title,
       description,
@@ -81,29 +90,19 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
   
     try {
       setIsUploading(true);
-      setCurrentStep('compressing');
-  
-      // ⏬ Compress before upload
-      const compressed = await compressVideo(videoFile, title); // default CRF=28
-      if (compressed.size > 300 * 1024 * 1024) {
-        throw new Error('Compressed file still too large. Try a shorter video.');
-      }
-  
       setCurrentStep('uploading');
   
-      const renamedFile = new File([compressed], `${slugify(title)}.mp4`, {
-        type: 'video/mp4',
-      });
-  
+      // 1. Upload to Cloudinary (no compression needed here)
       const videoUrl = await uploadToCloudinary(renamedFile);
   
+      // 2. Send to backend for processing
       setCurrentStep('transcribing');
-  
       const res = await createModule({
         ...moduleData,
         video_url: videoUrl,
       });
   
+      // 3. Show review block
       setReviewData({
         module: { ...moduleData, video_url: videoUrl },
         transcript: res.transcript,
@@ -112,16 +111,14 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
   
       setCurrentStep('complete');
       await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (error) {
-      console.error('Upload failed:', error);
-      toast({
-        title: 'Upload failed',
-        description: error.message || 'Please try again later',
-      });
+  
+    } catch (err) {
+      toast({ title: "Upload failed", description: err.message });
     } finally {
       setIsUploading(false);
     }
   };
+  
 
   const handlePublish = async () => {
     if (!reviewData) return;

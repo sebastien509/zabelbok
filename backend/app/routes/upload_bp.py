@@ -21,6 +21,7 @@ upload_bp = Blueprint('upload', __name__, url_prefix='/upload')
 @role_required('professor')
 def upload_module_instant():
     from faster_whisper import WhisperModel
+    from openai import OpenAI
 
     data = request.get_json()
     user_id = get_jwt_identity()
@@ -49,24 +50,22 @@ def upload_module_instant():
         if not os.path.exists(temp_video_path) or os.path.getsize(temp_video_path) == 0:
             raise ValueError("Downloaded video file is empty or missing")
 
-        print("📦 File size:", os.path.getsize(temp_video_path) / 1024 / 1024, "MB")
         print("🎧 Extracting audio from video...")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
             temp_audio_path = temp_audio.name
 
-        # Extract audio optimized for Whisper
         subprocess.run([
             "ffmpeg", "-y", "-i", temp_video_path,
-            "-vn", "-ac", "1", "-ar", "16000", "-f", "mp3", temp_audio_path
+            "-vn", "-ac", "1", "-ar", "16000", "-acodec", "libmp3lame",
+            temp_audio_path
         ], check=True)
 
-
-        print("🔊 Transcribing audio with Faster-Whisper...")
+        print("🔊 Transcribing with Faster-Whisper...")
         model = WhisperModel("base", device="cpu", compute_type="int8")
         segments, _ = model.transcribe(temp_audio_path)
         transcript = " ".join([seg.text for seg in segments])
 
-        print("🧠 Generating quiz from transcript with GPT-4...")
+        print("🧠 Generating quiz from transcript...")
         prompt = f"""
 You are an expert education assistant.
 
@@ -92,37 +91,28 @@ Format:
 ]
 """
 
-        quiz_data = []
-        from openai import OpenAI
-
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4
         )
         content = response.choices[0].message.content.strip()
-
         json_match = re.search(r"\[.*\]", content, re.DOTALL)
 
+        quiz_data = []
         if json_match:
             try:
                 quiz_data = json.loads(json_match.group(0))
             except json.JSONDecodeError:
-                print("⚠️ JSON failed, trying eval")
                 try:
                     quiz_data = eval(json_match.group(0))
                 except Exception as e:
-                    print("❌ Eval failed:", e)
-                    quiz_data = []
-        else:
-            print("⚠️ Could not extract JSON array from GPT response.")
-            quiz_data = []
+                    print("❌ Failed parsing quiz JSON:", e)
 
         quiz = None
         if isinstance(quiz_data, list) and all("question_text" in q for q in quiz_data):
-            print("📝 Saving quiz to DB...")
+            print("📝 Saving quiz...")
             quiz = Quiz(
                 title=f"{title} - AI Quiz",
                 description="Auto-generated quiz",
@@ -131,6 +121,7 @@ Format:
             )
             db.session.add(quiz)
             db.session.flush()
+
             for q in quiz_data:
                 db.session.add(QuizQuestion(
                     quiz_id=quiz.id,
@@ -139,7 +130,7 @@ Format:
                     correct_answer=q["correct_answer"]
                 ))
 
-        print("📦 Saving module to DB...")
+        print("📦 Saving module...")
         module = Module(
             title=title,
             description=description,
@@ -162,7 +153,7 @@ Format:
         }), 201
 
     except Exception as e:
-        print("❌ Error during upload:", str(e))
+        print("❌ Upload error:", str(e))
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
