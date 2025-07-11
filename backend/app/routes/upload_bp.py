@@ -20,7 +20,6 @@ from app.utils.roles import role_required
 upload_bp = Blueprint('upload', __name__, url_prefix='/upload')
 
 
-
 @upload_bp.route('/module', methods=['POST'])
 @jwt_required()
 @role_required('professor')
@@ -71,6 +70,15 @@ def upload_module_instant():
             )
         transcript = transcript_response.text
 
+        # ✅ FREE MEMORY BEFORE GPT-4
+        try:
+            del r  # response object from requests
+        except:
+            pass
+
+        import gc
+        gc.collect()
+
         print("🧠 Generating quiz from transcript...")
         prompt = f"""
 You are an expert education assistant.
@@ -98,9 +106,10 @@ Format:
 """
         response = client.chat.completions.create(
             model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": prompt.strip()}],
             temperature=0.4
         )
+
         content = response.choices[0].message.content.strip()
         quiz_data = []
         json_match = re.search(r"\[.*\]", content, re.DOTALL)
@@ -146,7 +155,7 @@ Format:
             quiz_id=quiz.id if quiz else None,
             order=order
         )
- 
+      
 
         return jsonify({
             "msg": "Module published",
@@ -166,6 +175,7 @@ Format:
             if temp_file and os.path.exists(temp_file):
                 os.remove(temp_file)
                 print(f"🧹 Cleaned up: {temp_file}")
+        gc.collect()
 
 
 @upload_bp.route('/publish', methods=['POST'])
