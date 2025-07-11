@@ -153,7 +153,7 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
     <>
       {/* Loading overlay */}
       {isUploading && (
-        <div className="fixed inset-0 z-[100]  py-4 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100]  py-4 flex items-center justify-center bg-white/80 backdrop-blur-sm">
           <UploadModuleLoading currentStep={currentStep} />
         </div>
       )}
@@ -245,7 +245,7 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
             </form>
           ) : (
             <>
-              <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2">
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                 <div>
                   <h3 className="text-lg font-medium mb-2">📝 Transcript</h3>
                   <div className="bg-gray-50 p-4 rounded-md">
