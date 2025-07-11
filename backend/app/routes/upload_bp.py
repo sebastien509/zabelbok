@@ -61,7 +61,7 @@ def upload_module_instant():
         ], check=True)
 
         print("🔊 Transcribing with Faster-Whisper...")
-        model = WhisperModel("base", device="cpu", compute_type="int8")
+        model = WhisperModel("tiny", device="cpu", compute_type="int8")
         segments, _ = model.transcribe(temp_audio_path)
         transcript = " ".join([seg.text for seg in segments])
 
