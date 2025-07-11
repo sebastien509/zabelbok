@@ -59,7 +59,7 @@ def delete_course(course_id):
     db.session.commit()
     return jsonify({"msg": "Course deleted successfully"}), 200
 
-# ================== GET ALL COURSES ==================
+# ================== GET ALL COURSES ================
 @course_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_all_courses():
@@ -72,7 +72,7 @@ def get_all_courses():
         courses = Course.query.filter_by(professor_id=user_id).all()
     else:
         # student: get courses where student is enrolled
-        courses = user.courses.all()
+        courses = user.courses
 
     return jsonify([c.to_dict() for c in courses]), 200
 
