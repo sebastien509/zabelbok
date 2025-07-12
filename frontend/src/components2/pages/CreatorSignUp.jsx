@@ -10,6 +10,7 @@ import Lottie from 'lottie-react';
 import bgAnimation from '@/assets/bgAnimation.json';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DialogDescription } from '@radix-ui/react-dialog';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function CreatorSignUp() {
   const [step, setStep] = useState(1);
@@ -29,6 +30,8 @@ export default function CreatorSignUp() {
   const handleBasicChange = (e) => setBasicForm({ ...basicForm, [e.target.name]: e.target.value });
   const handleProfileChange = (e) => setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
   const handleFileChange = (e) => setProfileForm(prev => ({ ...prev, image: e.target.files[0] }));
+  const { refreshUser } = useAuth(); // ✅ Correct usage
+
 
   const handleBasicSubmit = async () => {
     try {
@@ -36,6 +39,12 @@ export default function CreatorSignUp() {
       const res = await login(basicForm.email, basicForm.password);
       localStorage.setItem('token', res.access_token);
       localStorage.setItem('user_id', res.user_id);
+      await refreshUser()
+
+      toast('Signup successful!', {
+        description: 'Welcome to the platform.',
+      });
+
       setStep(2);
     } catch {
       toast.error('Signup Failed', { description: 'Email might already be used.' });

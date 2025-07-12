@@ -26,12 +26,13 @@ export default function CourseCard({ course, enrolled = false, onEnroll, compact
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5 }}
     >
-      <Card
-        className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 bg-white border border-gray-200 group ${
-          compact ? "text-sm" : ""
-        }`}
-        onClick={() => navigate(`/learner/courses/${course.id}`)}
-      >
+     <Card
+  className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 bg-white border border-gray-200 group p-4 ${
+    compact ? "text-sm" : "text-base"
+  }`}
+  onClick={() => navigate(`/learner/courses/${course.id}`)}
+>
+
         {/* Bento pattern overlay */}
         <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
           <div className="grid grid-cols-3 grid-rows-3 h-full w-full">

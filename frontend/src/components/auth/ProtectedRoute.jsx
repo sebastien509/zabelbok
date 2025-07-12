@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
 
   if (isLoading || redirecting) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" />;
-  if (!allowedRoles.includes(adjustedRole)) return <Navigate to="/unauthorized" />;
+  if (!allowedRoles.includes(adjustedRole)) return <Navigate to="/dual" />;
 
   return children;
 }

@@ -202,17 +202,19 @@ export default function LearnerDashboard() {
           </div>
         ) : (
           <div className="relative w-full overflow-x-auto">
-            <div className="flex flex-nowrap space-x-4 pb-2 min-w-fit">
+            <div className="flex flex-nowrap space-x-4 pb-2">
               {uniqueCourses.map((course) => (
-                <CourseCard 
-                  key={course.id} 
-                  course={course} 
-                  enrolled={true}
-                  enrollmentData={getEnrollmentData(course.id)}
-                />
+                <div key={course.id} className="w-[85vw] sm:w-[300px] max-w-[90vw] shrink-0">
+                  <CourseCard 
+                    course={course} 
+                    enrolled={true}
+                    enrollmentData={getEnrollmentData(course.id)}
+                  />
+                </div>
               ))}
             </div>
           </div>
+
         )}
       </div>
 

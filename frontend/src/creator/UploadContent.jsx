@@ -244,70 +244,75 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
               </div>
             </form>
           ) : (
-            <>
-              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">📝 Transcript</h3>
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <p className="whitespace-pre-wrap text-sm">{reviewData.transcript}</p>
-                  </div>
-                </div>
+            <div className="flex flex-col h-[85vh] sm:h-auto bg-gray-50 sm:bg-white rounded-lg overflow-hidden">
+  {/* Scrollable content */}
+  <div className="flex-1 overflow-y-auto p-4 space-y-6">
+    {/* Transcript Section */}
+    <div>
+      <h3 className="text-lg font-medium mb-2">📝 Transcript</h3>
+      <div className="bg-white p-4 rounded-md shadow-sm">
+        <p className="whitespace-pre-wrap text-sm">{reviewData.transcript}</p>
+      </div>
+    </div>
 
-                <div>
-                  <h3 className="text-lg font-medium mb-2">📚 Quiz Questions</h3>
-                  {Array.isArray(reviewData?.quiz) && reviewData.quiz.length > 0 ? (
-                    <div className="space-y-4">
-                      {reviewData.quiz.map((q, idx) => (
-                        <div key={idx} className="bg-white p-4 rounded-md border border-gray-200">
-                          <p className="font-medium mb-2">
-                            <span className="text-blue-600">Q{idx + 1}:</span> {q.question_text}
-                          </p>
-                          <ul className="space-y-2">
-                            {q.choices.map((choice, i) => (
-                              <li 
-                                key={i} 
-                                className={`text-sm pl-3 py-1 border-l-2 ${
-                                  choice === q.correct_answer
-                                    ? 'border-green-500 bg-green-50'
-                                    : 'border-gray-200'
-                                }`}
-                              >
-                                <div className="flex items-center">
-                                  {choice === q.correct_answer ? (
-                                    <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                                  ) : (
-                                    <Circle className="h-4 w-4 mr-2 text-gray-300" />
-                                  )}
-                                  <span>{choice}</span>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+    {/* Quiz Section */}
+    <div>
+      <h3 className="text-lg font-medium mb-2">📚 Quiz Questions</h3>
+      {Array.isArray(reviewData?.quiz) && reviewData.quiz.length > 0 ? (
+        <div className="space-y-4">
+          {reviewData.quiz.map((q, idx) => (
+            <div key={idx} className="bg-white p-4 rounded-md border border-gray-200">
+              <p className="font-medium mb-2">
+                <span className="text-blue-600">Q{idx + 1}:</span> {q.question_text}
+              </p>
+              <ul className="space-y-2">
+                {q.choices.map((choice, i) => (
+                  <li 
+                    key={i} 
+                    className={`text-sm pl-3 py-1 border-l-2 ${
+                      choice === q.correct_answer
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      {choice === q.correct_answer ? (
+                        <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                      ) : (
+                        <Circle className="h-4 w-4 mr-2 text-gray-300" />
+                      )}
+                      <span>{choice}</span>
                     </div>
-                  ) : (
-                    <p className="text-gray-500 italic py-4">No quiz generated for this module.</p>
-                  )}
-                </div>
-              </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-500 italic py-4">No quiz generated for this module.</p>
+      )}
+    </div>
+  </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setReviewData(null)}
-                >
-                  Back to Edit
-                </Button>
-                <Button
-                  onClick={handlePublish}
-                  disabled={isUploading}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isUploading ? 'Publishing...' : 'Publish Module'}
-                </Button>
-              </div>
-            </>
+  {/* Sticky Footer Buttons */}
+  <div className="border-t border-gray-200 p-4 bg-white flex justify-end gap-2">
+    <Button
+      variant="outline"
+      onClick={() => setReviewData(null)}
+    >
+      Back to Edit
+    </Button>
+    <Button
+      onClick={handlePublish}
+      disabled={isUploading}
+      className="bg-green-600 hover:bg-green-700"
+    >
+      {isUploading ? 'Publishing...' : 'Publish Module'}
+    </Button>
+  </div>
+</div>
+
           )}
         </DialogContent>
       </Dialog>

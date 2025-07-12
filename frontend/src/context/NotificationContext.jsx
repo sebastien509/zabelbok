@@ -10,13 +10,21 @@ export const NotificationProvider = ({ children }) => {
   const refreshNotifications = async () => {
     try {
       const res = await getNotifications();
-      setNotifications(res.data);
-      setUnreadCount(res.data.filter(n => !n.read).length);
+  
+      // 🛡️ Defensive check
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.notifications)
+          ? res.data.notifications
+          : [];
+  
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.read).length);
     } catch (err) {
       console.error('Failed to refresh notifications', err);
     }
   };
-
+  
   useEffect(() => {
     refreshNotifications();
     const interval = setInterval(refreshNotifications, 15000);

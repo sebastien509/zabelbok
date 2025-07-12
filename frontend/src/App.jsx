@@ -136,7 +136,7 @@ i18n.changeLanguage(preferredLanguage);
   return (
     <>
       <NetworkStatus />
-      <GlobalBackgroundSync />
+      {/* <GlobalBackgroundSync /> */}
       <PWAInstallPrompt />
      
           <Routes>

@@ -11,9 +11,9 @@ export default function VerticalCarousel() {
   }
 
   return (
-    <div className="relative w-full lg:w-[400px] h-[600px] lg:h-[800px] overflow-hidden">
+    <div className="relative w-full lg:w-[400px] h-[600px] lg:h-[800px] pr-20 ">
       {/* Inner shadow overlay to prevent cut-off appearance */}
-      <div className="absolute inset-0 z-20 pointer-events-none shadow-[inset_0_0_30px_30px_rgba(0,0,0,0.05)]" />
+      <div className="absolute inset-0 z-20 pointer-events-none " />
       
       <motion.div
         className="absolute flex flex-col gap-4 lg:gap-6 z-10"
@@ -30,7 +30,7 @@ export default function VerticalCarousel() {
             {/* Column 1 */}
             <div className="flex flex-col gap-4 lg:gap-6 w-1/2">
               <motion.div
-                className="w-full h-[160px] lg:h-[220px] rounded-xl lg:rounded-2xl overflow-hidden shadow-md lg:shadow-lg transition-all duration-300 hover:scale-[1.03] relative"
+                className="w-full h-[160px] lg:h-[220px] rounded-xl lg:rounded-2xl overflow-hidden shadow-md  transition-all duration-300 hover:scale-[1.03] relative"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -90,16 +90,15 @@ export default function VerticalCarousel() {
 }
 
 export function VerticalCarouselMobile() {
-  // For mobile, we'll use the same approach
   const duplicatedImages = [...carouselImages, ...carouselImages];
-  
+
   return (
-    <div className="relative w-full h-[400px] overflow-hidden lg:hidden">
+    <div className="relative w-full h-[400px] overflow-hidden">
       {/* Inner shadow overlay */}
       <div className="absolute inset-0 z-20 pointer-events-none shadow-[inset_0_0_20px_20px_rgba(0,0,0,0.05)]" />
-      
+
       <motion.div
-        className="absolute flex flex-col gap-4 z-10"
+        className="absolute grid grid-cols-2 gap-4 z-10"
         animate={{ y: ['0%', '-50%'] }}
         transition={{
           duration: 30,
@@ -110,7 +109,7 @@ export function VerticalCarouselMobile() {
         {duplicatedImages.map((src, idx) => (
           <motion.div
             key={idx}
-            className="w-full h-[180px] rounded-xl overflow-hidden shadow-md"
+            className="h-[160px] rounded-xl overflow-hidden shadow-md"
             whileHover={{ scale: 1.02 }}
           >
             <img

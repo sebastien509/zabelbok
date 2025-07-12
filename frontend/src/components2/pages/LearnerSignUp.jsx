@@ -7,7 +7,8 @@ import { toast } from '@/components2/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components2/ui/dialog';
 import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
 import { api } from '@/services/api';
-
+import { useAuth } from '@/components/auth/AuthProvider';
+ 
 export default function LearnerSignUp() {
   const [step, setStep] = useState(1);
   const [basicForm, setBasicForm] = useState({
@@ -21,6 +22,10 @@ export default function LearnerSignUp() {
     language: 'en',
     image: null
   });
+
+  const { refreshUser } = useAuth(); // ✅ Correct usage
+
+  
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -45,7 +50,8 @@ export default function LearnerSignUp() {
       const res = await login(basicForm.email, basicForm.password);
       localStorage.setItem('token', res.access_token);
       api.defaults.headers.common['Authorization'] = `Bearer ${res.access_token}`;
-      
+      await refreshUser(); // <<== Force context update here
+
       toast(
       'Signup successful!',
       {description: 'Welcome to the platform.',

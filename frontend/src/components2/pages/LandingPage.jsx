@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components2/ui/button';
 import Lottie from 'lottie-react';
 import bgAnimation from '@/assets/bgAnimation.json';
-import VerticalCarousel from '../ui/verticalCarousel';
+import VerticalCarousel, { VerticalCarouselMobile } from '../ui/verticalCarousel';
 import { useAuth } from '@/AuthContext';
 import Navbar from '../ui/Navbar';
 
@@ -42,7 +42,7 @@ export default function LandingPage() {
         <Navbar user={user}/>
 
       {/* 🎯 Hero Section - Creators */}
-      <section className="relative w-full min-h-screen bg-[#FAF8F4] px-4 sm:px-6 py-16 sm:py-20 overflow-hidden">
+      <section className="relative w-full min-h-screen bg-[#FAF8F4] px-4 sm:px-6 py-10 sm:py-20 overflow-hidden">
   {/* Animated Background Elements */}
   <motion.div
     className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-[#66A569] opacity-10 z-0"
@@ -62,24 +62,24 @@ export default function LandingPage() {
     animate={{ opacity: 1 }}
     transition={{ duration: 1.5 }}
   >
-    <div className="w-full max-w-2xl h-auto opacity-80">
+    <div className="w-full max-w-2xl h-auto pb-40 opacity-80">
       <Lottie animationData={bgAnimation} loop autoplay />
     </div>
   </motion.div>
 
-  <div className="relative z-10 max-w-7xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 sm:gap-12">
+  <div className="relative z-10 max-w-7xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-4 sm:gap-10">
     {/* Text Content - Always centered on mobile, left-aligned on desktop */}
     <motion.div
-      className="w-full lg:w-1/2 max-w-2xl text-center lg:text-left relative mb-48"
+      className="w-full lg:w-1/2 max-w-2xl text-center lg:text-left relative   mb-10"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
     >
-      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
+      <h1 className="text-3xl sm:text-4xl md:text4xl lg:text-5xl font-bold leading-tight mb-4 md:pt-30  py-8 sm:mb-6">
         Empower Haiti Through<br />
         <span className="text-[#EA7125]">Knowledge Sharing</span>
       </h1>
-      <p className="text-[#2C365E] text-base sm:text-lg md:text-xl mb-6 sm:mb-8">
+      <p className="text-[#2C365E] text-base sm:text-lg md:text-2xl mb-6 sm:mb-8">
         E-strateji provides Haitian creators with AI-powered tools to create, share, and monetize educational content—online or offline.
       </p>
       <div className="flex flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start">
@@ -97,14 +97,20 @@ export default function LandingPage() {
     </motion.div>
 
     {/* Vertical Carousel - Positioned differently on mobile vs desktop */}
-    <div className="w-full lg:w-[400px] mt-8 lg:mt-0">
-    <VerticalCarousel />
-  </div>
+    <div className="w-full lg:w-[400px] max-h-[300px]  hidden lg:block">
+      <VerticalCarousel />
+    </div>
+
+  <div className="w-full block lg:hidden">
+      <h2 className="text-xl font-semibold text-white text-center bg-[#EA7125] mb-0"> Top Creators</h2>
+      <VerticalCarouselMobile />
+      <div className="border-t border-gray-300 my-6" /> {/* 🔹 Mobile divider */}
+    </div>
   </div>
 </section>
 
       {/* 🛠️ Platform Features - Bento Grid */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
+      <section className="py-10 px-6 max-w-7xl mx-auto">
         <motion.h2 
           className="text-3xl md:text-4xl font-bold mb-12 text-center text-[#2C365E]"
           initial="hidden"

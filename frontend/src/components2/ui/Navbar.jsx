@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
-import reactLogo from "@/assets/react.svg"; // Adjust import path as needed
+
+const reactLogo = "https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-Green_pwdksv.png"
 
 const Navbar = ({user, role}) => {
   const [scrolled, setScrolled] = useState(false);
@@ -25,10 +26,10 @@ const Navbar = ({user, role}) => {
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? "bg-blue/90 backdrop-blur-sm shadow-sm py-2" : "bg-white/20 backdrop-blur-sm py-3"}`}>
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-0">
           <img src={reactLogo} alt="Logo" className="h-8 w-auto" />
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            E-strateji
+          <span className="text-xl font-bold bg-gradient-to-r from-lime-600 to-orange-400 pr-4 bg-clip-text text-transparent">
+            STRATEJI
           </span>
         </Link>
 

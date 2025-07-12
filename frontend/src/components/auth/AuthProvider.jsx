@@ -5,10 +5,9 @@ const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
 
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // 👈 new state
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -18,7 +17,7 @@ export function AuthProvider({ children }) {
       setUser(parsedUser);
       api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
-    setIsLoading(false); // 👈 always call this after trying restore
+    setIsLoading(false);
   }, []);
 
   const login = async (token, role) => {
@@ -32,6 +31,20 @@ export function AuthProvider({ children }) {
     setUser(fullUser);
   };
 
+ const refreshUser = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      const storedToken = localStorage.getItem('token');
+      const role = localStorage.getItem('role') || res.data.role;
+      const fullUser = { ...res.data, token: storedToken, role };
+      localStorage.setItem('user', JSON.stringify(fullUser));
+      setUser(fullUser);
+    } catch (err) {
+      console.error('[refreshUser] Failed to refresh user', err);
+      setUser(null);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
@@ -40,9 +53,19 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        login,
+        logout,
+        isLoading,
+        refreshUser, // ✅ expose this
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-  
 }
+
+
