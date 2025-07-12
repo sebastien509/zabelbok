@@ -7,7 +7,7 @@ import { Button } from '@/components2/ui/button';
 import { Loader2, BookOpen, Users, Star, Rocket, LogOut } from 'lucide-react';
 import { getMyEnrollments } from '@/services/enrollments';
 import { getCoursesBySchool } from '@/services/courses';
-import { CourseDB, save as saveCourse } from '@/utils/CourseDB';
+import { CourseDB, save as saveCourse } from '@/utils/cDB';
 
 
 export default function LearnerDashboard() {
