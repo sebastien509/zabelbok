@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { CourseDB } from '@/utils/cDB';
+
 import { getModulesByCourse } from '@/services/modules';
 import { getCourseById } from '@/services/courses';
 import { ModuleDB } from '@/utils/ModuleDB';
@@ -17,7 +19,6 @@ import bgAnimation from '@/assets/bgAnimation.json';
 import { prefetchModules } from '@/utils/prefetchModules';
 import { ArrowLeft } from 'lucide-react'; // Make sure this is imported
 import { renderThumbnail } from '@/utils/renderThumbnail';
-import { CourseDB } from '@/utils/CourseDB';
 
 
 
