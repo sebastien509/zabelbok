@@ -82,19 +82,32 @@ export default function ModuleViewer() {
   }, [id]);
 
   useEffect(() => {
-    if (!module || !courseRes?.modules) return;
-    const modulesSorted = [...courseRes.modules].sort((a, b) => a.order - b.order);
-    const index = modulesSorted.findIndex((m) => m.id === module.id);
-    const next = modulesSorted[index + 1];
-    if (next) {
-      setNextModule(next);
-      ModuleDB.getAllMeta().then((list) => {
-        setNextAvailableOffline(list.some((m) => m.id === next.id));
-      });
-    } else {
-      setNextModule(null);
-    }
-  }, [module, courseRes]);
+    const determineNextModule = async () => {
+      if (!module || !courseRes?.modules) return;
+  
+      const modulesSorted = [...courseRes.modules].sort((a, b) => a.order - b.order);
+      const index = modulesSorted.findIndex((m) => m.id === module.id);
+      const next = modulesSorted[index + 1];
+  
+      if (next) {
+        setNextModule(next);
+  
+        if (isOffline) {
+          const nextExists = await ModuleDB.get(next.id);
+          setNextAvailableOffline(!!nextExists);
+        } else {
+          setNextAvailableOffline(true);
+        }
+  
+      } else {
+        setNextModule(null);
+        setNextAvailableOffline(false);
+      }
+    };
+  
+    determineNextModule();
+  }, [module, courseRes, isOffline]);
+  
 
   const handleMarkAllCompleted = async () => {
     if (!courseRes?.modules) return;
@@ -114,24 +127,20 @@ export default function ModuleViewer() {
     await ModuleDB.markCompleted(module.id);
     await saveCompletedOffline(module.id);
     localStorage.removeItem(`module-progress-${module.id}`);
-
-    const course = await getCourseById(module.course_id);
-    const modulesSorted = [...course.data.modules].sort((a, b) => a.order - b.order);
-    const index = modulesSorted.findIndex((m) => m.id === module.id);
-    const next = modulesSorted[index + 1];
-
-    if (!next) {
+  
+    if (!nextModule) {
       await handleComplete();
-    } else {
-      const offlineMeta = await ModuleDB.getAllMeta();
-      const offlineIds = offlineMeta.map(m => m.id);
-      if (!offlineIds.includes(next.id) && isOffline) {
-        toast('Module Missing', { description: 'Next Module Unavailable Offline' });
-        return;
-      }
-      navigate(`/modules/${next.id}`);
+      return;
     }
+  
+    if (isOffline && !nextAvailableOffline) {
+      toast('Module Missing', { description: 'Next Module Unavailable Offline' });
+      return;
+    }
+  
+    navigate(`/modules/${nextModule.id}`);
   };
+  
 
   const handleProgressUpdate = async (value) => {
     setProgress(value);

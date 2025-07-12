@@ -7,6 +7,8 @@ import { Button } from '@/components2/ui/button';
 import { Loader2, BookOpen, Users, Star, Rocket, LogOut } from 'lucide-react';
 import { getMyEnrollments } from '@/services/enrollments';
 import { getCoursesBySchool } from '@/services/courses';
+import { CourseDB, save as saveCourse } from '@/utils/CourseDB';
+
 
 export default function LearnerDashboard() {
   const [myCourses, setMyCourses] = useState([]);
@@ -29,54 +31,50 @@ export default function LearnerDashboard() {
       setLoading(true);
       try {
         console.log('📡 Fetching dashboard data...');
-
+  
         const [me, enrolledCoursesRes, allCoursesRes, myEnrollmentsRes, creatorsRes, schoolCourses] = await Promise.all([
-          getMe(),
-          getUserCourses(),
-          getAllCourses(),
-          getMyEnrollments(),
-          viewByCreator ? getAllCreators() : Promise.resolve(null),
-          getCoursesBySchool(1)
+          getMe().catch(() => JSON.parse(localStorage.getItem('user') || '{}')),
+          getUserCourses().catch(() => []),
+          getAllCourses().catch(() => CourseDB.getAll()),
+          getMyEnrollments().catch(() => []),
+          viewByCreator ? getAllCreators().catch(() => []) : Promise.resolve(null),
+          getCoursesBySchool(1).catch(() => CourseDB.getAll()) // fallback to offline
         ]);
-
-        console.log('👤 Me:', me);
-        console.log('📘 User Courses:', enrolledCoursesRes);
-        console.log('📚 All Courses:', allCoursesRes);
-        console.log('🧾 My Enrollments:', myEnrollmentsRes);
-        console.log('🏫 Courses in School 1:', schoolCourses);
-
-        const estratejiCourses = (allCoursesRes || []).filter(c => c.school_id === 1);
-        console.log('🏫 Filtered Courses (school_id=1):', estratejiCourses);
-
+  
         const enrolledIds = myEnrollmentsRes?.map(e => e.course_id) || [];
-        console.log('✅ Enrolled Course IDs:', enrolledIds);
-
+  
         setMyCourses(enrolledCoursesRes || []);
         setEnrolledCourseIds(enrolledIds);
         setEnrollmentsData(myEnrollmentsRes || []);
         setAllCourses(schoolCourses);
-
+  
         if (creatorsRes) {
-          const creatorList = Array.isArray(creatorsRes) ? creatorsRes : creatorsRes?.creators || [];
+          const creatorList = Array.isArray(creatorsRes)
+            ? creatorsRes
+            : creatorsRes?.creators || [];
           setCreators(creatorList);
-          console.log('🧑‍🏫 Creators:', creatorList);
         }
-
+  
+        // Cache courses for offline use
+        (schoolCourses || []).forEach(course => {
+          if (course?.id) saveCourse(course);
+        });
+  
         setStats(prev => ({
           ...prev,
           enrolledCourses: enrolledIds.length,
           completedCourses: myEnrollmentsRes?.filter(e => e.completed).length || 0
         }));
-
       } catch (err) {
         console.error('❌ Failed to load dashboard:', err);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchDashboardData();
   }, [viewByCreator]);
+
 
   if (loading) {
     return (
