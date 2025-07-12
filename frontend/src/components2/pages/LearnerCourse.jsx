@@ -46,62 +46,65 @@ export default function LearnerCourse() {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        let course = null;
+        let modules = [];
   
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      let course = null;
-      let modules = [];
-
-      if (navigator.onLine) {
-        const [courseRes, modulesRes] = await Promise.all([
-          getCourseById(id),
-          getModulesByCourse(id)
-        ]);
-        course = courseRes.data;
-        modules = modulesRes;
-
-        await CourseDB.save(course); // ✅ Cache course offline
-      } else {
-        const cachedCourse = await CourseDB.get(id);
-        if (!cachedCourse) throw new Error('Course not available offline');
-        course = cachedCourse;
-        modules = cachedCourse.modules || []; // Optional: store modules inside course if desired
+        if (navigator.onLine) {
+          const [courseRes, modulesRes] = await Promise.all([
+            getCourseById(id),
+            getModulesByCourse(id),
+          ]);
+  
+          const offlineReadyCourse = { ...courseRes.data, modules: modulesRes };
+          await CourseDB.save(offlineReadyCourse);
+  
+          course = offlineReadyCourse;
+          modules = modulesRes;
+        } else {
+          const cachedCourse = await CourseDB.get(id);
+          if (!cachedCourse) throw new Error('Course not available offline');
+  
+          course = cachedCourse;
+          modules = cachedCourse.modules || [];
+        }
+  
+        setCourse(course);
+        setModules(modules);
+        prefetchModules(modules, 2);
+  
+        const completedMap = ModuleStateManager.getCompletedMap();
+        const courseModuleIds = modules.map((m) => m.id);
+        const completedInCourse = courseModuleIds.filter((id) => completedMap[id]);
+        setCompleted(completedInCourse);
+  
+        const saved = [];
+        for (const mod of modules) {
+          const exists = await ModuleDB.get(mod.id);
+          if (exists) saved.push(mod.id);
+        }
+        setOfflineSaved(saved);
+  
+        const newStatus = {};
+        for (let mod of modules) {
+          const status = await ModuleStateManager.getModuleStatus(mod.id, modules);
+          newStatus[mod.id] = status;
+        }
+        setStatusMap(newStatus);
+      } catch (err) {
+        console.error('[LearnerCourse] Error:', err);
+        toast('Error', {
+          description: 'Failed to load course data (offline?)',
+          variant: 'destructive',
+        });
       }
-
-      setCourse(course);
-      setModules(modules);
-      prefetchModules(modules, 2);
-
-      const completedMap = ModuleStateManager.getCompletedMap();
-      const courseModuleIds = modules.map(m => m.id);
-      const completedInCourse = courseModuleIds.filter(id => completedMap[id]);
-      setCompleted(completedInCourse);
-
-      const saved = [];
-      for (const mod of modules) {
-        const exists = await ModuleDB.get(mod.id);
-        if (exists) saved.push(mod.id);
-      }
-      setOfflineSaved(saved);
-
-      const newStatus = {};
-      for (let mod of modules) {
-        const status = await ModuleStateManager.getModuleStatus(mod.id, modules);
-        newStatus[mod.id] = status;
-      }
-      setStatusMap(newStatus);
-    } catch (err) {
-      console.error('[LearnerCourse] Error:', err);
-      toast('Error', {
-        description: 'Failed to load course data (offline?)',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  fetchData();
-}, [id]);
+    };
+  
+    fetchData();
+  }, [id]);
+  
 
   const percentage = modules.length ? Math.floor((completed.length / modules.length) * 100) : 0;
   const filteredModules = modules.filter(mod => !showOfflineOnly || offlineSaved.includes(mod.id));
