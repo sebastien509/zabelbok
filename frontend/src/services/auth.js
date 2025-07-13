@@ -91,7 +91,7 @@ export const getUserById = async (id) => {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
-    const res = await api.get(`/creators/public/${id}`);
+    const res = await api.get(`/auth/creators/public/${id}`);
     return res.data;
   };
   
