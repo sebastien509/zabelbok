@@ -290,3 +290,24 @@ def get_creator_by_id(user_id):
     if not user or user.role != 'professor':
         return jsonify({'error': 'Creator not found'}), 404
     return jsonify(user.to_dict()), 200
+
+
+def public_creator_dict(user):
+    return {
+        'id': user.id,
+        'full_name': user.full_name,
+        'bio': user.bio,
+        'education': user.education,
+        'teaching_philosophy': user.teaching_philosophy,
+        'profile_image_url': user.profile_image_url,
+        'banner_url': user.banner_url,
+        'theme': user.theme,
+        'role': user.role,
+    }
+
+@auth_bp.route('/creators/public/<int:user_id>', methods=['GET'])
+def get_public_creator_by_id(user_id):
+    user = User.query.get(user_id)
+    if not user or user.role != 'professor':
+        return jsonify({'error': 'Creator not found'}), 404
+    return jsonify(public_creator_dict(user)), 200
