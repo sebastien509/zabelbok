@@ -40,3 +40,13 @@ export const getCoursesBySchool = async (schoolId = 1) => {
     return res.data;
   };
   
+  export const getPublicCoursesByCreator = async (professor_id) => {
+    const res = await api.get(`/courses/public/creator/${professor_id}`);
+    return res.data;
+  };
+  
+  export const getPublicCoursesBySchool = async (school_id) => {
+    const res = await api.get(`/courses/public/school/${school_id}`);
+    return res.data;
+  };
+  

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getUserById } from '@/services/auth';
-import { getAllCourses } from '@/services/courses';
+import { getPublicCoursesByCreator } from '@/services/courses';
 import CourseCard from '../CourseCard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components2/ui/avatar';
 import { Separator } from '@/components2/ui/separator';
@@ -113,7 +113,7 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
       try {
         const [user, all] = await Promise.all([
           getUserById(id),
-          getAllCourses()
+          getPublicCoursesByCreator(id)
         ]);
         
         if (!Array.isArray(all)) throw new Error('Courses response is not an array');
@@ -287,7 +287,8 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
         >
           <div className="absolute -bottom-12 left-6 md:left-10">
             <Avatar className="w-24 h-24 md:w-56 md:h-56 ring-4 ring-white shadow-xl">
-              <AvatarImage src={creator.profile_image_url} />
+              <AvatarImage src={creator.profile_image_url || placeholderImage} />           
+
               <AvatarFallback>{creator.full_name?.charAt(0)}</AvatarFallback>
             </Avatar>
           </div>

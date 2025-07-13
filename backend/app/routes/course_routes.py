@@ -149,3 +149,21 @@ def get_courses_by_school(school_id):
         return jsonify({"message": "No courses found for this school."}), 404
 
     return jsonify([course.to_dict(include_nested=True) for course in courses]), 200
+
+@course_bp.route('/public/creator/<int:professor_id>', methods=['GET'])
+def get_public_courses_by_professor(professor_id):
+    courses = Course.query.filter_by(professor_id=professor_id).order_by(Course.created_at.desc()).all()
+
+    if not courses:
+        return jsonify({"message": "No courses found for this creator."}), 404
+
+    return jsonify([course.to_dict(include_nested=True) for course in courses]), 200
+
+@course_bp.route('/public/school/<int:school_id>', methods=['GET'])
+def get_public_courses_by_school(school_id):
+    courses = Course.query.filter_by(school_id=school_id).order_by(Course.created_at.desc()).all()
+
+    if not courses:
+        return jsonify({"message": "No courses found for this school."}), 404
+
+    return jsonify([course.to_dict(include_nested=True) for course in courses]), 200
