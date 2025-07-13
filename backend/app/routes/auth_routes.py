@@ -297,15 +297,13 @@ def public_creator_dict(user):
         'id': user.id,
         'full_name': user.full_name,
         'bio': user.bio,
-        'education': user.education,
-        'teaching_philosophy': user.teaching_philosophy,
         'profile_image_url': user.profile_image_url,
         'banner_url': user.banner_url,
         'theme': user.theme,
         'role': user.role,
     }
 
-@auth_bp.route('/creators/public/<int:user_id>', methods=['GET'])
+@auth_bp.route('/public/<int:user_id>', methods=['GET'])
 def get_public_creator(user_id):
     try:
         user = User.query.get(user_id)
