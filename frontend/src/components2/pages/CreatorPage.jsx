@@ -392,15 +392,20 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {courses.map((course) => (
-                  <CourseCard 
-                    key={course.id} 
-                    course={course} 
-                    enrolled={false} 
-                    theme={currentTheme}
-                  />
-                ))}
+              <div className="grid grid-cols-1 max-h-96 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {courses.map((course) => (
+                    <Link
+                      key={course.id}
+                      to={user?.role === 'student' ? `/courses/${course.id}` : '/login'}
+                    >
+                      <CourseCard 
+                        course={course} 
+                        enrolled={false} 
+                        theme={currentTheme}
+                      />
+                    </Link>
+                  ))}
+
               </div>
             )}
           </>
