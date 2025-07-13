@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { getUserById } from '@/services/auth';
 import { getPublicCoursesByCreator } from '@/services/courses';
 import CourseCard from '../CourseCard';
