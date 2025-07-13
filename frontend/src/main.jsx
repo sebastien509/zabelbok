@@ -17,10 +17,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <NotificationProvider>
+        {/* <NotificationProvider> */}
           <ToastProvider app="estrateji" />
           <App />
-        </NotificationProvider>
+        {/* </NotificationProvider> */}
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
