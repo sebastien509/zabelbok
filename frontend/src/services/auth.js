@@ -84,12 +84,15 @@ export const updateStyle = async ({ theme, banner_url }) => {
 export const getMe = () => api.get('/auth/me').then((res) => res.data);
 
 
-export async function getUserById(id) {
-  try {
-    const res = await api.get(`/auth/creators/${id}`);
-    return res.data;
-  } catch (err) {
-    console.error(`[getUserById Error for ID ${id}]`, err);
-    return null;
+
+export const getUserById = async (id) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
-}
+
+    const res = await api.get(`/creators/public/${id}`);
+    return res.data;
+  };
+  
+

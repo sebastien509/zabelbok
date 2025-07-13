@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components2/
 import { Button } from '@/components2/ui/button';
 import { Input } from '@/components2/ui/input';
 import { updateProfile, getMe } from '@/services/auth';
+import { uploadToCloudinary } from '@/utils/uploadToCloudinary'; // ✅
 
 export default function ProfileSettingsModal({ open, onClose }) {
   const [profile, setProfile] = useState({
@@ -11,6 +12,7 @@ export default function ProfileSettingsModal({ open, onClose }) {
     bio: '',
     language: 'en',
   });
+  const [file, setFile] = useState(null); // ✅
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -29,11 +31,27 @@ export default function ProfileSettingsModal({ open, onClose }) {
     setProfile({ ...profile, [field]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    const image = e.target.files?.[0];
+    if (image) setFile(image);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await updateProfile(profile);
+      let imageUrl = profile.profile_image_url;
+
+      // ✅ Upload to Cloudinary if file selected
+      if (file) {
+        imageUrl = await uploadToCloudinary(file);
+      }
+
+      await updateProfile({
+        ...profile,
+        profile_image_url: imageUrl,
+      });
+
       onClose();
     } catch (err) {
       alert('Failed to update profile');
@@ -57,32 +75,18 @@ export default function ProfileSettingsModal({ open, onClose }) {
 
         <Tabs.Root defaultValue="profile" className="w-full">
           <Tabs.List className="flex border-b mb-4">
-            <Tabs.Trigger
-              value="profile"
-              className="px-4 py-2 font-medium text-sm border-b-2 data-[state=active]:border-blue-600"
-            >
-              👤 Profile
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="settings"
-              className="px-4 py-2 font-medium text-sm border-b-2 data-[state=active]:border-blue-600"
-            >
-              ⚙️ Settings
-            </Tabs.Trigger>
+            <Tabs.Trigger value="profile" className="px-4 py-2 font-medium text-sm border-b-2 data-[state=active]:border-blue-600">👤 Profile</Tabs.Trigger>
+            <Tabs.Trigger value="settings" className="px-4 py-2 font-medium text-sm border-b-2 data-[state=active]:border-blue-600">⚙️ Settings</Tabs.Trigger>
           </Tabs.List>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Profile Tab */}
             <Tabs.Content value="profile">
-              <label className="text-sm font-semibold">🖼️ Profile Image URL</label>
-              <Input
-                value={profile.profile_image_url}
-                onChange={handleChange('profile_image_url')}
-                placeholder="https://your-image.jpg"
-              />
-              {profile.profile_image_url && (
+              <label className="text-sm font-semibold">🖼️ Profile Image</label>
+              <Input type="file" accept="image/*" onChange={handleFileChange} />
+
+              {(file || profile.profile_image_url) && (
                 <img
-                  src={profile.profile_image_url}
+                  src={file ? URL.createObjectURL(file) : profile.profile_image_url}
                   alt="Preview"
                   className="mt-2 w-24 h-24 rounded-full object-cover"
                 />
@@ -98,7 +102,6 @@ export default function ProfileSettingsModal({ open, onClose }) {
               />
             </Tabs.Content>
 
-            {/* Settings Tab */}
             <Tabs.Content value="settings">
               <label className="text-sm font-semibold">🌍 Language</label>
               <select
@@ -111,12 +114,7 @@ export default function ProfileSettingsModal({ open, onClose }) {
                 <option value="ht">Kreyòl Ayisyen</option>
               </select>
 
-              <Button
-                type="button"
-                variant="destructive"
-                className="mt-4"
-                onClick={clearCache}
-              >
+              <Button type="button" variant="destructive" className="mt-4" onClick={clearCache}>
                 🧹 Clear Cache
               </Button>
             </Tabs.Content>

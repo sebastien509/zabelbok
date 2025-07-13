@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { debounce } from 'lodash';
 
+const placeholderImage = "https://res.cloudinary.com/dyeomcmin/image/upload/v1740777512/avatar-3814081_1280_uot7fi.png";
+
 const themes = {
   'theme-1': {
     primary: '#212529',
@@ -82,7 +84,7 @@ function useWindowSize() {
     }, [ref, callback, options]);
   }
 
-export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: initialBanner = 'https://res.cloudinary.com/dyeomcmin/image/upload/v1740689851/Geometric_abstract_art_marbling_colorful_wtiqv6.png' }) {
+export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: initialBanner = 'https://res.cloudinary.com/dyeomcmin/image/upload/v1740688063/2_rrz9su.png' }) {
   const [userTheme, setUserTheme] = useState(initialTheme);
   const [userBanner, setUserBanner] = useState(initialBanner);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
@@ -192,10 +194,15 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
             animate={{ scale: isScrolled ? 0.8 : 1 }}
             className="flex items-center gap-2"
           >
+
             <Avatar className={`${isScrolled ? 'w-8 h-8' : 'w-10 h-10'} transition-all`}>
-              <AvatarImage src={creator.profile_image_url} />
-              <AvatarFallback>{creator.full_name?.charAt(0)}</AvatarFallback>
+              <AvatarImage
+                src={creator.profile_image_url || placeholderImage}
+                alt={creator.full_name || 'User'}
+              />
+              <AvatarFallback>{creator.full_name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
+
             {isScrolled && (
               <h2 className="text-sm font-semibold whitespace-nowrap">
                 {creator.full_name}
@@ -338,7 +345,7 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
           </div>
           <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg shadow-sm">
             <p className="text-xs text-gray-500">Joined</p>
-            <p className="text-xl font-semibold">2023</p>
+            <p className="text-xl font-semibold">2025</p>
           </div>
         </div>
       </div>

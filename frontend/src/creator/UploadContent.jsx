@@ -244,7 +244,7 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
               </div>
             </form>
           ) : (
-            <div className="flex flex-col h-[85vh] sm:h-auto bg-gray-50 sm:bg-white rounded-lg overflow-hidden">
+<div className="flex flex-col w-full max-w-[95vw] lg:max-w-5xl h-[90vh] lg:h-[90vh] bg-gray-50 sm:bg-white rounded-lg overflow-hidden">
   {/* Scrollable content */}
   <div className="flex-1 overflow-y-auto p-4 space-y-6">
     {/* Transcript Section */}
@@ -297,10 +297,7 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
 
   {/* Sticky Footer Buttons */}
   <div className="border-t border-gray-200 p-4 bg-white flex justify-end gap-2">
-    <Button
-      variant="outline"
-      onClick={() => setReviewData(null)}
-    >
+    <Button variant="outline" onClick={() => setReviewData(null)}>
       Back to Edit
     </Button>
     <Button
@@ -312,6 +309,7 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
     </Button>
   </div>
 </div>
+
 
           )}
         </DialogContent>
