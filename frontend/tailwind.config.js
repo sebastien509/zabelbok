@@ -1,11 +1,18 @@
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
-  ],
+// tailwind.config.js
+module.exports = {
+  content: ['./src/**/*.{js,jsx,ts,tsx}'], // adjust to your paths
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        scrollY: {
+          '0%': { transform: 'translateY(0%)' },
+          '100%': { transform: 'translateY(-50%)' },
+        },
+      },
+      animation: {
+        scrollY: 'scrollY 30s linear infinite',
+      },
+    },
   },
   plugins: [],
-}
+};
