@@ -93,11 +93,11 @@ export function VerticalCarouselMobile() {
   const duplicatedImages = [...carouselImages, ...carouselImages];
 
   return (
-    <div className="relative w-full h-[400px] overflow-hidden">
+    <div className="relative w-full h-[550px] overflow-auto">
       {/* Inner shadow overlay */}
       <div className="absolute inset-0 z-20 pointer-events-none shadow-[inset_0_0_20px_20px_rgba(0,0,0,0.05)]" />
 
-      <motion.div
+      <div
         className="absolute grid grid-cols-2 gap-4 z-10"
         animate={{ y: ['0%', '-50%'] }}
         transition={{
@@ -120,7 +120,7 @@ export function VerticalCarouselMobile() {
             />
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

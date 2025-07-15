@@ -211,7 +211,10 @@ i18n.changeLanguage(preferredLanguage);
       } />            
       {/* 🔵 E-strateji Public + Auth Pages */}
             {/* 🟢 Learner-Facing Course Pages */}
-            <Route path="/learner/courses/:id" element={<LearnerCourse />} />
+            <Route path="/learner/courses/:id" element={          <ProtectedRoute allowedRoles={['learner']}>
+            <LearnerCourse />           
+            </ProtectedRoute>
+}  />
 
             <Route path="/learner/dashboard" element={
           <ProtectedRoute allowedRoles={['learner']}>

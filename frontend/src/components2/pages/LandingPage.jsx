@@ -101,8 +101,8 @@ export default function LandingPage() {
       <VerticalCarousel />
     </div>
 
-  <div className="w-full block lg:hidden">
-      <h2 className="text-md font-semibold text-white text-center bg-[#EA7125] mb-0"> Top Creators</h2>
+  <div className="w-full block min-h-[600px] lg:hidden">
+      <h2 className="text-md font-semibold text-white text-center bg-[#EA7125]  mb-0"> Top Creators</h2>
       <VerticalCarouselMobile />
       <div className="border-t border-gray-300 my-6" /> {/* 🔹 Mobile divider */}
     </div>

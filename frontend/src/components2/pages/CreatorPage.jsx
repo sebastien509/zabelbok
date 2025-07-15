@@ -113,14 +113,19 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
       try {
         const [user, all] = await Promise.all([
           getUserById(id),
-          getPublicCoursesByCreator(id)
+          getPublicCoursesByCreator(id).catch((err) => {
+            if (err.response?.status === 404) return []; // Gracefully handle empty list
+            throw err;
+          })
         ]);
-        
-        if (!Array.isArray(all)) throw new Error('Courses response is not an array');
-        const filtered = all.filter(
-          (c) => c.professor_id === parseInt(id) && c.school_id === 1
-        );
-
+  
+        const filtered = Array.isArray(all)
+          ? all.filter(
+              (c) =>
+                c.professor_id === parseInt(id) && c.school_id === 1
+            )
+          : [];
+  
         setCreator(user);
         setCourses(filtered);
         setUserTheme(user.theme || 'theme-1');
@@ -132,9 +137,10 @@ export default function CreatorPage({ theme: initialTheme = 'theme-1', banner: i
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [id]);
+  
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
