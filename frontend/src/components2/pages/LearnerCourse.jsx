@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CourseDB } from '@/utils/cDB';
+import { CourseDB, save } from '@/utils/cDB';
 
 import { getModulesByCourse } from '@/services/modules';
 import { getCourseById } from '@/services/courses';
