@@ -152,7 +152,7 @@ def get_courses_by_school(school_id):
 
 @course_bp.route('/public/creator/<int:professor_id>', methods=['GET'])
 def get_public_courses_by_professor(professor_id):
-    courses = Course.query.filter_by(professor_id=professor_id).order_by(Course.created_at.desc()).all()
+    courses = Course.query.filter_by(professor_id=professor_id, published=True).order_by(Course.created_at.desc()).all()
 
     if not courses:
         return jsonify({"message": "No courses found for this creator."}), 404
@@ -161,9 +161,43 @@ def get_public_courses_by_professor(professor_id):
 
 @course_bp.route('/public/school/<int:school_id>', methods=['GET'])
 def get_public_courses_by_school(school_id):
-    courses = Course.query.filter_by(school_id=school_id).order_by(Course.created_at.desc()).all()
+    courses = Course.query.filter_by(school_id=school_id, published=True).order_by(Course.created_at.desc()).all()
 
     if not courses:
-        return jsonify({"message": "No courses found for this school."}), 404
+        return jsonify({"message": "No published courses found for this school."}), 404
 
     return jsonify([course.to_dict(include_nested=True) for course in courses]), 200
+# ================== PUBLISH COURSE ==================
+@course_bp.route('/<int:course_id>/publish', methods=['POST'])
+@jwt_required()
+@role_required('professor', 'admin')
+def publish_course(course_id):
+    user_id = get_jwt_identity()
+    course = Course.query.get_or_404(course_id)
+
+    # Allow only the course owner or admin to publish
+    if course.professor_id != user_id and not User.query.get(user_id).role == 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    # Optional validation: prevent publish if missing fields
+    if not course.title or not course.modules:
+        return jsonify({"error": "Course must have title and at least 1 module to publish"}), 400
+
+    course.published = True
+    db.session.commit()
+    return jsonify({"msg": "Course published successfully."}), 200
+
+# ================== UNPUBLISH COURSE ==================
+@course_bp.route('/<int:course_id>/unpublish', methods=['POST'])
+@jwt_required()
+@role_required('professor', 'admin')
+def unpublish_course(course_id):
+    user_id = get_jwt_identity()
+    course = Course.query.get_or_404(course_id)
+
+    if course.professor_id != user_id and not User.query.get(user_id).role == 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    course.published = False
+    db.session.commit()
+    return jsonify({"msg": "Course unpublished successfully."}), 200

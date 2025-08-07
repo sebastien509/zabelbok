@@ -8,6 +8,32 @@ import { Button } from '@/components2/ui/button';
 import UploadModuleLoading from '@/components2/ui/UploadModuleLoading';
 import { CheckCircle, Circle, Loader2, FileText, ClipboardList, UploadCloud } from 'lucide-react';
 import { compressVideo } from '@/utils/compressVideo';
+import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
+
+
+export function checkVideoDuration(file, maxSeconds = 600) { // 10 minutes = 600s
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration;
+      if (duration > maxSeconds) {
+        reject(new Error(`Video is too long. Max allowed is ${maxSeconds / 60} minutes.`));
+      } else {
+        resolve(duration);
+      }
+    };
+
+    video.onerror = () => {
+      reject(new Error("Unable to load video metadata."));
+    };
+
+    video.src = URL.createObjectURL(file);
+  });
+}
 
 function slugify(str) {
   return str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
@@ -70,6 +96,14 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
       toast({ title: 'Missing video', description: 'Please select a video file' });
       return;
     }
+
+    try {
+      await checkVideoDuration(videoFile, 600); // 600s = 10min
+    } catch (err) {
+      toast({ title: 'Video too long', description: err.message });
+      return;
+    }
+  
   
     if (videoFile.size > 300 * 1024 * 1024) {
       toast({ title: 'File too large', description: 'Max size is 300MB' });
@@ -93,8 +127,10 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
       setCurrentStep('uploading');
   
       // 1. Upload to Cloudinary (no compression needed here)
-      const videoUrl = await uploadToCloudinary(renamedFile);
-  
+      // ✅ NEW: Compress before upload
+      const compressedFile = await compressVideo(renamedFile);
+      const videoUrl = await uploadToCloudinary(compressedFile);
+        
       // 2. Send to backend for processing
       setCurrentStep('transcribing');
       const res = await createModule({
@@ -152,11 +188,22 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
   return (
     <>
       {/* Loading overlay */}
-      {isUploading && (
-        <div className="fixed inset-0 z-[100]  py-4 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <UploadModuleLoading currentStep={currentStep} />
-        </div>
-      )}
+      {isUploading &&
+  typeof window !== 'undefined' &&
+  createPortal(
+    <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+    className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm"
+  >
+    <UploadModuleLoading currentStep={currentStep} />
+  </motion.div>,
+    document.body
+  )}
+
+
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

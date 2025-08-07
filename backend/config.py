@@ -1,4 +1,5 @@
 import os
+import stripe 
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -10,3 +11,5 @@ class Config:
         'title': 'Haiti EduPlatform API',
         'uiversion': 3
     }
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+

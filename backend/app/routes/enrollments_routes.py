@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import db, Enrollment, Course, User
 from datetime import datetime
+from app.models import CourseCompletion  # ✅ make sure it's imported
+
 
 enrollment_bp = Blueprint('enrollment', __name__, url_prefix='/enrollments')
 
@@ -68,3 +70,22 @@ def my_full_enrollments():
         } for e in user.enrollments
     ])
 
+
+@enrollment_bp.route('/complete/<int:course_id>', methods=['POST'])
+@jwt_required()
+def complete_course(course_id):
+    user_id = get_jwt_identity()
+
+    # Prevent duplicates
+    existing = CourseCompletion.query.filter_by(user_id=user_id, course_id=course_id).first()
+    if existing:
+        return jsonify({"message": "Already marked as completed"}), 200
+
+    completion = CourseCompletion(user_id=user_id, course_id=course_id)
+    db.session.add(completion)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Course marked as completed",
+        "completed_at": completion.completed_at.isoformat()
+    }), 201

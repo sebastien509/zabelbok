@@ -99,12 +99,16 @@ def create_app():
     from app.routes.module_routes import module_bp
     from app.routes.upload_bp import upload_bp
     from app.routes.enrollments_routes import enrollment_bp
+    from app.routes.payment_routes import payment_bp
+    from app.routes.webhook_routes import webhook_bp
+
+
 
     blueprints = [
         auth_bp, course_bp, lecture_bp, book_bp, exercise_bp,
         message_bp, offline_bp, quiz_bp, result_bp, school_bp,
         notification_bp, analytics_bp, progress_bp, module_bp,
-        upload_bp, enrollment_bp
+        upload_bp, enrollment_bp, payment_bp, webhook_bp
     ]
 
     for bp in blueprints:

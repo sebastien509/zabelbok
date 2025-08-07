@@ -58,8 +58,10 @@ def upload_module_instant():
         subprocess.run([
             "ffmpeg", "-y", "-i", temp_video_path,
             "-vn", "-ac", "1", "-ar", "16000", "-acodec", "libmp3lame",
+            "-b:a", "32k",  # ✅ this is how you specify bitrate
             temp_audio_path
         ], check=True)
+
 
         print("🔊 Transcribing with OpenAI Whisper...")
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

@@ -907,3 +907,39 @@ def sync_modules():
     """Get all modules available for offline sync"""
     modules = Module.query.all()
     return jsonify([m.to_dict() for m in modules]), 200
+
+from app.models import CourseCompletion  # ensure it's imported
+
+@offline_bp.route('/sync/completions', methods=['POST'])
+@jwt_required()
+def sync_course_completions():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    completions = data.get('completions', [])
+
+    if not isinstance(completions, list):
+        return jsonify({"error": "Invalid format"}), 400
+
+    synced = []
+    for item in completions:
+        course_id = item.get('course_id')
+        completed_at = item.get('completed_at')
+
+        # Skip if already exists
+        if not CourseCompletion.query.filter_by(user_id=user_id, course_id=course_id).first():
+            new_completion = CourseCompletion(
+                user_id=user_id,
+                course_id=course_id,
+                completed_at=datetime.fromisoformat(completed_at) if completed_at else datetime.utcnow(),
+                synced=True
+            )
+            db.session.add(new_completion)
+            synced.append(course_id)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": f"{len(synced)} course completions synced.",
+        "synced_course_ids": synced
+    }), 201

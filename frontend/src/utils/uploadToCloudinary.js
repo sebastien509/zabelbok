@@ -7,7 +7,7 @@ export async function uploadToCloudinary(file, folder = 'edu-platform') {
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
     formData.append('folder', folder);
-  
+    
     try {
       const res = await fetch(CLOUDINARY_URL, {
         method: 'POST',

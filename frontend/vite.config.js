@@ -9,6 +9,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   plugins: [
     react(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'node_modules/@ffmpeg/core/dist/*',
+          dest: ''
+        }
+      ]
+    }),
 tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
