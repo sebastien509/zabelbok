@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { register, login, updateProfile } from '@/services/auth';
+import { register, login, updateProfile } from '@/services/auth'; // THis is importing the routes defined in the services folder
 import { Input } from '@/components2/ui/input';
 import { Button } from '@/components2/bento-UI/button';
 import { toast } from '@/components2/bento-UI/use-toast';

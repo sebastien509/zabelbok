@@ -11,8 +11,10 @@ python-dotenv = "*"
 flask-bcrypt = "*"
 flasgger = "*"
 flask-jwt-extended = "*"
+stripe==10.12.0
 
 [dev-packages]
 
 [requires]
 python_version = "3.11"
+

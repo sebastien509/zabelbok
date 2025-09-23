@@ -268,7 +268,7 @@ def get_all_creators():
     } for u in creators]), 200
 
 # routes/auth.py or routes/user.py
-@auth_bp.route("/me/style", methods=["PUT"])
+@auth_bp.route("/me/style", methods=["PUT"]) # modifies the Model Variables
 @jwt_required()
 def update_style():
     user_id = get_jwt_identity()

@@ -398,3 +398,619 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
+/** ========================================================================================================================================================= */
+/** ========================================================================================================================================================= */
+
+
+// import React, { useState, useEffect } from "react";
+// import { motion } from "framer-motion";
+
+/**
+ * E‑strateji Landing Page (Creator‑First) — Tailwind + DaisyUI
+ * Emphasis: Creators first, while showcasing platform tech, mobile apps, AI assistants, and media packages.
+ * Adds: Rotating hero (3 banners), AI Assistants section, Tech & Mobile, Media Packages (up to 1M impressions),
+ *       Creator Benefits, Learner section (secondary emphasis), and polished pricing/FAQ.
+ */
+
+// export  function EstratejiLanding() {
+//   return (
+//     <div className="min-h-screen bg-base-100 text-base-content">
+//       <Navbar />
+//       <HeroRotator />
+//       <CreatorPrimer />
+//       <LogoStrip />
+//       <CreatorBenefits />
+//       <AIHelpers />
+//       <TechAndMobile />
+//       <MediaPackages />
+//       <SplitMediaA />
+//       <StatsBand />
+//       <LearnerSection />
+//       <Testimonials />
+//       <Pricing />
+//       <FAQ />
+//       <FinalCTA />
+//       <Footer />
+//     </div>
+//   );
+// }
+
+// function Navbar() {
+//   return (
+//     <div className="navbar sticky top-0 z-50 bg-base-100/80 backdrop-blur border-b border-base-300">
+//       <div className="container mx-auto px-4">
+//         <div className="flex-1">
+//           <a href="#" className="btn btn-ghost text-xl font-extrabold">E‑strateji</a>
+//         </div>
+//         <div className="flex-none hidden md:flex gap-1">
+//           <a href="#creator" className="btn btn-ghost">Creators</a>
+//           <a href="#tech" className="btn btn-ghost">Tech</a>
+//           <a href="#pricing" className="btn btn-ghost">Pricing</a>
+//           <a href="#faq" className="btn btn-ghost">FAQ</a>
+//         </div>
+//         <div className="flex-none gap-2">
+//           <a className="btn btn-ghost">Sign in</a>
+//           <a className="btn btn-primary">Become a Creator</a>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// /** HERO — Rotating 3 banners */
+// function HeroRotator() {
+//   const slides = [
+//     {
+//       title: "Launch your creator brand in minutes",
+//       sub: "Pick a theme, upload your banner, and publish a premium page—no code.",
+//       cta1: "Start free",
+//       cta2: "See creator pages",
+//       img: "https://images.unsplash.com/photo-1542744095-291d1f67b221?q=80&w=1400&auto=format&fit=crop",
+//     },
+//     {
+//       title: "AI assistants that help you ship",
+//       sub: "From transcript cleanup to quiz generation and course outlines—done in clicks.",
+//       cta1: "Try AI helpers",
+//       cta2: "How it works",
+//       img: "https://images.unsplash.com/photo-1555255707-c07966088b7a?q=80&w=1400&auto=format&fit=crop",
+//     },
+//     {
+//       title: "Reach 1M+ impressions with media packages",
+//       sub: "Podcasts, papers, and blog features to amplify your course launches.",
+//       cta1: "View packages",
+//       cta2: "Talk to us",
+//       img: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1400&auto=format&fit=crop",
+//     },
+//   ];
+
+//   const [idx, setIdx] = useState(0);
+//   useEffect(() => {
+//     const t = setInterval(() => setIdx((i) => (i + 1) % slides.length), 4500);
+//     return () => clearInterval(t);
+//   }, []);
+
+//   const s = slides[idx];
+
+//   return (
+//     <section className="relative overflow-hidden">
+//       <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+//       <div className="container mx-auto px-4 py-20 grid lg:grid-cols-2 gap-10 items-center">
+//         <div>
+//           <motion.h1
+//             key={`title-${idx}`}
+//             initial={{ opacity: 0, y: 16 }}
+//             animate={{ opacity: 1, y: 0 }}
+//             transition={{ duration: 0.4 }}
+//             className="text-4xl md:text-6xl font-black leading-tight"
+//           >
+//             {s.title}
+//           </motion.h1>
+//           <motion.p
+//             key={`sub-${idx}`}
+//             initial={{ opacity: 0, y: 10 }}
+//             animate={{ opacity: 1, y: 0 }}
+//             transition={{ duration: 0.35 }}
+//             className="mt-4 text-lg opacity-80"
+//           >
+//             {s.sub}
+//           </motion.p>
+//           <div className="mt-8 flex flex-wrap gap-3">
+//             <a className="btn btn-primary">{s.cta1}</a>
+//             <a className="btn btn-outline">{s.cta2}</a>
+//           </div>
+//           <ul className="mt-6 text-sm opacity-70 list-disc pl-5 space-y-1">
+//             <li>Creator‑first onboarding</li>
+//             <li>Offline‑ready modules</li>
+//             <li>Integrated payments & analytics</li>
+//           </ul>
+//         </div>
+//         <motion.div
+//           key={`img-${idx}`}
+//           initial={{ opacity: 0, scale: 0.98 }}
+//           animate={{ opacity: 1, scale: 1 }}
+//           transition={{ duration: 0.4 }}
+//         >
+//           <div className="mockup-window border border-base-300 bg-base-200">
+//             <div className="p-4 md:p-8">
+//               <img className="rounded-box" src={s.img} alt="Hero preview" />
+//             </div>
+//           </div>
+//         </motion.div>
+//       </div>
+
+//       {/* Dots */}
+//       <div className="flex gap-2 justify-center pb-6">
+//         {slides.map((_, i) => (
+//           <button
+//             key={i}
+//             onClick={() => setIdx(i)}
+//             className={`btn btn-xs ${i === idx ? 'btn-primary' : 'btn-outline'}`}
+//           >
+//             {i + 1}
+//           </button>
+//         ))}
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** CREATOR FIRST PRIMER */
+// function CreatorPrimer() {
+//   return (
+//     <section id="creator" className="py-10">
+//       <div className="container mx-auto px-4 text-center">
+//         <div className="badge badge-primary">Creator‑first</div>
+//         <h2 className="mt-3 text-3xl md:text-4xl font-extrabold">
+//           Create once. Publish everywhere. <span className="text-primary">Own your brand.</span>
+//         </h2>
+//         <p className="max-w-3xl mx-auto mt-3 opacity-80">
+//           E‑strateji gives you a premium, customizable landing page, AI assistants that speed up production,
+//           and distribution packages to grow your audience.
+//         </p>
+//         <div className="mt-6 flex justify-center gap-3">
+//           <a className="btn btn-primary">Become a Creator</a>
+//           <a className="btn btn-outline">See how it works</a>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function LogoStrip() {
+//   return (
+//     <section className="py-10">
+//       <div className="container mx-auto px-4">
+//         <p className="text-center text-sm uppercase tracking-widest opacity-60">Trusted by creators & organizations</p>
+//         <div className="mt-6 grid grid-cols-2 md:grid-cols-6 gap-6 items-center opacity-70">
+//           {Array.from({ length: 6 }).map((_, i) => (
+//             <div key={i} className="h-10 bg-base-200 rounded animate-pulse" />
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** CREATOR BENEFITS */
+// function CreatorBenefits() {
+//   const items = [
+//     { icon: "🎨", title: "Polished, professional pages", body: "Three distinct themes + two colorways. Your brand, your layout." },
+//     { icon: "🤖", title: "AI Assistants", body: "Auto‑outline courses, clean transcripts, generate quizzes, summarize lectures." },
+//     { icon: "📱", title: "Mobile apps", body: "Learners watch, read, and quiz on the go—online or offline." },
+//     { icon: "💳", title: "Payments & analytics", body: "Enrollments, revenue, and retention in one place." },
+//   ];
+//   return (
+//     <section className="py-16">
+//       <div className="container mx-auto px-4">
+//         <h3 className="text-3xl md:text-4xl font-extrabold text-center">Built for serious creators</h3>
+//         <p className="text-center opacity-70 mt-2">Premium theming, AI speed, and distribution that compounds.</p>
+//         <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+//           {items.map((f) => (
+//             <div key={f.title} className="card bg-base-200 hover:shadow-lg transition">
+//               <div className="card-body">
+//                 <div className="text-3xl">{f.icon}</div>
+//                 <h4 className="card-title">{f.title}</h4>
+//                 <p className="opacity-80">{f.body}</p>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** AI HELPERS */
+// function AIHelpers() {
+//   const helpers = [
+//     { title: "Course Outliner", desc: "Turn ideas into a structured syllabus." },
+//     { title: "Transcript Cleaner", desc: "Fix titles, sections, and remove filler words." },
+//     { title: "Quiz Generator", desc: "Auto‑create MCQs from your content." },
+//     { title: "Summary Bot", desc: "Readable abstracts for blogs and social." },
+//   ];
+//   return (
+//     <section className="py-16">
+//       <div className="container mx-auto px-4">
+//         <div className="hero bg-base-200 rounded-2xl">
+//           <div className="hero-content flex-col lg:flex-row gap-10">
+//             <img className="max-w-md rounded-box border border-base-300"
+//                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop"
+//                  alt="AI helpers" />
+//             <div>
+//               <h3 className="text-3xl font-extrabold">Work faster with AI assistants</h3>
+//               <p className="mt-2 opacity-80">Assistants integrate into your creator studio—optional, private‑aware, and designed to save time.</p>
+//               <div className="mt-4 grid sm:grid-cols-2 gap-3">
+//                 {helpers.map((h) => (
+//                   <div key={h.title} className="p-4 rounded-xl border border-base-300 bg-base-100">
+//                     <h4 className="font-bold">{h.title}</h4>
+//                     <p className="opacity-80 text-sm">{h.desc}</p>
+//                   </div>
+//                 ))}
+//               </div>
+//               <div className="mt-6 join">
+//                 <button className="btn btn-primary join-item">Try AI helpers</button>
+//                 <button className="btn btn-outline join-item">Privacy & safety</button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** TECH + MOBILE */
+// function TechAndMobile() {
+//   const tech = [
+//     { k: "Offline‑first", v: "PWA + local storage of modules" },
+//     { k: "Video + Docs", v: "Transcripts, captions, and blob playback" },
+//     { k: "Mobile Apps", v: "iOS & Android experiences" },
+//     { k: "APIs", v: "Clean REST for content & analytics" },
+//   ];
+//   return (
+//     <section id="tech" className="py-16 bg-base-200">
+//       <div className="container mx-auto px-4">
+//         <div className="grid lg:grid-cols-2 gap-10 items-center">
+//           <div>
+//             <h3 className="text-3xl font-extrabold">Serious tech under the hood</h3>
+//             <p className="mt-3 opacity-80">We combine offline‑ready delivery with secure APIs and a polished creator studio—optimized for low‑internet contexts.</p>
+//             <ul className="mt-4 space-y-2">
+//               {tech.map((t) => (
+//                 <li key={t.k} className="flex items-center gap-2">
+//                   <span className="badge badge-outline badge-sm">{t.k}</span>
+//                   <span className="opacity-80">{t.v}</span>
+//                 </li>
+//               ))}
+//             </ul>
+//           </div>
+//           <div>
+//             <div className="mockup-phone border-primary">
+//               <div className="camera"></div>
+//               <div className="display">
+//                 <div className="artboard artboard-demo phone-1 bg-base-100">
+//                   <div className="p-4">
+//                     <p className="font-bold">E‑strateji Mobile</p>
+//                     <p className="text-sm opacity-70">Offline playback · Quiz resume · Sync on reconnect</p>
+//                     <div className="mt-4 h-40 bg-base-200 rounded-box" />
+//                     <div className="mt-3 h-6 bg-base-200 rounded" />
+//                     <div className="mt-2 h-6 bg-base-200 rounded" />
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** MEDIA PACKAGES */
+// function MediaPackages() {
+//   const packs = [
+//     { name: "Starter Media", reach: "Up to 100k impressions", items: ["Blog feature", "Newsletter plug", "Social posts"] },
+//     { name: "Growth Media", reach: "Up to 500k impressions", items: ["Podcast guest", "Blog + newsletter", "Shorts pack"] },
+//     { name: "Launch Max", reach: "Up to 1M impressions", items: ["Podcast + panel", "Whitepaper excerpt", "Multi‑blog syndication"] },
+//   ];
+//   return (
+//     <section className="py-16">
+//       <div className="container mx-auto px-4">
+//         <h3 className="text-3xl md:text-4xl font-extrabold text-center">Amplify with media packages</h3>
+//         <p className="text-center opacity-70">Podcasts • Papers • Blogs • Shorts</p>
+//         <div className="mt-10 grid md:grid-cols-3 gap-6">
+//           {packs.map((p) => (
+//             <div key={p.name} className="card bg-base-100 border border-base-300 shadow">
+//               <div className="card-body">
+//                 <div className="flex items-baseline justify-between">
+//                   <h4 className="card-title">{p.name}</h4>
+//                   <div className="badge badge-primary">{p.reach}</div>
+//                 </div>
+//                 <ul className="mt-3 space-y-2">
+//                   {p.items.map((i) => (
+//                     <li key={i} className="flex items-center gap-2"><span>✔️</span> {i}</li>
+//                   ))}
+//                 </ul>
+//                 <div className="card-actions mt-6">
+//                   <button className="btn btn-outline">Request details</button>
+//                 </div>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** Creator Page explainer split (kept) */
+// function SplitMediaA() {
+//   return (
+//     <section className="py-16">
+//       <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-10 items-center">
+//         <div className="order-2 lg:order-1">
+//           <h3 className="text-3xl font-extrabold">Themeable Creator Pages</h3>
+//           <p className="mt-3 opacity-80">
+//             Choose a layout, pick a colorway, add your banner and logo, and publish. We handle the rest.
+//           </p>
+//           <ul className="mt-4 space-y-2">
+//             <li className="flex items-center gap-2"><span className="badge badge-outline badge-sm">AA</span> Accessible contrasts & keyboard nav</li>
+//             <li className="flex items-center gap-2"><span className="badge badge-outline badge-sm">i18n</span> English • Kreyòl • Français</li>
+//             <li className="flex items-center gap-2"><span className="badge badge-outline badge-sm">PWA</span> Offline‑friendly previews</li>
+//           </ul>
+//         </div>
+//         <div className="order-1 lg:order-2">
+//           <div className="rounded-box overflow-hidden border border-base-300">
+//             <img
+//               src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1400&auto=format&fit=crop"
+//               alt="Theme preview"
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function StatsBand() {
+//   const stats = [
+//     { k: "Creators", v: "2,400+" },
+//     { k: "Learners", v: "120k" },
+//     { k: "Avg. completion", v: "86%" },
+//     { k: "Countries", v: "35" },
+//   ];
+//   return (
+//     <section className="py-14">
+//       <div className="container mx-auto px-4">
+//         <div className="stats stats-vertical md:stats-horizontal w-full shadow">
+//           {stats.map((s) => (
+//             <div key={s.k} className="stat">
+//               <div className="stat-title">{s.k}</div>
+//               <div className="stat-value text-primary">{s.v}</div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /** LEARNER (secondary emphasis) */
+// function LearnerSection() {
+//   const items = [
+//     { title: "Learn anywhere", body: "Offline modules keep you progressing without stable internet." },
+//     { title: "Bilingual content", body: "English • Kreyòl • Français support from the start." },
+//     { title: "Track progress", body: "Resume videos, complete quizzes, sync when online." },
+//   ];
+//   return (
+//     <section className="py-16 bg-base-200">
+//       <div className="container mx-auto px-4">
+//         <div className="badge">For Learners</div>
+//         <h3 className="text-3xl md:text-4xl font-extrabold mt-2">A better learning experience</h3>
+//         <div className="mt-6 grid md:grid-cols-3 gap-4">
+//           {items.map((i) => (
+//             <div key={i.title} className="p-6 rounded-2xl border border-base-300 bg-base-100">
+//               <h4 className="font-bold">{i.title}</h4>
+//               <p className="opacity-80 mt-1">{i.body}</p>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function Testimonials() {
+//   const items = [
+//     {
+//       quote: "E‑strateji let me teach without worrying about bandwidth. My students finally keep up.",
+//       name: "Marsha S.",
+//       role: "Business Coach",
+//     },
+//     {
+//       quote: "Uploading videos and auto‑quizzes saved me hours.",
+//       name: "Wilgens M.",
+//       role: "Finance Educator",
+//     },
+//     {
+//       quote: "The themeable page made my brand feel premium from day one.",
+//       name: "Vanessa A.",
+//       role: "Creator",
+//     },
+//   ];
+//   return (
+//     <section className="py-16">
+//       <div className="container mx-auto px-4">
+//         <h3 className="text-3xl font-extrabold text-center">Creators are winning with E‑strateji</h3>
+//         <div className="mt-8 carousel w-full">
+//           {items.map((t, idx) => (
+//             <div key={idx} id={`slide-${idx}`} className="carousel-item w-full justify-center">
+//               <div className="max-w-3xl text-center">
+//                 <p className="text-xl md:text-2xl font-semibold">“{t.quote}”</p>
+//                 <p className="mt-4 opacity-70">{t.name} • {t.role}</p>
+//                 <div className="mt-6 join">
+//                   {items.map((_, i) => (
+//                     <a key={i} href={`#slide-${i}`} className={`btn btn-sm join-item ${i===idx? 'btn-primary':'btn-outline'}`}>{i+1}</a>
+//                   ))}
+//                 </div>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function Pricing() {
+//   const tiers = [
+//     {
+//       name: "Starter",
+//       price: "$0",
+//       desc: "Launch your first course",
+//       features: ["1 course", "Theme pages", "Email support"],
+//       cta: "Start free",
+//       popular: false,
+//     },
+//     {
+//       name: "Creator",
+//       price: "$29/mo",
+//       desc: "Grow your audience",
+//       features: ["Unlimited courses", "Quizzes & transcripts", "Analytics"],
+//       cta: "Choose Creator",
+//       popular: true,
+//     },
+//     {
+//       name: "Studio",
+//       price: "$99/mo",
+//       desc: "Scale with teams",
+//       features: ["Team seats", "Advanced offline", "Priority support"],
+//       cta: "Go Studio",
+//       popular: false,
+//     },
+//   ];
+//   return (
+//     <section id="pricing" className="py-16 bg-base-200">
+//       <div className="container mx-auto px-4">
+//         <h3 className="text-3xl md:text-4xl font-extrabold text-center">Simple, creator‑friendly pricing</h3>
+//         <div className="mt-10 grid md:grid-cols-3 gap-6">
+//           {tiers.map((t) => (
+//             <div key={t.name} className={`card bg-base-100 border ${t.popular ? 'border-primary' : 'border-base-300'} shadow-lg`}>
+//               <div className="card-body">
+//                 <div className="flex items-baseline justify-between">
+//                   <h4 className="card-title">{t.name}</h4>
+//                   {t.popular && <div className="badge badge-primary">Popular</div>}
+//                 </div>
+//                 <p className="text-4xl font-black">{t.price}</p>
+//                 <p className="opacity-70">{t.desc}</p>
+//                 <ul className="mt-4 space-y-2">
+//                   {t.features.map((f) => (
+//                     <li key={f} className="flex items-center gap-2"><span className="i">✔️</span> {f}</li>
+//                   ))}
+//                 </ul>
+//                 <div className="card-actions mt-6">
+//                   <button className={`btn ${t.popular ? 'btn-primary' : 'btn-outline'}`}>{t.cta}</button>
+//                 </div>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function FAQ() {
+//   const faqs = [
+//     {
+//       q: "Can learners access content offline?",
+//       a: "Yes. Modules are cached with transcripts and quizzes. Progress syncs when back online.",
+//     },
+//     {
+//       q: "Do I need a website to start?",
+//       a: "No. Your themeable Creator Page is your branded hub with courses and media.",
+//     },
+//     {
+//       q: "How do media packages work?",
+//       a: "Pick a tier and we coordinate podcasts, papers/blogs, and social distribution around your launch.",
+//     },
+//   ];
+//   return (
+//     <section id="faq" className="py-16">
+//       <div className="container mx-auto px-4">
+//         <h3 className="text-3xl font-extrabold text-center">Frequently asked questions</h3>
+//         <div className="mt-8 join join-vertical w-full">
+//           {faqs.map((f, i) => (
+//             <div key={i} className="collapse collapse-arrow join-item border border-base-300 bg-base-100">
+//               <input type="checkbox" />
+//               <div className="collapse-title text-lg font-medium">{f.q}</div>
+//               <div className="collapse-content opacity-80">
+//                 <p>{f.a}</p>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function FinalCTA() {
+//   return (
+//     <section className="py-16">
+//       <div className="container mx-auto px-4">
+//         <div className="hero bg-gradient-to-br from-primary to-secondary text-primary-content rounded-2xl">
+//           <div className="hero-content text-center">
+//             <div className="max-w-xl">
+//               <h2 className="text-3xl md:text-4xl font-black">Ready to launch your creator brand?</h2>
+//               <p className="mt-2 opacity-90">Premium pages. AI speed. Distribution that scales.</p>
+//               <div className="mt-6 flex flex-wrap justify-center gap-3">
+//                 <a className="btn">Become a Creator</a>
+//                 <a className="btn btn-outline">Talk to our team</a>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// function Footer() {
+//   return (
+//     <footer className="footer p-10 bg-base-100 border-t border-base-300">
+//       <nav>
+//         <h6 className="footer-title">Product</h6>
+//         <a className="link link-hover">Features</a>
+//         <a className="link link-hover">Pricing</a>
+//         <a className="link link-hover">Changelog</a>
+//       </nav>
+//       <nav>
+//         <h6 className="footer-title">Company</h6>
+//         <a className="link link-hover">About</a>
+//         <a className="link link-hover">Careers</a>
+//         <a className="link link-hover">Press</a>
+//       </nav>
+//       <nav>
+//         <h6 className="footer-title">Support</h6>
+//         <a className="link link-hover">Help center</a>
+//         <a className="link link-hover">Contact</a>
+//         <a className="link link-hover">Status</a>
+//       </nav>
+//       <div>
+//         <h6 className="footer-title">E‑strateji</h6>
+//         <p className="opacity-70">Ship knowledge. Anywhere.</p>
+//         <form className="form-control w-80 mt-3">
+//           <label className="label">
+//             <span className="label-text">Get updates</span>
+//           </label>
+//           <div className="join">
+//             <input type="email" placeholder="you@example.com" className="input input-bordered join-item" />
+//             <button className="btn btn-primary join-item">Subscribe</button>
+//           </div>
+//         </form>v
+//       </div>
+//     </footer>
+//   );
+// }

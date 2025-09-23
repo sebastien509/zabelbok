@@ -47,7 +47,9 @@ class User(db.Model):
     language = db.Column(db.String(5), default='en')  # en, ht, fr
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    theme = db.Column(db.String(20), default="theme-1")
+    theme = db.Column(db.String(20), default="theme-1")  
+    color = db.Column(db.Boolean, default=False) # New Added for color schemes per template Binary 
+
     banner_url = db.Column(db.String(255), nullable=True)
 
     enrollments = db.relationship('Enrollment', back_populates='user', cascade="all, delete-orphan", overlaps="enrolled_courses,students")
@@ -684,3 +686,19 @@ class Enrollment(db.Model):
 
     __table_args__ = (db.UniqueConstraint('user_id', 'course_id', name='_user_course_uc'),)
 
+
+class CourseCompletion(db.Model):
+    __tablename__ = "course_completions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    course_id = db.Column(db.Integer, db.ForeignKey("courses.id"), nullable=False, index=True)
+    completed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "course_id", name="uq_user_course_completion"),
+    )
+
+    # (optional) quick relations if you want them
+    user = db.relationship("User", backref=db.backref("course_completions", cascade="all, delete-orphan"))
+    course = db.relationship("Course", backref=db.backref("completions", cascade="all, delete-orphan"))

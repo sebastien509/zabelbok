@@ -12,7 +12,7 @@ export async function save(course) {
   } catch (err) {
     console.error('[CourseDB] Failed to save course:', err);
   }
-}b  
+}
 
 export async function get(id) {
   try {

@@ -6,9 +6,7 @@ import App from './App';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { NotificationProvider } from './context/NotificationContext';
 import ToastProvider from './components2/ToastProvider';
-
-import { registerSW } from 'virtual:pwa-register';
-registerSW(); // ✅ Automatically registers and updates the service worker
+ // ✅ Automatically registers and updates the service worker
 
 import './index.css';
 import '../i18n'; // ✅ Localization
