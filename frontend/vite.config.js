@@ -1,33 +1,31 @@
 // vite.config.js
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Read env at build time: VITE_API_BASE_URL (see step 3)
-const API_BASE = process.env.VITE_API_URL
-
 export default defineConfig(({ mode }) => {
-  const isProd = mode === 'production'
-console.log("base:",API_BASE)
+  // ✅ Read Vite envs from .env, .env.local, etc.
+  const env = loadEnv(mode, process.cwd(), '')
+  const target = env.VITE_API_URL // <-- this now works
+
+  // Flip this to true if your backend paths are actually /api/auth, /api/users, etc.
+  const BACKEND_HAS_API_PREFIX = false
+  // If true, we’ll rewrite /auth -> /api/auth (and similarly for other roots)
+
   return {
     plugins: [
       react(),
-      viteStaticCopy({
-        targets: [
-          // ffmpeg.wasm files, used by your uploader/compressor
-          { src: 'node_modules/@ffmpeg/core/dist/*', dest: '' },
-        ],
-      }),
+      viteStaticCopy({ targets: [{ src: 'node_modules/@ffmpeg/core/dist/*', dest: '' }] }),
       tailwindcss(),
-      // PWA in prod only (recommended for dev sanity)
-      isProd &&
+      // keep PWA in prod if you want
+      mode === 'production' &&
         VitePWA({
           registerType: 'autoUpdate',
-          injectRegister: 'auto',          // <-- auto-inject SW registration
-          devOptions: { enabled: false },  // keep SW off in dev to avoid cache weirdness
+          injectRegister: 'auto',
+          devOptions: { enabled: false },
           manifest: {
             name: 'E-strateji',
             short_name: 'E-strateji',
@@ -46,26 +44,30 @@ console.log("base:",API_BASE)
           },
         }),
     ].filter(Boolean),
-    resolve: {
-      alias: { '@': path.resolve(__dirname, 'src') },
-    },
+    resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
     server: {
       port: 5173,
-      // If your frontend calls relative paths like /api/..., forward them to Render (or local API).
-      proxy: API_BASE
+      proxy: target
         ? {
-            // example: /api -> https://your-api.onrender.com
-           '^/(auth|users|courses|quizzes|exercises|messages|books|lectures|results|uploads|modules)': {
-            target: API_BASE,
-            changeOrigin: true,
-            secure: false,
-              // if your backend expects /api prefix keep it; otherwise rewrite:
-              // rewrite: (p) => p.replace(/^\/api/, ''),
+            // forward these top-level API roots to Render in DEV
+            '^/(auth|users|courses|quizzes|exercises|messages|books|lectures|results|uploads|modules)': {
+              target,
+              changeOrigin: true,
+              secure: true,
+              ...(BACKEND_HAS_API_PREFIX
+                ? {
+                    // If your backend is /api/<route>, rewrite /<route> -> /api/<route>
+                    rewrite: (p) =>
+                      p.replace(
+                        /^\/(auth|users|courses|quizzes|exercises|messages|books|lectures|results|uploads|modules)/,
+                        '/api/$1'
+                      ),
+                  }
+                : {}),
             },
           }
         : undefined,
     },
-    // For builds on Vercel / local preview
     preview: { port: 5173 },
   }
 })

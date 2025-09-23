@@ -6,7 +6,7 @@ import os
 from app.extensions import db, migrate, bcrypt, jwt
 import yaml
 import logging
-
+import re
 
 
 def create_app():
@@ -17,7 +17,6 @@ def create_app():
     app.config["DEBUG"] = False
     app.config["TESTING"] = False
 
-
     # ✅ Logging setup
     if not app.debug:
         gunicorn_logger = logging.getLogger("gunicorn.error")
@@ -26,26 +25,30 @@ def create_app():
             app.logger.setLevel(gunicorn_logger.level)
         else:
             app.logger.setLevel(logging.INFO)
-
     app.logger.info("✅ Logging system initialized")
 
-
-    # ✅ Load origins from .env
-    raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173")
+    # ✅ Load allowed frontend origins (comma-separated)
+    raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
     origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
     exact_origins = [o for o in origins_list if "*" not in o]
-    wildcard_patterns = [o.replace(".", r"\.").replace("*", r"[a-z0-9]+") for o in origins_list if "*" in o]
-    origins_regex = "|".join(wildcard_patterns) if wildcard_patterns else None
+    wildcard_patterns = [o for o in origins_list if "*" in o]  # e.g. https://*.vercel.app
+    wildcard_regex = "|".join(
+        p.replace(".", r"\.").replace("*", r"[a-z0-9-]+") for p in wildcard_patterns
+    ) if wildcard_patterns else None
 
-    # ✅ Apply CORS
-
-# Allow credentials + Vercel previews using regex
-    CORS(
-    app,
-    supports_credentials=True,
-    origins_regex=f"^({origins_regex})$" if origins_regex else None
-)
-
+    # ✅ Apply CORS: exact list + optional wildcard regex (Vercel previews)
+    cors_kwargs = dict(
+        supports_credentials=True,
+        resources={r"/*": {
+            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        }},
+        origins=exact_origins or ["http://localhost:5173", "http://127.0.0.1:5173"],
+    )
+    if wildcard_regex:
+        CORS(app, origins_regex=f"^({wildcard_regex})$", **cors_kwargs)
+    else:
+        CORS(app, **cors_kwargs)
 
     # ✅ Init extensions
     db.init_app(app)
@@ -56,31 +59,20 @@ def create_app():
     # ✅ Swagger config
     with open('app/docs/swagger.yaml', 'r') as f:
         swagger_template = yaml.safe_load(f)
-
-    swagger_config = {
+    Swagger(app, template=swagger_template, config={
         "headers": [],
-        "specs": [
-            {
-                "endpoint": 'apispec_1',
-                "route": '/apispec_1.json',
-                "rule_filter": lambda rule: True,
-                "model_filter": lambda tag: True,
-            }
-        ],
+        "specs": [{"endpoint": 'apispec_1', "route": '/apispec_1.json',
+                   "rule_filter": lambda rule: True, "model_filter": lambda tag: True}],
         "static_url_path": "/flasgger_static",
         "swagger_ui": True,
         "specs_route": "/docs"
-    }
+    })
 
-    Swagger(app, template=swagger_template, config=swagger_config)
-
-    # ✅ Logging CORS setup
+    # Logs for visibility
     app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
     app.logger.info(f"🌐 Exact CORS Origins: {exact_origins}")
-    if origins_regex:
-        app.logger.info(f"🌐 Wildcard CORS Regex: {origins_regex}")
-
-
+    if wildcard_regex:
+        app.logger.info(f"🌐 Wildcard CORS Regex: {wildcard_regex}")
 
     # ✅ Register blueprints
     from app.routes.auth_routes import auth_bp
@@ -102,18 +94,17 @@ def create_app():
     from app.routes.payment_routes import payment_bp
     from app.routes.webhook_routes import webhook_bp
 
-
-
-    blueprints = [
-        auth_bp, course_bp, lecture_bp, book_bp, exercise_bp,
-        message_bp, offline_bp, quiz_bp, result_bp, school_bp,
-        notification_bp, analytics_bp, progress_bp, module_bp,
-        upload_bp, enrollment_bp, payment_bp, webhook_bp
-    ]
-
-    for bp in blueprints:
+    for bp in [auth_bp, course_bp, lecture_bp, book_bp, exercise_bp,
+               message_bp, offline_bp, quiz_bp, result_bp, school_bp,
+               notification_bp, analytics_bp, progress_bp, module_bp,
+               upload_bp, enrollment_bp, payment_bp, webhook_bp]:
         app.register_blueprint(bp)
         app.logger.info(f"📦 Registered blueprint: {bp.name}")
+
+    # (Optional) health route for Render and local checks
+    @app.get("/health")
+    def health():
+        return {"ok": True, "service": "api"}, 200
 
     @app.errorhandler(Exception)
     def handle_exception(e):
