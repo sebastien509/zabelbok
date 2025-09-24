@@ -83,7 +83,7 @@ export default function LandingPage() {
         E-strateji provides Haitian creators with AI-powered tools to create, share, and monetize educational content—online or offline.
       </p>
       <div className="flex flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start">
-        <Link to="/creator/onboarding">
+        <Link to="/signup/creator">
           <Button size="lg" className="bg-[#EA7125] text-white hover:bg-[#EA7125]/90">
             Become a Creator
           </Button>

@@ -85,7 +85,7 @@ import LearnerCourse from './components2/pages/LearnerCourse';
 import PublicCreatorPage from './components2/pages/PublicCreatorPage'
 // Creator onboarding wizard (6 steps)
 import CreatorOnboarding from './components2/onboarding/CreatorOnboarding'
-
+import { needsCreatorOnboarding } from './utils/onboarding';
 
 import { useAuth } from '@/components/auth/AuthProvider'; // adjust path
 
@@ -194,12 +194,16 @@ i18n.changeLanguage(preferredLanguage);
               <LearnerSignUp />
             </RedirectIfLoggedIn>
           } />
-          
-            <Route path="/creator/onboarding" element={
-              <RedirectIfLoggedIn>
-                <CreatorOnboarding />
-              </RedirectIfLoggedIn>
-            } />
+
+        <Route
+          path="/creator/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={['creator']}>
+              <CreatorOnboarding />
+            </ProtectedRoute>
+          }
+        />
+
 
 
             {/* E-strateji  Private */}
@@ -226,11 +230,19 @@ i18n.changeLanguage(preferredLanguage);
             </ProtectedRoute>
 }  />
 
-            <Route path="/learner/dashboard" element={
-          <ProtectedRoute allowedRoles={['learner']}>
-            <LearnerDashboard />
-          </ProtectedRoute>
-        } />            
+      
+          <Route
+            path="/creator/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['creator']}>
+                {needsCreatorOnboarding(user)
+                  ? <Navigate to="/creator/onboarding" replace />
+                  : <CreatorDashboard />
+                }
+              </ProtectedRoute>
+            }
+          />
+      
 
             <Route path="/modules/:id" element={<ModuleViewer />} />
      

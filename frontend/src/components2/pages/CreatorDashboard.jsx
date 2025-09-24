@@ -31,11 +31,11 @@ export default function CreatorDashboard() {
           getUserCourses()
         ]);
         
-        const hasStyle = userData.theme && userData.banner_url;
+        // const hasStyle = userData.theme && userData.banner_url;
         setCreator(userData);
         setCourses(courseData || []);
-        setStyle({ theme: userData.theme, banner: userData.banner_url });
-        setNeedsCustomization(!hasStyle);
+        // setStyle({ theme: userData.theme, banner: userData.banner_url });
+        // setNeedsCustomization(!hasStyle);
       } catch (err) {
         console.error('Failed to load user or courses:', err);
         if (err?.response?.status === 401) {

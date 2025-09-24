@@ -31,11 +31,11 @@ export default function RedirectIfLoggedIn({ allowedRoles = [], children }) {
     case 'admin':
       return <Navigate to="/dashboard/admin" />;
     case 'professor':
-      return <Navigate to="/dashboard/professor" />;
+      return <Navigate to="/creator/onboarding" />;
     case 'student':
       return <Navigate to="/dashboard/student" />;
     case 'creator':
-      return <Navigate to="/creator/dashboard" />;
+      return <Navigate to="/creator/onboarding" />;
     case 'learner':
       return <Navigate to="/learner/dashboard" />;
     default:

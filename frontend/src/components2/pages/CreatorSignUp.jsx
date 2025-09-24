@@ -37,15 +37,15 @@ export default function CreatorSignUp() {
     try {
       await register({ ...basicForm, role: 'professor', school_id: 1 });
       const res = await login(basicForm.email, basicForm.password);
+  
       localStorage.setItem('token', res.access_token);
       localStorage.setItem('user_id', res.user_id);
-      await refreshUser()
-
-      toast('Signup successful!', {
-        description: 'Welcome to the platform.',
-      });
-
-      setStep(2);
+      await refreshUser();
+  
+      toast('Signup successful!', { description: 'Welcome to the platform.' });
+  
+      // 👉 Instead of setStep(2), jump into the onboarding flow
+      navigate('/creator/onboarding');
     } catch {
       toast.error('Signup Failed', { description: 'Email might already be used.' });
     }
