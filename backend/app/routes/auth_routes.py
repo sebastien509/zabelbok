@@ -325,20 +325,20 @@ def get_all_creators():
     } for u in creators]), 200
 
 # routes/auth.py or routes/user.py
-@auth_bp.route("/me/style/settings", methods=["PUT"]) # modifies the Model Variables
-@jwt_required()
-def update_style_settings():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    data = request.json
+# @auth_bp.route("/me/style/settings", methods=["PUT"]) # modifies the Model Variables
+# @jwt_required()
+# def update_style_settings():
+#     user_id = get_jwt_identity()
+#     user = User.query.get(user_id)
+#     data = request.json
 
-    if "theme" in data:
-        user.theme = data["theme"]
-    if "banner_url" in data:
-        user.banner_url = data["banner_url"]
+#     if "theme" in data:
+#         user.theme = data["theme"]
+#     if "banner_url" in data:
+#         user.banner_url = data["banner_url"]
 
-    db.session.commit()
-    return jsonify({"msg": "Style updated", "user": user.to_dict()})
+#     db.session.commit()
+#     return jsonify({"msg": "Style updated", "user": user.to_dict()})
 
 @auth_bp.route('/creators/<int:user_id>', methods=['GET'])
 @jwt_required()
