@@ -4,15 +4,31 @@ import { api } from './api';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// services/auth.js
 export const login = async (email, password) => {
-  const res = await api.post(`${API_URL}/auth/login`, { email, password });
-  return res.data;
+  const { data } = await api.post('/auth/login', { email, password });
+  return data;
 };
 
 export const register = async (payload) => {
-  const res = await api.post(`${API_URL}/auth/register`, payload);
-  return res.data;
+  const { data } = await api.post('/auth/register', payload);
+  return data;
 };
+
+export const getCurrentUser2 = async () => {
+  const { data } = await api.get('/auth/me');
+  return data;
+};
+
+// style update now accepts color + slug
+export const updateStyle = ({ theme, banner_url, color, slug }) =>
+  api.put('/auth/me/style', { theme, banner_url, color, slug });
+
+// public fetchers
+export const getPublicBySlug = (slug) => api.get(`/auth/public/slug/${encodeURIComponent(slug)}`)
+  .then(r => r.data);
+
+
 
 export const getCurrentUser = async () => {
   const token = localStorage.getItem('token');
@@ -75,12 +91,6 @@ export async function updateProfile(data) {
 }
 
 export const getAllCreators = () => api.get('/auth/creators');
-
-// services/auth.js
-export const updateStyle = async ({ theme, banner_url }) => {
-  return api.put('/auth/me/style', { theme, banner_url });
-};
-
 export const getMe = () => api.get('/auth/me').then((res) => res.data);
 
 
@@ -96,3 +106,7 @@ export const getUserById = async (id) => {
   };
   
 
+  export const checkSlugAvailable = async (slug) => {
+    const { data } = await api.get(`/auth/slug-available/${encodeURIComponent(slug)}`)
+    return data // { slug, available: boolean }
+  }

@@ -33,6 +33,7 @@ class School(db.Model):
         }
 
 # ============ USER ============
+# ============ USER ============
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -47,36 +48,42 @@ class User(db.Model):
     language = db.Column(db.String(5), default='en')  # en, ht, fr
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    theme = db.Column(db.String(20), default="theme-1")  
-    color = db.Column(db.Boolean, default=False) # New Added for color schemes per template Binary 
 
+    # Style / public profile
+    theme = db.Column(db.String(20), default="theme-1")   # keep simple: 'theme-1' | 'theme-2' | 'theme-3'
+    color = db.Column(db.Boolean, default=False)          # palette flag: False -> color-1, True -> color-2
     banner_url = db.Column(db.String(255), nullable=True)
 
+    # Public slug (frontend decides & checks availability; backend just stores)
+    slug = db.Column(db.String(120), unique=True, index=True)  # e.g. 'john-doe', 'john-doe-1'
+
+    # Relationships
     enrollments = db.relationship('Enrollment', back_populates='user', cascade="all, delete-orphan", overlaps="enrolled_courses,students")
 
     enrolled_courses = db.relationship(
-    'Course',
-    secondary='enrollments',
-    back_populates='students',
-    overlaps="enrollments"
-)
+        'Course',
+        secondary='enrollments',
+        back_populates='students',
+        overlaps="enrollments"
+    )
 
+    # Password helpers
     @property
-    def password(self): 
+    def password(self):
         raise Exception("Passwords cannot be accessed directly.")
 
     @password.setter
-    def password(self, value): 
+    def password(self, value):
         self.password_hash = bcrypt.generate_password_hash(value).decode('utf-8')
 
     def authenticate(self, user_password):
         return bcrypt.check_password_hash(self.password_hash, user_password)
-    
+
     @property
     def courses(self):
         return self.enrolled_courses
 
-
+    # Standard serializer (internal/admin use)
     def to_dict(self, include_courses=False, include_enrollments=False):
         data = {
             'id': self.id,
@@ -89,15 +96,16 @@ class User(db.Model):
             'bio': self.bio,
             'language': self.language,
             'theme': self.theme,
+            'color': self.color,          # expose boolean internally
             'banner_url': self.banner_url,
+            'slug': self.slug,
         }
-
 
         if include_courses:
             if self.role == "professor":
                 data["courses"] = [
                     course.to_dict(include_nested=True)
-                    for course in self.courses_authored
+                    for course in getattr(self, "courses_authored", [])  # safe if not defined
                 ]
             elif self.role == "student":
                 data["courses"] = [
@@ -114,9 +122,27 @@ class User(db.Model):
                 for e in self.enrollments
             ]
 
-
         return data
 
+    # Safe public serializer (for PublicCreatorPage)
+    def to_public_dict(self):
+        """
+        Minimal, safe public shape. Frontend maps:
+          theme -> template component
+          color (bool) -> paletteKey ('color-1'/'color-2')
+        """
+        return {
+            "id": self.id,
+            "slug": self.slug,
+            "full_name": self.full_name,
+            "bio": self.bio,
+            "language": self.language,
+            "profile_image_url": self.profile_image_url,
+            "banner_url": self.banner_url,
+            "theme": self.theme,          # 'theme-1' | 'theme-2' | 'theme-3'
+            "color": self.color,          # boolean; FE maps to 'color-1'/'color-2'
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
 
 # ============ COURSE ============
 

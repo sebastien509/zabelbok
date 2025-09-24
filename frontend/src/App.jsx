@@ -81,6 +81,10 @@ import Login from './components2/pages/Login';
 import LearnerSignUp from './components2/pages/LearnerSignUp';
 import LearnerCourse from './components2/pages/LearnerCourse';
 
+// Public creator page (safe data, themed)
+import PublicCreatorPage from './components2/pages/PublicCreatorPage'
+// Creator onboarding wizard (6 steps)
+import CreatorOnboarding from './components2/onboarding/CreatorOnboarding'
 
 
 import { useAuth } from '@/components/auth/AuthProvider'; // adjust path
@@ -156,7 +160,7 @@ i18n.changeLanguage(preferredLanguage);
             </RedirectIfLoggedIn>
           } /> */}
 
-            <Route path="/creator/:id" element={<CreatorPage />} />
+            <Route path="/c/:slug" element={<PublicCreatorPage />} />
 
             {/* Amaider Auth */}
             <Route path="/amaider/login" element={
@@ -190,6 +194,12 @@ i18n.changeLanguage(preferredLanguage);
               <LearnerSignUp />
             </RedirectIfLoggedIn>
           } />
+          
+            <Route path="/creator/onboarding" element={
+              <RedirectIfLoggedIn>
+                <CreatorOnboarding />
+              </RedirectIfLoggedIn>
+            } />
 
 
             {/* E-strateji  Private */}

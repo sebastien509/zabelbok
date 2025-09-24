@@ -12,10 +12,20 @@ from app.utils.logger import log_event
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+# at top
+import re
+def slugify(s:str)->str:
+    s = re.sub(r'[^a-zA-Z0-9\s-]', '', s or '')
+    s = re.sub(r'\s+', '-', s.strip().lower())
+    s = re.sub(r'-{2,}', '-', s)
+    return s or 'user'
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     try:
+        # FE can send slug; if not, derive a tentative one (not guaranteeing uniqueness here)
+        raw_slug = data.get('slug') or slugify(data.get('full_name'))
         new_user = User(
             full_name=data['full_name'],
             email=data['email'],
@@ -23,21 +33,68 @@ def register():
             role=data['role'],
             school_id=data.get('school_id'),
             language='en',
-            theme='theme-1'
+            theme='theme-1',
+            color=False,
+            slug=raw_slug  # may be None/dup; FE should check first (see /auth/slug-available)
         )
-
         db.session.add(new_user)
         db.session.commit()
-
-        return jsonify({'message': 'User registered successfully'}), 201
-
+        return jsonify({'message': 'User registered successfully', 'user': new_user.to_dict()}), 201
     except IntegrityError:
         db.session.rollback()
-        return jsonify({'error': 'Email already exists'}), 409
-
+        return jsonify({'error': 'Email or slug already exists'}), 409
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@auth_bp.route("/slug-available/<slug>", methods=["GET"])
+def slug_available(slug):
+    exists = User.query.filter_by(slug=slug).first() is not None
+    return jsonify({"slug": slug, "available": (not exists)}), 200
+
+@auth_bp.route('/me/style', methods=['PUT'])
+@jwt_required()
+def update_style():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.get_json() or {}
+    # theme: 'theme-1' | 'theme-2' | 'theme-3'
+    if "theme" in data:
+        user.theme = data["theme"]
+    # color: boolean → palette (False=color-1, True=color-2)
+    if "color" in data:
+        user.color = bool(data["color"])
+    if "banner_url" in data:
+        user.banner_url = data["banner_url"]
+    # optional slug setter on publish
+    if "slug" in data and data["slug"]:
+        user.slug = data["slug"]
+
+    try:
+        db.session.commit()
+        return jsonify({"msg": "Style updated", "user": user.to_dict()})
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Slug already taken"}), 409
+
+# public by slug (safe)
+@auth_bp.route('/public/slug/<slug>', methods=['GET'])
+def get_public_creator_by_slug(slug):
+    user = User.query.filter_by(slug=slug).first()
+    if not user or user.role not in ('professor', 'creator'):
+        return jsonify({'error': 'Creator not found'}), 404
+    return jsonify(user.to_public_dict()), 200
+
+# keep existing public by id but use safe dict
+@auth_bp.route('/public/<int:user_id>', methods=['GET'])
+def get_public_creator(user_id):
+    user = User.query.get(user_id)
+    if not user or user.role not in ('professor', 'creator'):
+        return jsonify({'error': 'Creator not found'}), 404
+    return jsonify(user.to_public_dict()), 200
 
 
 @auth_bp.route('/login', methods=['POST'])

@@ -17,13 +17,13 @@ import { ScrollArea } from '@/components2/ui/scroll-area';
 import { updateStyle } from '@/services/auth';
 
 
-const themes = {
+const themes = {   // Change to templates - 1-2-3 - with 2 color pallete selectable
   'theme-1': 'Tech & Clean (Indigo)',
   'theme-2': 'Bright & Uplifting',
   'theme-3': 'Dark & Premium'
 };
 
-const presetBanners = [
+const presetBanners = [ 
     'https://res.cloudinary.com/dyeomcmin/image/upload/v1750178706/fudzsgpiisuu50z9uq6h.png',
     'https://res.cloudinary.com/dyeomcmin/image/upload/v1740688147/bg1-new_cwe7oi.png',
     'https://res.cloudinary.com/dyeomcmin/image/upload/v1740689969/Colourful_geometric_shapes_background_zsgrkc.png',
