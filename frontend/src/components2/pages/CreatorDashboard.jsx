@@ -150,7 +150,7 @@ export default function CreatorDashboard() {
               asChild
               className="flex-1 md:flex-none bg-[#EA7125] hover:bg-[#EA7125]/90"
             >
-              <a href={`/creator/${creator?.id}`} target="_blank" rel="noopener noreferrer">
+              <a href={`/${creator?.slug}`} target="_blank" rel="noopener noreferrer">
                 View My Page
               </a>
             </Button>

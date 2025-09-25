@@ -5,25 +5,16 @@ import { Helmet } from 'react-helmet'
 import { api } from '@/services/api'
 import { TemplateRenderer } from '@/components2/pages/template/index.jsx'
 
-/**
- * Attempts to fetch by slug first (if present), then falls back to ID.
- * Backend routes expected:
- *  - GET /auth/public/<int:user_id>            (already in your code)
- *  - optional: GET /auth/public/slug/<slug>    (add later if desired)
- */
 async function fetchPublicCreator({ slug, id }) {
-  // Try slug endpoint if slug exists and is not just a number
   if (slug && isNaN(Number(slug))) {
     try {
       const { data } = await api.get(`/auth/public/slug/${encodeURIComponent(slug)}`)
       return data
     } catch (err) {
       // swallow and try ID next
-      // console.warn('Slug lookup failed, trying ID...', err)
     }
   }
 
-  // If ID param exists (or slug is numeric), use /auth/public/:id
   const numericId = id ?? (slug && /^\d+$/.test(slug) ? slug : null)
   if (!numericId) {
     const e = new Error('No valid slug or id provided')
@@ -64,8 +55,6 @@ export default function PublicCreatorPage() {
   const viewData = useMemo(() => {
     if (!creator) return null
 
-    // Backend returns public fields (see public_creator_dict):
-    // id, full_name, bio, profile_image_url, banner_url, theme, role
     const {
       id: userId,
       full_name,
@@ -73,32 +62,68 @@ export default function PublicCreatorPage() {
       profile_image_url,
       banner_url,
       theme = 'theme-1',
-      // if you add color (boolean) to the public payload, we’ll use it:
       color = false,
-      // optionally attach courses later
       courses = [],
+      // Include other fields that might be useful
+      language,
+      created_at,
     } = creator
 
+    // Transform courses data to match template expectations
+    const normalizedCourses = Array.isArray(courses) ? courses.map(course => ({
+      id: course?.id || `course-${Math.random()}`,
+      title: course?.title || 'Untitled Course',
+      description: course?.description || 'Comprehensive course designed for optimal learning.',
+      student_count: parseInt(course?.student_count) || 0,
+      professor_name: course?.professor_name || full_name,
+      // Include nested data if available
+      lectures: course?.lectures || [],
+      books: course?.books || [],
+      quizzes: course?.quizzes || [],
+      exercises: course?.exercises || [],
+      modules: course?.modules || [],
+    })) : []
+
     return {
-      userId,
-      name: full_name,
-      bio: bio || 'No bio yet.',
-      avatarUrl: profile_image_url || '',
-      bannerUrl: banner_url || '',
-      // The template key is your theme (theme-1/2/3)
+      // Creator info (matches template expectations)
+      creator: {
+        id: userId,
+        full_name: full_name || 'Professor',
+        bio: bio || 'Creating meaningful learning experiences.',
+        profile_image_url: profile_image_url || '',
+        banner_url: banner_url || '',
+        language: language || 'en',
+        created_at: created_at,
+        theme: theme,
+        color: color,
+      },
+      
+      // Courses data (array of courses)
+      courses: normalizedCourses,
+      
+      // Template configuration
       template: theme,
-      // Palette derived from boolean `color` (false → color-1, true → color-2)
       paletteKey: color ? 'color-2' : 'color-1',
-      // Optional portfolio-ish fields your templates can use
+      
+      // Stats for display
       stats: {
-        courses: Array.isArray(courses) ? courses.length : 0,
+        total_courses: normalizedCourses.length,
+        total_students: normalizedCourses.reduce((sum, course) => sum + (course.student_count || 0), 0),
+        average_rating: 4.9, // You can calculate this from real data if available
       },
-      links: {
-        // add safe public links if you have them
-      },
-      featured: {
-        // add featured courses/modules if you expose them publicly
-      },
+      
+      // Additional template data
+      highlights: [
+        { title: 'Expert Educator', desc: 'Years of teaching experience' },
+        { title: 'Student Focused', desc: 'Proven track record of student success' },
+        { title: 'Innovative Methods', desc: 'Cutting-edge teaching approaches' },
+      ],
+      
+      links: [
+        { label: 'Professional Website', url: '#' },
+        { label: 'LinkedIn Profile', url: '#' },
+        { label: 'Academic Publications', url: '#' },
+      ]
     }
   }, [creator])
 
@@ -127,26 +152,24 @@ export default function PublicCreatorPage() {
     )
   }
 
-  const { name, bio, avatarUrl, bannerUrl, template, paletteKey } = viewData
+  const { creator: creatorData, template, paletteKey } = viewData
 
   return (
     <>
       <Helmet>
-        <title>{name} — Creator</title>
-        <meta name="description" content={bio?.slice(0, 150) || `${name} on E-strateji`} />
-        {avatarUrl && <link rel="preload" as="image" href={avatarUrl} />}
-        {bannerUrl && <link rel="preload" as="image" href={bannerUrl} />}
-        {/* Basic OpenGraph */}
-        <meta property="og:title" content={`${name} — Creator`} />
-        <meta property="og:description" content={bio?.slice(0, 180) || ''} />
-        {bannerUrl && <meta property="og:image" content={bannerUrl} />}
+        <title>{creatorData.full_name} — Creator</title>
+        <meta name="description" content={creatorData.bio?.slice(0, 150) || `${creatorData.full_name} on E-strateji`} />
+        {creatorData.profile_image_url && <link rel="preload" as="image" href={creatorData.profile_image_url} />}
+        {creatorData.banner_url && <link rel="preload" as="image" href={creatorData.banner_url} />}
+        <meta property="og:title" content={`${creatorData.full_name} — Creator`} />
+        <meta property="og:description" content={creatorData.bio?.slice(0, 180) || ''} />
+        {creatorData.banner_url && <meta property="og:image" content={creatorData.banner_url} />}
       </Helmet>
 
-      {/* Let the chosen template do the heavy lifting */}
       <TemplateRenderer
         template={template}
         paletteKey={paletteKey}
-        data={viewData}
+        data={viewData} // Pass the complete viewData object
       />
     </>
   )

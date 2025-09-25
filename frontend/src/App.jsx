@@ -160,7 +160,7 @@ i18n.changeLanguage(preferredLanguage);
             </RedirectIfLoggedIn>
           } /> */}
 
-            <Route path="/c/:slug" element={<PublicCreatorPage />} />
+            <Route path="/:slug" element={<PublicCreatorPage />} />
 
             {/* Amaider Auth */}
             <Route path="/amaider/login" element={
