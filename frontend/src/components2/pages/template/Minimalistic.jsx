@@ -289,4 +289,4 @@ export default function Minimalism({ paletteKey = 'color-1', data = {} }) {
   )
 }
 
-export { minimalPalettes }
+export { minimalPalettes as minimalisticPalettes }
