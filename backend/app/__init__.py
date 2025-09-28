@@ -36,20 +36,27 @@ def create_app():
         p.replace(".", r"\.").replace("*", r"[a-z0-9-]+") for p in wildcard_patterns
     ) if wildcard_patterns else None
 
-    # ✅ Apply CORS: exact list + optional wildcard regex (Vercel previews)
-    cors_kwargs = dict(
-        supports_credentials=True,
-        resources={r"/*": {
-            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        }},
-        origins=exact_origins or ["http://localhost:5173", "http://127.0.0.1:5173"],
-    )
-    if wildcard_regex:
-        CORS(app, origins_regex=f"^({wildcard_regex})$", **cors_kwargs)
-    else:
-        CORS(app, **cors_kwargs)
+    # Sensible defaults for local dev
+    exact = exact_origins or [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
+    cors_kwargs = dict(
+        resources={r"/*": {"origins": exact}},   # exact allow-list
+        supports_credentials=True,               # send/receive cookies if you use them
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+        expose_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        max_age=86400,                           # cache preflight ~1 day
+    )
+
+    # If you also want to allow preview subdomains (e.g., Vercel),
+    # add a strict regex. Flask-CORS will echo the *matched* origin.
+    if wildcard_regex:
+        cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
+
+    CORS(app, **cors_kwargs)
     # ✅ Init extensions
     db.init_app(app)
     migrate.init_app(app, db)

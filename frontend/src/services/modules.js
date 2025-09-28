@@ -1,78 +1,86 @@
 // services/modules.js
 import api from './api';
 
-// Create new module (instant upload + review)
-export async function createModule(moduleData) {
+/**
+ * Process uploaded video into transcript + quiz (pre-publish review).
+ * payload: { title, description, course_id, order, created_at, video_url }
+ * returns: { transcript, quiz_questions, caption_url, duration_sec, language }
+ */
+export async function createModule(payload) {
   try {
-    const res = await api.post('/upload/module', moduleData);
-    return res.data;
+    const { data } = await api.post('/modules/process', payload);
+    return data;
   } catch (err) {
-    console.error('[createModule Error]', err);
+    console.error('[createModule/process Error]', err);
     throw err;
   }
 }
 
-// Get all modules
-export async function getAllModules() {
+/**
+ * Publish module after review (persists Module + Quiz).
+ * payload: { title, description, course_id, order, created_at, video_url, transcript, quiz, caption_url? }
+ * returns: saved module (to_dict with include_nested)
+ */
+export async function publishReviewedModule(payload) {
   try {
-    const res = await api.get('/modules');
-    return res.data;
-  } catch (err) {
-    console.error('[getAllModules Error]', err);
-    return [];
-  }
-}
-
-// Get module by ID
-export async function getModuleById(id) {
-  try {
-    const res = await api.get(`/modules/${id}`);
-    return res.data;
-  } catch (err) {
-    console.error(`[getModuleById Error for ID ${id}]`, err);
-    return null;
-  }
-}
-
-// Publish reviewed module with transcript and quiz
-export async function publishReviewedModule(data) {
-  try {
-    const res = await api.post('/upload/publish', data);
-    return res.data;
+    const { data } = await api.post('/modules/publish', payload);
+    return data;
   } catch (err) {
     console.error('[publishReviewedModule Error]', err);
     throw err;
   }
 }
 
-export const updateModuleTranscriptAndQuiz = (moduleId, payload) =>
-    api.put(`/modules/${moduleId}`, payload);
-
-// Delete a module by ID (used for last-module deletion only)
-export async function deleteModule(id) {
-    try {
-      const res = await api.delete(`/modules/${id}`);
-      return res.data;
-    } catch (err) {
-      console.error(`[deleteModule Error for ID ${id}]`, err);
-      throw err;
-    }
-  }
-  
-
-  // ✅ Add this to services/modules.js
+/** Get all modules for a course */
 export async function getModulesByCourse(courseId) {
-    try {
-      const res = await api.get(`/modules/course/${courseId}`);
-      return res.data;
-    } catch (err) {
-      console.error(`[getModulesByCourse Error for course ${courseId}]`, err);
-      return [];
-    }
+  try {
+    const { data } = await api.get(`/modules/course/${courseId}`);
+    return data;
+  } catch (err) {
+    console.error(`[getModulesByCourse Error for course ${courseId}]`, err);
+    return [];
   }
-  
+}
+
+/** Get a single module by ID */
+export async function getModuleById(moduleId) {
+  try {
+    const { data } = await api.get(`/modules/${moduleId}`);
+    return data;
+  } catch (err) {
+    console.error(`[getModuleById Error for ID ${moduleId}]`, err);
+    return null;
+  }
+}
+
+/** Update a module (e.g., transcript, caption_url, order, title, etc.) */
+export async function updateModule(moduleId, payload) {
+  try {
+    const { data } = await api.put(`/modules/${moduleId}`, payload);
+    return data;
+  } catch (err) {
+    console.error(`[updateModule Error for ID ${moduleId}]`, err);
+    throw err;
+  }
+}
+
+// backwards-compat alias if something still imports this name
+export const updateModuleTranscriptAndQuiz = (moduleId, payload) =>
+  updateModule(moduleId, payload);
+
+/** Delete a module by ID */
+export async function deleteModule(moduleId) {
+  try {
+    const { data } = await api.delete(`/modules/${moduleId}`);
+    return data;
+  } catch (err) {
+    console.error(`[deleteModule Error for ID ${moduleId}]`, err);
+    throw err;
+  }
+}
+
   // ✅ Add this to services/modules.js
-export async function deleteModuleById(moduleId) {
+  export async function deleteModuleById(moduleId) {
     try {
       const res = await api.delete(`/modules/${moduleId}`);
       return res.data;
@@ -81,31 +89,3 @@ export async function deleteModuleById(moduleId) {
       throw err;
     }
   }
-  
-
-
-  // frontend/src/services/modules.js
-
-
-
-export async function getModulesByCourse(courseId) {
-  return api(`/courses/${courseId}/modules`, { method: 'GET' }); // assumes you already have this route
-}
-
-/**
- * Step 2 (process before review):
- * Returns { transcript, quiz_questions, caption_url, duration_sec, language }
- */
-export async function createModule(payload) {
-  // payload: { title, description, course_id, order, created_at, video_url }
-  return api('/modules/process', { method: 'POST', body: payload });
-}
-
-/**
- * Step 3 (publish after review):
- * Returns the saved module (your to_dict shape)
- */
-export async function publishReviewedModule(payload) {
-  // payload: { ...module, transcript, quiz, caption_url? }
-  return api('/modules/publish', { method: 'POST', body: payload });
-}

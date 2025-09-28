@@ -34,7 +34,7 @@ export const getCurrentUser = async () => {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('No token');
 
-  const res = await api.get(`${API_URL}/auth/me`, {
+  const res = await api.get(`${API_URL}auth/me`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return res.data;
@@ -42,7 +42,7 @@ export const getCurrentUser = async () => {
 
 export const getUserCourses = async () => {
   const token = localStorage.getItem('token');
-  const res = await api.get(`${API_URL}/auth/me/courses`, {
+  const res = await api.get(`${API_URL}auth/me/courses`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return res.data;
