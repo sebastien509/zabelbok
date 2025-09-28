@@ -137,7 +137,9 @@ export default function UploadContentModal({ courseId, open, onClose, draft, onD
         ...moduleData,
         video_url: videoUrl,
       });
-  
+      
+      setCurrentStep('quiz')
+
       // 3. Show review block
       setReviewData({
         module: { ...moduleData, video_url: videoUrl },

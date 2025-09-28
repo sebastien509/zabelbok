@@ -125,13 +125,13 @@ class User(db.Model):
         return data
 
     # Safe public serializer (for PublicCreatorPage)
-    def to_public_dict(self):
+    def to_public_dict(self, include_courses=False):
         """
         Minimal, safe public shape. Frontend maps:
           theme -> template component
           color (bool) -> paletteKey ('color-1'/'color-2')
         """
-        return {
+        data = {
             "id": self.id,
             "slug": self.slug,
             "full_name": self.full_name,
@@ -143,7 +143,16 @@ class User(db.Model):
             "color": self.color,          # boolean; FE maps to 'color-1'/'color-2'
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+        if include_courses:
+            if self.role == "professor":
+                data["courses"] = [
+                    course.to_dict(include_nested=True)
+                    for course in getattr(self, "courses_authored", [])  # safe if not defined
+                ]
 
+        
+        return data
+        
 # ============ COURSE ============
 
 class Course(db.Model):

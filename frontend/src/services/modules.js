@@ -1,5 +1,5 @@
 // services/modules.js
-import { api } from './api';
+import api from './api';
 
 // Create new module (instant upload + review)
 export async function createModule(moduleData) {
@@ -82,3 +82,30 @@ export async function deleteModuleById(moduleId) {
     }
   }
   
+
+
+  // frontend/src/services/modules.js
+
+
+
+export async function getModulesByCourse(courseId) {
+  return api(`/courses/${courseId}/modules`, { method: 'GET' }); // assumes you already have this route
+}
+
+/**
+ * Step 2 (process before review):
+ * Returns { transcript, quiz_questions, caption_url, duration_sec, language }
+ */
+export async function createModule(payload) {
+  // payload: { title, description, course_id, order, created_at, video_url }
+  return api('/modules/process', { method: 'POST', body: payload });
+}
+
+/**
+ * Step 3 (publish after review):
+ * Returns the saved module (your to_dict shape)
+ */
+export async function publishReviewedModule(payload) {
+  // payload: { ...module, transcript, quiz, caption_url? }
+  return api('/modules/publish', { method: 'POST', body: payload });
+}
