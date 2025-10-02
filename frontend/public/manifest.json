@@ -6,7 +6,7 @@
   "background_color": "#FAF9F6",
   "theme_color": "#8DB600",
   "icons": [
-    { "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "https://res.cloudinary.com/dyeomcmin/image/upload/v1759384367/estratejilab_logo_nbytcx.jpg", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://res.cloudinary.com/dyeomcmin/image/upload/v1759384367/estratejilab_logo_nbytcx.jpg", "sizes": "512x512", "type": "image/png" }
   ]
 }
