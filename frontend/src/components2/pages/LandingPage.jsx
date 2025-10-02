@@ -157,8 +157,8 @@ function NavBar() {
         </div>
 
         <div className="hidden lg:flex items-center gap-3">
-          <Link to="/login">
-          <a
+          <Link to="/login"
+          
             className="px-4 py-2 rounded-2xl border transition hover:-translate-y-0.5"
             style={{
               ...softBorder(palette.blackOlive),
@@ -168,10 +168,9 @@ function NavBar() {
             }}
           >
             Sign in
-          </a>
           </Link>
-          <Link to="/signup/creator">
-          <a
+          <Link to="/signup/creator"
+          
             className="px-4 py-2 rounded-2xl text-white transition hover:-translate-y-0.5"
             style={{
               background: palette.absoluteBlack,
@@ -180,7 +179,6 @@ function NavBar() {
             }}
           >
             Get started
-          </a>
           </Link>
         </div>
 
@@ -207,24 +205,24 @@ function NavBar() {
           <a href="#pricing" className="block">Pricing</a>
           <div className="pt-2 flex gap-2">
 
-          <Link to="/login">
+          <Link to="/login"
 
-            <a
+          
               className="flex-1 px-4 py-2 rounded-2xl border text-center"
               style={{ borderColor: palette.blackOlive }}
             >
               Sign in
-            </a>
+            
             </Link>
 
-            <Link to="/signup/creator">
+            <Link to="/signup/creator"
 
-            <a
+          
               className="flex-1 px-4 py-2 rounded-2xl text-center text-white"
               style={{ background: palette.absoluteBlack }}
             >
               Get started
-            </a>
+            
             </Link>
           </div>
         </div>
@@ -270,9 +268,8 @@ function RotatingHero() {
             <h1 className="mt-3 text-4xl lg:text-5xl leading-tight" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>{active.title}</h1>
             <p className="mt-4 text-lg max-w-xl" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{active.copy}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link to="/signup/creator">
-
-              <a href="#get-started" className="px-6 py-3 rounded-2xl text-white transition-transform hover:-translate-y-0.5" style={{ background: palette.absoluteBlack, fontFamily: bodyFont, boxShadow: shadowColor(palette.appleGreen) }}>Get started</a>
+            <Link to="/signup/creator"
+                 className="px-6 py-3 rounded-2xl text-white transition-transform hover:-translate-y-0.5" style={{ background: palette.absoluteBlack, fontFamily: bodyFont, boxShadow: shadowColor(palette.appleGreen) }}>Get started
              </Link>
               <a href="#features" className="px-6 py-3 rounded-2xl border transition-transform hover:-translate-y-0.5" style={{ ...softBorder(palette.blackOlive), color: palette.blackOlive, fontFamily: bodyFont, boxShadow: shadowColor(palette.burntOrange, 0.18) }}>{active.label}</a>
               <span className="text-xs opacity-70 ml-2" style={{ color: palette.blackOlive }}>Powered by Stripe</span>
