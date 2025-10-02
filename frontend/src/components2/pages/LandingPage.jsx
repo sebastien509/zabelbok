@@ -1,405 +1,743 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Button } from '@/components2/ui/button';
-import Lottie from 'lottie-react';
-import bgAnimation from '@/assets/bgAnimation.json';
-import VerticalCarousel, { VerticalCarouselMobile } from '../ui/verticalCarousel';
-import { useAuth } from '@/AuthContext';
-import Navbar from '../ui/Navbar';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
-// Brand Colors
-const colors = {
-  clay: '#EA7125',
-  leaf: '#66A569',
-  indigo: '#2C365E',
-  cream: '#FAF8F4',
-  charcoal: '#222222'
+
+/**
+ * E‑stratèji — Landing Page (Enhanced to rival Kajabi)
+ * Typography: Rubik One (headlines), Nouvel'r (body)
+ * Markets: Jamaica 🇯🇲 & Haiti 🇭🇹 | Emphasis: Creators first; Tech; Mobile apps; AI assistants; Media
+ * Adds (this pass):
+ *  - Scrollable, auto‑scrolling Logos bar (infinite loop)
+ *  - Auto‑scrolling Creators headshots (10 placeholders)
+ *  - Hover effects on cards/images/buttons (colorful shadows)
+ *  - Light glassmorphism + refined bento borders
+ */
+
+// Brand Palette
+const palette = {
+  absoluteBlack: "#000000",
+  appleGreen: "#8DB600",
+  heritageRed: "#C1272D",
+  warmRootBrown: "#5D3721",
+  burntOrange: "#EE964B",
+  ivoryNeutral: "#FAF9F6",
+  blackOlive: "#3B3C36",
 };
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i = 1) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.15, duration: 0.6, ease: 'easeOut' },
-  }),
+// Font stacks
+const headlineFont = `'Rubik One', 'Nouvelr', 'Rubik', 'Inter', system-ui, -apple-system, sans-serif`;
+const bodyFont = `'Nouvelr', 'Rubik', 'Inter', system-ui, -apple-system, sans-serif`;
+
+function FontImports() {
+  return (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link href="https://fonts.googleapis.com/css2?family=Rubik+One&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    </>
+  );
+}
+
+// ====== Helpers ======
+const glass = (tint = 0.6) => ({
+  background: `rgba(250, 249, 246, ${tint})`, // IvoryNeutral w/ alpha
+  backdropFilter: "saturate(140%) blur(8px)",
+  WebkitBackdropFilter: "saturate(140%) blur(8px)",
+});
+
+const softBorder = (color = "#e7e5df") => ({ borderColor: color });
+
+// Closer, tighter shadow by default (same direction)
+const shadowColor = (hex, alpha = 0.22, opts) => {
+  // parse hex → rgb
+  const c = hex.replace('#','');
+  const bigint = parseInt(c.length === 3 ? c.split('').map(x=>x+x).join('') : c, 16);
+  const r = (bigint >> 16) & 255, g = (bigint >> 8) & 255, b = bigint & 255;
+
+  // shorter distance & blur; same downward direction
+  const {
+    x = 0,       // horizontal offset
+    y = 6,       // vertical offset (↓)
+    blur = 16,   // softer but closer
+    spread = 0   // keep tight edges
+  } = opts || {};
+
+  return `${x}px ${y}px ${blur}px ${spread}px rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-export default function LandingPage() {
+<div class="bg-[linear-gradient(135deg,#8DB600_0%,#8DB600_46%,#C1272D_100%)]"></div>
 
-    const auth = useAuth();
-    const user = auth?.user || null;
-    const role = auth?.role || null;
+/// ====== Nav (hide on scroll) ======
+function NavBar() {
+  const [open, setOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [atTop, setAtTop] = useState(true);
+  const lastY = useRef(0);
 
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY || 0;
+      const delta = y - lastY.current;
 
+      // track top for border/shadow tweaks
+      setAtTop(y < 4);
 
+      // if mobile menu is open, don't hide
+      if (open) {
+        setHidden(false);
+        lastY.current = y;
+        return;
+      }
 
+      // small threshold to avoid jitter
+      const goingDown = delta > 6 && y > 72;
+      const goingUp = delta < -6;
 
+      if (goingDown) setHidden(true);
+      else if (goingUp) setHidden(false);
+
+      lastY.current = y;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [open]);
 
   return (
-    <div className="w-full text-gray-900 bg-[#FAF8F4] overflow-x-hidden">
-        <Navbar user={user}/>
-
-      {/* 🎯 Hero Section - Creators */}
-      <section className="relative w-full min-h-screen bg-[#FAF8F4] px-4 sm:px-6 py-10 sm:py-20 overflow-hidden">
-  {/* Animated Background Elements */}
-  <motion.div
-    className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] rounded-full bg-[#66A569] opacity-10 z-0"
-    animate={{ scale: [1, 1.2, 1], rotate: [0, 20, -10, 0] }}
-    transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-  />
-  <motion.div
-    className="absolute bottom-[-120px] right-[-120px] w-[250px] h-[250px] sm:w-[400px] sm:h-[400px] rounded-full bg-[#EA7125] opacity-10 z-0"
-    animate={{ scale: [1, 0.8, 1.1, 1], rotate: [0, -30, 15, 0] }}
-    transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-  />
-
-  {/* Lottie Background Animation - Centered */}
-  <motion.div
-    className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 1.5 }}
-  >
-    <div className="w-full max-w-2xl h-auto pb-40 opacity-80">
-      <Lottie animationData={bgAnimation} loop autoplay />
-    </div>
-  </motion.div>
-
-  <div className="relative z-10 max-w-7xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-4 sm:gap-10">
-    {/* Text Content - Always centered on mobile, left-aligned on desktop */}
-    <motion.div
-      className="w-full lg:w-1/2 max-w-2xl text-center lg:text-left relative   mb-10"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
+    <nav
+      className={[
+        "fixed top-0 left-0 right-0 z-50 transition-transform duration-300",
+        hidden ? "-translate-y-full" : "translate-y-0",
+        // soft border/shadow only when scrolled
+        atTop ? "border-b border-transparent" : "border-b",
+      ].join(" ")}
+      style={{
+        borderColor: atTop ? "transparent" : "#e9e7e2",
+        background:
+          "linear-gradient(135deg,rgba(141,182,0,0.4) 0%,rgba(141,182,0,0.4) 46%,rgba(193,39,45,0.4) 100%)",
+        backdropFilter: "saturate(140%) blur(8px)",
+        WebkitBackdropFilter: "saturate(140%) blur(8px)",
+        boxShadow: atTop ? "none" : shadowColor(palette.blackOlive, 0.12, { y: 4, blur: 14 }),
+      }}
     >
-      <h1 className="text-3xl sm:text-4xl md:text4xl lg:text-5xl font-bold leading-tight mb-4 md:pt-30  py-8 sm:mb-6">
-        Empower Haiti Through<br />
-        <span className="text-[#EA7125]">Knowledge Sharing</span>
-      </h1>
-      <p className="text-[#2C365E] text-base sm:text-lg md:text-2xl mb-6 sm:mb-8">
-        E-strateji provides Haitian creators with AI-powered tools to create, share, and monetize educational content—online or offline.
-      </p>
-      <div className="flex flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start">
-        <Link to="/signup/creator">
-          <Button size="lg" className="bg-[#EA7125] text-white hover:bg-[#EA7125]/90">
-            Become a Creator
-          </Button>
-        </Link>
-        <Link to="/signup/learner">
-          <Button variant="outline" size="lg" className="border-[#EA7125] text-[#EA7125] hover:bg-[#EA7125]/10">
-            Explore Courses
-          </Button>
-        </Link>
-      </div>
-    </motion.div>
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <a href="#" className="flex items-center gap-3 group">
+          {/* Gradient badge with icon over it */}
+          <div
+            className="relative h-9 w-9 rounded-2xl overflow-hidden ring-1 ring-white/20 transition-transform group-hover:-translate-y-0.5"
+            style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
+          >
+            <img
+              src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
+              alt="E-stratèji symbol"
+              className="absolute inset-0 m-auto h-8 w-8 object-contain pointer-events-none select-none"
+              draggable="false"
+            />
+          </div>
 
-    {/* Vertical Carousel - Positioned differently on mobile vs desktop */}
-    <div className="w-full lg:w-[400px] max-h-[300px]  hidden lg:block">
-      <VerticalCarousel />
-    </div>
+          {/* Text logo image replaces the text span */}
+          <img
+            src="https://res.cloudinary.com/dyeomcmin/image/upload/v1759381743/Estrateji_symbol_Text_Black_ycv3mv.png"
+            alt="E-stratèji"
+            className="h-8 -mx-3 w-auto object-contain transition-transform group-hover:-translate-y-0.5"
+            draggable="false"
+          />
+        </a>
 
-  <div className="w-full block min-h-[600px] lg:hidden">
-      <h2 className="text-md font-semibold text-white text-center bg-[#EA7125]  mb-0"> Top Creators</h2>
-      <VerticalCarouselMobile />
-      <div className="border-t border-gray-300 my-6" /> {/* 🔹 Mobile divider */}
-    </div>
-  </div>
-</section>
-
-      {/* 🛠️ Platform Features - Bento Grid */}
-      <section className="py-10 px-6 max-w-7xl mx-auto">
-        <motion.h2 
-          className="text-3xl md:text-4xl font-bold mb-12 text-center text-[#2C365E]"
-          initial="hidden"
-          whileInView="visible"
-          variants={fadeInUp}
+        <div
+          className="hidden lg:flex items-center gap-8 text-sm"
+          style={{ color: palette.blackOlive, fontFamily: bodyFont }}
         >
-          Creator Tools Built for Haiti
-        </motion.h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* AI Assistant Card */}
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all"
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-[#EA7125]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#EA7125]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#2C365E]">AI Content Assistant</h3>
-            </div>
-            <p className="text-[#2C365E]/80">
-              Automatically generate quizzes, transcripts, and summaries from your videos in Kreyòl, French, or English.
-            </p>
-          </motion.div>
-
-          {/* Offline Access Card */}
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all"
-            custom={1}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-[#66A569]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#66A569]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#2C365E]">Offline-First System</h3>
-            </div>
-            <p className="text-[#2C365E]/80">
-              Content is automatically optimized for offline access, reaching learners with limited internet connectivity.
-            </p>
-          </motion.div>
-
-          {/* Course Builder Card */}
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all"
-            custom={2}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-[#2C365E]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#2C365E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#2C365E]">Course Builder</h3>
-            </div>
-            <p className="text-[#2C365E]/80">
-              Step-by-step guidance to structure your knowledge into effective learning modules with multimedia support.
-            </p>
-          </motion.div>
-
-          {/* Media Package Card */}
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all"
-            custom={3}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-[#EA7125]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#EA7125]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#2C365E]">Media Package</h3>
-            </div>
-            <p className="text-[#2C365E]/80">
-              Professional thumbnails, intro/outro templates, and branding tools to make your content stand out.
-            </p>
-          </motion.div>
-
-          {/* Top Creators Card */}
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all"
-            custom={4}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-[#66A569]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#66A569]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#2C365E]">Top Haitian Creators</h3>
-            </div>
-            <p className="text-[#2C365E]/80">
-              Join a network of Haiti's most impactful educators and get featured in our discovery platform.
-            </p>
-          </motion.div>
-
-          {/* Customizable Page Card */}
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-lg hover:shadow-xl transition-all"
-            custom={5}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-[#2C365E]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#2C365E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#2C365E]">Professional Landing Page</h3>
-            </div>
-            <p className="text-[#2C365E]/80">
-              Customizable creator profile with your branding, course catalog, and learner testimonials.
-            </p>
-          </motion.div>
+          <a href="#features" className="hover:opacity-80">Features</a>
+          <a href="#ai" className="hover:opacity-80">AI Assistants</a>
+          <a href="#mobile" className="hover:opacity-80">Tech & Mobile</a>
+          <a href="#media" className="hover:opacity-80">Media Packages</a>
+          <a href="#pricing" className="hover:opacity-80">Pricing</a>
         </div>
-      </section>
 
-      {/* 🎓 Learner Section */}
-      <section className="py-20 px-6 bg-gradient-to-br from-[#2C365E]/5 to-[#66A569]/5">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
+        <div className="hidden lg:flex items-center gap-3">
+          <Link to="/login">
+          <a
+            className="px-4 py-2 rounded-2xl border transition hover:-translate-y-0.5"
+            style={{
+              ...softBorder(palette.blackOlive),
+              color: palette.blackOlive,
+              fontFamily: bodyFont,
+              boxShadow: shadowColor(palette.blackOlive, 0.12, { y: 4, blur: 12 }),
+            }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#2C365E]">
-              Learn Practical Skills<br />
-              <span className="text-[#EA7125]">For Haiti's Reality</span>
-            </h2>
-            <p className="text-lg text-[#2C365E]/80 mb-6">
-              Access courses designed specifically for Haitian learners, available online or offline, in your preferred language.
-            </p>
-            <div className="space-y-4">
-              {[
-                "Agriculture & Farming Techniques",
-                "Small Business & Entrepreneurship",
-                "Health & Wellness Education",
-                "Technology & Digital Skills",
-                "Language Learning (Kreyòl, French, English)"
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#EA7125]"></div>
-                  <span className="text-[#2C365E]">{item}</span>
-                </div>
-              ))}
-            </div>
-            <Link to="/signup/learner" className="inline-block mt-8">
-              <Button size="lg" className="bg-[#66A569] hover:bg-[#66A569]/90 text-white">
-                Browse All Courses
-              </Button>
+            Sign in
+          </a>
+          </Link>
+          <Link to="/signup/creator">
+          <a
+            className="px-4 py-2 rounded-2xl text-white transition hover:-translate-y-0.5"
+            style={{
+              background: palette.absoluteBlack,
+              fontFamily: bodyFont,
+              boxShadow: shadowColor(palette.appleGreen, 0.22, { y: 4, blur: 14 }),
+            }}
+          >
+            Get started
+          </a>
+          </Link>
+        </div>
+
+        <button
+          onClick={() => setOpen(!open)}
+          className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border"
+          style={{ borderColor: "#e9e7e2", color: palette.blackOlive }}
+          aria-expanded={open}
+          aria-label="Toggle menu"
+        >
+          ☰
+        </button>
+      </div>
+
+      {open && (
+        <div
+          className="lg:hidden px-4 pb-4 space-y-2"
+          style={{ color: palette.blackOlive, fontFamily: bodyFont }}
+        >
+          <a href="#features" className="block">Features</a>
+          <a href="#ai" className="block">AI Assistants</a>
+          <a href="#mobile" className="block">Tech & Mobile</a>
+          <a href="#media" className="block">Media Packages</a>
+          <a href="#pricing" className="block">Pricing</a>
+          <div className="pt-2 flex gap-2">
+
+          <Link to="/login">
+
+            <a
+              className="flex-1 px-4 py-2 rounded-2xl border text-center"
+              style={{ borderColor: palette.blackOlive }}
+            >
+              Sign in
+            </a>
             </Link>
-          </motion.div>
-          
-          <motion.div
-            className="grid grid-cols-2 gap-4"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-lg">
-              <h3 className="font-semibold text-[#2C365E] mb-2">Offline Learning</h3>
-              <p className="text-sm text-[#2C365E]/80">Download courses when you have internet, learn anytime</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-lg">
-              <h3 className="font-semibold text-[#2C365E] mb-2">Kreyòl Support</h3>
-              <p className="text-sm text-[#2C365E]/80">All content available in Haiti's native language</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-lg">
-              <h3 className="font-semibold text-[#2C365E] mb-2">Community Q&A</h3>
-              <p className="text-sm text-[#2C365E]/80">Get answers from creators and other learners</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-lg">
-              <h3 className="font-semibold text-[#2C365E] mb-2">Progress Tracking</h3>
-              <p className="text-sm text-[#2C365E]/80">Save your place and track your learning journey</p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* 🌟 Testimonial Section */}
-      <section className="py-20 px-6 bg-[#2C365E] text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.h2 
-            className="text-3xl md:text-4xl font-bold mb-12"
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            Impact Stories from Haiti
-          </motion.h2>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <motion.div 
-              className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20"
-              custom={0}
-              initial="hidden"
-              whileInView="visible"
-              variants={fadeInUp}
+            <Link to="/signup/creator">
+
+            <a
+              className="flex-1 px-4 py-2 rounded-2xl text-center text-white"
+              style={{ background: palette.absoluteBlack }}
             >
-              <p className="text-lg italic mb-6">
-                "With E-strateji, I've been able to share my agricultural knowledge with hundreds of farmers in rural areas who don't have reliable internet."
-              </p>
-              <p className="font-bold">Jean-Pierre, Agricultural Expert</p>
-            </motion.div>
-            
-            <motion.div 
-              className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20"
-              custom={1}
-              initial="hidden"
-              whileInView="visible"
-              variants={fadeInUp}
-            >
-              <p className="text-lg italic mb-6">
-                "The AI tools helped me create quizzes and transcripts in Kreyòl, saving me hours of work. Now I can focus on teaching."
-              </p>
-              <p className="font-bold">Marie, Language Teacher</p>
-            </motion.div>
+              Get started
+            </a>
+            </Link>
           </div>
         </div>
-      </section>
-
-      {/* 📣 Final CTA */}
-      <section className="py-20 px-6 bg-gradient-to-r from-[#EA7125] to-[#EA7125]/90 text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.h2 
-            className="text-3xl md:text-5xl font-bold mb-6"
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            Ready to Make an Impact?
-          </motion.h2>
-          <motion.p 
-            className="text-xl mb-8 max-w-2xl mx-auto"
-            custom={1}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            Join Haiti's knowledge revolution today—as a creator or a learner.
-          </motion.p>
-          <motion.div 
-            className="flex flex-wrap justify-center gap-4"
-            custom={2}
-            initial="hidden"
-            whileInView="visible"
-            variants={fadeInUp}
-          >
-            <Link to="/signup/creator">
-              <Button size="lg" className="bg-white text-[#EA7125] hover:bg-white/90">
-                Become a Creator
-              </Button>
-            </Link>
-            <Link to="/signup/learner">
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-                Start Learning
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-    </div>
+      )}
+    </nav>
   );
 }
 
 
+// ====== Hero (Rotating) ======
+function RotatingHero() {
+  const banners = useMemo(() => ([
+    { id: 1, kicker: "Creators First • Payouts in Stripe", title: "Own your classroom. Keep your culture.", copy: "From Kingston to Kafou—publish, price, and get paid. We handle the rails; you teach the world.", img: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=1400&auto=format&fit=crop", accent: palette.appleGreen, label: "Start creating" },
+    { id: 2, kicker: "Tech that travels • Low‑internet native", title: "Learning that reaches every corner.", copy: "Offline modules, captions in Kreyòl & Patwa, and mobile apps built for spotty networks.", img: "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1400&auto=format&fit=crop", accent: palette.burntOrange, label: "See the tech" },
+    { id: 3, kicker: "AI Assistants • Media Packages up to 1M impressions", title: "Teach boldly. We amplify your reach.", copy: "Creator copilots, learner tutors, and promo bundles that put your course in the spotlight.", img: "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop", accent: palette.heritageRed, label: "Meet your copilots" },
+  ]), []);
+
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % banners.length), 5500);
+    return () => clearInterval(id);
+  }, [banners.length]);
+
+  const active = banners[index];
+
+  return (
+    <section className="relative -my-8 overflow-hidden" style={{ background: palette.ivoryNeutral }}>
+      <div className="absolute inset-0 -z-10" style={{ background: `radial-gradient(1200px 600px at 20% -10%, ${active.accent}12%, transparent 50%)` }} />
+      <div className="max-w-7xl mx-auto px-4 py-20 lg:py-28 grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <motion.div key={active.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+            <div className="text-xs tracking-wide px-3 mx-2 w-fit uppercase py-1 rounded-full border" style={{ color: active.accent, fontFamily: bodyFont, ...softBorder(active.accent), ...glass(0.55) }}>{active.kicker}</div>
+            <h1 className="mt-3 text-4xl lg:text-5xl leading-tight" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>{active.title}</h1>
+            <p className="mt-4 text-lg max-w-xl" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{active.copy}</p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Link to="/signup/creator">
+
+              <a href="#get-started" className="px-6 py-3 rounded-2xl text-white transition-transform hover:-translate-y-0.5" style={{ background: palette.absoluteBlack, fontFamily: bodyFont, boxShadow: shadowColor(palette.appleGreen) }}>Get started</a>
+             </Link>
+              <a href="#features" className="px-6 py-3 rounded-2xl border transition-transform hover:-translate-y-0.5" style={{ ...softBorder(palette.blackOlive), color: palette.blackOlive, fontFamily: bodyFont, boxShadow: shadowColor(palette.burntOrange, 0.18) }}>{active.label}</a>
+              <span className="text-xs opacity-70 ml-2" style={{ color: palette.blackOlive }}>Powered by Stripe</span>
+            </div>
+          </motion.div>
+        </div>
+        <div className="relative">
+          <AnimatePresence mode="wait">
+            <motion.div key={active.img} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.5 }} className="rounded-3xl overflow-hidden border shadow-xl" style={{ ...softBorder("#e9e7e2"), ...glass(0.4), boxShadow: shadowColor(active.accent, 0.25) }}>
+              <img src={active.img} alt="hero" className="w-full h-80 object-cover transition-transform duration-300 hover:scale-[1.02]" />
+            </motion.div>
+          </AnimatePresence>
+          <div className="mt-4 flex gap-2">
+            {banners.map((b, i) => (
+              <button key={b.id} onClick={() => setIndex(i)} className={`h-2.5 rounded-full transition-all ${i === index ? 'w-8' : 'w-3'} `} style={{ background: i === index ? active.accent : '#d6d3ce' }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Auto‑scroll (Logos & Headshots) ======
+function AutoScrollRow({ items, speed = 30, itemRender }) {
+  const trackRef = useRef(null);
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const animation = el.animate(
+      [{ transform: "translateX(0)" }, { transform: "translateX(-50%)" }],
+      { duration: speed * 1000, iterations: Infinity, easing: "linear" }
+    );
+    return () => animation.cancel();
+  }, [speed]);
+
+  // Duplicate items to fake an infinite marquee
+  const doubled = [...items, ...items];
+  return (
+    <div className="overflow-hidden">
+      <div ref={trackRef} className="flex items-center gap-8 whitespace-nowrap will-change-transform">
+        {doubled.map((it, idx) => (
+          <div key={idx} className="shrink-0">
+            {itemRender(it, idx)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LogosBar() {
+  const logos = Array.from({ length: 8 }).map((_, i) => i);
+  return (
+    <section className="py-10 border-y" style={{ background: palette.ivoryNeutral, borderColor: "#e9e7e2" }}>
+      <div className="max-w-7xl mx-auto px-4">
+        <AutoScrollRow
+          items={logos}
+          speed={35}
+          itemRender={(i) => (
+            <div className="h-12 w-32 rounded-2xl border bg-white/70" style={{ ...softBorder("#eceae5"), ...glass(0.5), boxShadow: shadowColor(palette.blackOlive, 0.08) }} />
+          )}
+        />
+      </div>
+    </section>
+  );
+}
+
+function CreatorsStrip() {
+  const heads = [
+    "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1548142813-c348350df52b?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1524503033411-c9566986fc8f?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1542204625-ca1f554f2b4a?q=80&w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=600&auto=format&fit=crop",
+  ];
+  const names = [
+    "Amara", "Jamal", "Nadine", "Kendrick", "Solange",
+    "Malik", "Yara", "Dante", "Imani", "Keisha",
+  ];
+  const accents = [palette.appleGreen, palette.burntOrange, palette.heritageRed, palette.warmRootBrown];
+
+  return (
+    <section className="py-2 px-0 " style={{ background: palette.ivoryNeutral }}>
+      <div className="max-w-full mx-auto px-4">
+        <AutoScrollRow
+          items={heads}
+          speed={55}
+          itemRender={(src, i) => {
+            const accent = accents[i % accents.length];
+            const name = names[i % names.length];
+            return (
+              <div className="group relative mx-3 my-4 flex flex-col items-center">
+                <div className="relative">
+                  <img
+                    src={src}
+                    alt={`Creator ${i + 1}`}
+                    className="h-44 w-44 rounded-3xl object-cover border transition-transform duration-300 group-hover:scale-[1.06]"
+                    style={{ ...softBorder("#eceae5"), boxShadow: shadowColor(accent, 0.26) }}
+                  />
+                  <span
+                    className="pointer-events-none absolute inset-0 rounded-3xl ring-2 transition-all"
+                    style={{ boxShadow: shadowColor(accent, 0.18), borderRadius: "1.5rem", borderColor: "transparent" }}
+                  />
+                </div>
+                <div
+                  className="mt-3 px-3 py-1 rounded-full text-xs opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition"
+                  style={{ color: palette.blackOlive, ...softBorder(accent + "55"), ...glass(0.8) }}
+                >
+                  {name}
+                </div>
+              </div>
+            );
+          }}
+        />
+      </div>
+    </section>
+  );
+}
+
+// ====== Features ======
+function Features() {
+  const cards = [
+    { title: "Creators keep up to 88%", desc: "Connect payouts in minutes with Stripe Express. We handle fees, access, refunds, and transfers.", color: palette.appleGreen, img: "https://images.unsplash.com/photo-1513258496099-48168024aec0?q=80&w=1200&auto=format&fit=crop" },
+    { title: "Low‑internet by design", desc: "Optimized modules, transcripts, captions in Kreyòl Ayisyen & Jamaican Patwa, and offline logs.", color: palette.burntOrange, img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1200&auto=format&fit=crop" },
+    { title: "All your course pieces", desc: "Lectures, books, quizzes, progress—integrated with a simple, modern CMS.", color: palette.heritageRed, img: "https://images.unsplash.com/photo-1518081461904-9ac5d491b2e7?q=80&w=1200&auto=format&fit=crop" },
+  ];
+  return (
+    <section id="features" className="py-20">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>What you get</h2>
+        <p className="mt-2 text-gray-600 max-w-2xl" style={{ fontFamily: bodyFont }}>Everything you need to sell and deliver courses—nothing you don’t.</p>
+        <div className="mt-10 grid md:grid-cols-3 gap-6">
+          {cards.map((c) => (
+            <div key={c.title} className="group rounded-3xl overflow-hidden border bg-white shadow-sm transition-transform hover:-translate-y-1" style={{ ...softBorder("#eae7e1"), ...glass(0.7), boxShadow: shadowColor(c.color, 0.2) }}>
+              <div className="relative">
+                <img src={c.img} alt="feature" className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,.04))" }} />
+              </div>
+              <div className="p-5">
+                <h3 className="font-medium" style={{ color: c.color, fontFamily: bodyFont }}>{c.title}</h3>
+                <p className="mt-2 text-sm" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{c.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== AI Assistants ======
+function AIAssistants() {
+  const items = [
+    { title: "Creator Copilot", desc: "Plan curricula, price smartly, draft pages, and ship faster—with multilingual prompts tuned for Jamaica & Haiti.", color: palette.appleGreen },
+    { title: "Learner Tutor", desc: "On‑demand help in Kreyòl & Patwa. Summaries, checkpoints, and gentle nudges to keep momentum.", color: palette.burntOrange },
+    { title: "Support Concierge", desc: "Automate FAQs, refunds, and course access fixes—so you can focus on teaching.", color: palette.heritageRed },
+  ];
+  return (
+    <section id="ai" className="py-20" style={{ background: palette.ivoryNeutral }}>
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>AI assistants that speak your world</h2>
+        <p className="mt-2 text-gray-700 max-w-2xl" style={{ fontFamily: bodyFont }}>Guided creation for you. Warm, culturally authentic help for learners.</p>
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
+          {items.map(i => (
+            <div key={i.title} className="rounded-3xl p-6 border bg-white transition-transform hover:-translate-y-1" style={{ ...softBorder("#e7e5df"), ...glass(0.7), boxShadow: shadowColor(i.color, 0.18) }}>
+              <div className="text-sm font-medium" style={{ color: i.color, fontFamily: bodyFont }}>{i.title}</div>
+              <p className="mt-2 text-sm text-gray-700" style={{ fontFamily: bodyFont }}>{i.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Tech & Mobile ======
+function TechMobile() {
+  const bullets = [
+    { h: "Android & iOS apps", p: "Fast, light, and cache‑savvy for spotty connections.", c: palette.appleGreen },
+    { h: "Offline‑ready modules", p: "Transcript, captions, and progress logs that survive low bandwidth.", c: palette.burntOrange },
+    { h: "Secure payments", p: "Stripe Checkout + Express payouts. Strong, simple, trusted.", c: palette.heritageRed },
+  ];
+  return (
+    <section id="mobile" className="py-20">
+      <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-10 items-center">
+        <div className="rounded-3xl overflow-hidden border bg-white transition-transform hover:-translate-y-1" style={{ ...softBorder("#eceae5"), ...glass(0.6), boxShadow: shadowColor(palette.appleGreen, 0.18) }}>
+          <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1400&auto=format&fit=crop" alt="Mobile preview" className="w-full h-96 object-cover" />
+        </div>
+        <div>
+          <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>Tech that moves with the Caribbean</h2>
+          <p className="mt-3 text-gray-700" style={{ fontFamily: bodyFont }}>Built for Jamaica & Haiti. Lightweight, resilient, and ready for real conditions.</p>
+          <div className="mt-6 space-y-4">
+            {bullets.map(b => (
+              <div key={b.h} className="flex gap-3">
+                <span className="mt-1 h-3 w-3 rounded-full" style={{ background: b.c }} />
+                <div>
+                  <div className="font-medium" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{b.h}</div>
+                  <div className="text-sm text-gray-700" style={{ fontFamily: bodyFont }}>{b.p}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Media Packages ======
+function MediaPackages() {
+  const packs = [
+    { name: "Starter Boost", impressions: "100k", accent: palette.appleGreen, points: ["Promo kit", "Email spotlight", "Creator interview snippet"] },
+    { name: "Island Reach", impressions: "500k", accent: palette.burntOrange, points: ["Regional ads", "Influencer collab", "Radio/Podcast mention"] },
+    { name: "Caribbean Wave", impressions: "1M", accent: palette.heritageRed, points: ["Multi‑channel push", "Press bundle", "Launch webinar + clips"] },
+  ];
+  return (
+    <section id="media" className="py-20" style={{ background: palette.ivoryNeutral }}>
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>Media packages to amplify your voice</h2>
+        <p className="mt-2 text-gray-700 max-w-2xl" style={{ fontFamily: bodyFont }}>From yard to diaspora—pick a package and we’ll push the wave.</p>
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
+          {packs.map(p => (
+            <div key={p.name} className="rounded-3xl border bg-white p-6 flex flex-col transition-transform hover:-translate-y-1" style={{ ...softBorder("#eee"), ...glass(0.7), boxShadow: shadowColor(p.accent, 0.2) }}>
+              <div className="text-sm font-medium" style={{ color: p.accent, fontFamily: bodyFont }}>{p.name}</div>
+              <div className="text-3xl font-semibold mt-1" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>{p.impressions} impressions</div>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700" style={{ fontFamily: bodyFont }}>
+                {p.points.map(pt => <li key={pt}>• {pt}</li>)}
+              </ul>
+              <a href="#get-started" className="mt-6 inline-block text-center px-4 py-2 rounded-2xl text-white transition hover:-translate-y-0.5" style={{ background: p.accent, fontFamily: bodyFont, boxShadow: shadowColor(p.accent, 0.28) }}>Request details</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Creator Benefits ======
+function CreatorBenefits() {
+  const perks = [
+    { h: "Keep more of your earnings", p: "Transparent fees and revenue share. No hidden cuts.", c: palette.appleGreen },
+    { h: "Publish fast", p: "Price, sync to Stripe, ship. We handle the rails.", c: palette.burntOrange },
+    { h: "Own your brand", p: "Custom styling, media kits, and a public creator page.", c: palette.heritageRed },
+    { h: "Support in your language", p: "Kreyòl & Patwa assistance for creators and learners.", c: palette.warmRootBrown },
+  ];
+  return (
+    <section className="py-20">
+      <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>Creators first, always</h2>
+          <p className="mt-3 text-gray-700" style={{ fontFamily: bodyFont }}>Your voice carries the island. We make sure it carries far.</p>
+          <div className="mt-6 space-y-4">
+            {perks.map(b => (
+              <div key={b.h} className="flex gap-3">
+                <span className="mt-1 h-3 w-3 rounded-full" style={{ background: b.c }} />
+                <div>
+                  <div className="font-medium" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{b.h}</div>
+                  <div className="text-sm text-gray-700" style={{ fontFamily: bodyFont }}>{b.p}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-3xl overflow-hidden border bg-white transition-transform hover:-translate-y-1" style={{ ...softBorder("#eceae5"), ...glass(0.6), boxShadow: shadowColor(palette.heritageRed, 0.18) }}>
+          <img src="https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1400&auto=format&fit=crop" alt="Creators" className="w-full h-96 object-cover" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Learners ======
+function Learners() {
+  const points = [
+    "Learn on low data with offline‑friendly modules",
+    "Get help in Kreyòl Ayisyen or Jamaican Patwa",
+    "Own your progress across web and mobile",
+  ];
+  return (
+    <section className="py-20" style={{ background: palette.absoluteBlack }}>
+      <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <h2 className="text-3xl font-semibold" style={{ color: palette.ivoryNeutral, fontFamily: headlineFont }}>For learners, too</h2>
+          <p className="mt-3" style={{ color: "#CFCFCB", fontFamily: bodyFont }}>From Port‑au‑Prince to Portmore—learning that meets you where you are.</p>
+          <ul className="mt-6 space-y-2 text-sm" style={{ color: "#DAD9D3", fontFamily: bodyFont }}>
+            {points.map(p => <li key={p}>• {p}</li>)}
+          </ul>
+        </div>
+        <div className="rounded-3xl overflow-hidden border border-gray-700">
+          <img src="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?q=80&w=1400&auto=format&fit=crop" alt="Learners" className="w-full h-96 object-cover" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Pricing ======
+function Pricing() {
+  const tiers = [
+    { name: "Starter", price: "$0/mo", accent: palette.appleGreen, bullets: ["Unlimited free courses", "Stripe Express onboarding", "5% platform fee on paid sales"], cta: "Get started" },
+    { name: "Growth", price: "$29/mo", accent: palette.burntOrange, bullets: ["Paid courses", "Analytics & AI assistants", "Lower platform fee (12%)"], cta: "Try Growth" },
+    { name: "Pro", price: "$99/mo", accent: palette.heritageRed, bullets: ["Priority support", "Media pack discounts", "Volume pricing"], cta: "Contact sales" },
+  ];
+
+  return (
+    <section id="pricing" className="py-20">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>Simple pricing</h2>
+        <p className="mt-2 text-gray-600 max-w-2xl" style={{ fontFamily: bodyFont }}>Creator‑friendly revenue share. Scale when you’re ready.</p>
+        <div className="mt-10 grid md:grid-cols-3 gap-6">
+          {tiers.map((t) => (
+            <div key={t.name} className="rounded-3xl border bg-white p-6 flex flex-col transition-transform hover:-translate-y-1" style={{ ...softBorder("#eee"), ...glass(0.7), boxShadow: shadowColor(t.accent, 0.22) }}>
+              <div className="text-sm font-medium" style={{ color: t.accent, fontFamily: bodyFont }}>{t.name}</div>
+              <div className="text-3xl font-semibold mt-2" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>{t.price}</div>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700" style={{ fontFamily: bodyFont }}>
+                {t.bullets.map((b) => <li key={b}>• {b}</li>)}
+              </ul>
+              <a href="#get-started" className="mt-6 inline-block text-center px-4 py-2 rounded-2xl text-white transition hover:-translate-y-0.5" style={{ background: t.accent, fontFamily: bodyFont, boxShadow: shadowColor(t.accent, 0.3) }}>{t.cta}</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== FAQ ======
+function FAQ() {
+  const faqs = [
+    { q: "How do payouts work?", a: "Creators connect Stripe Express. After a sale, funds flow to your connected account; standard Stripe payout schedules apply." },
+    { q: "Can I change prices later?", a: "Yes. Update your course price and we auto‑sync the Stripe Price behind the scenes." },
+    { q: "Do you support Kreyòl & Patwa?", a: "Yes. The platform UI supports multilingual content and our AI assistants can help in Kreyòl Ayisyen and Jamaican Patwa." },
+    { q: "Is this offline‑friendly?", a: "Yes. Modules, captions, and logs are optimized for low‑bandwidth environments." },
+  ];
+  return (
+    <section id="faq" className="py-20" style={{ background: palette.ivoryNeutral }}>
+      <div className="max-w-5xl mx-auto px-4">
+        <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>FAQ</h2>
+        <div className="mt-8 grid md:grid-cols-2 gap-6">
+          {faqs.map((f) => (
+            <div key={f.q} className="rounded-2xl p-5 border bg-white transition-transform hover:-translate-y-0.5" style={{ ...softBorder("#e7e5df"), ...glass(0.7), boxShadow: shadowColor(palette.blackOlive, 0.12) }}>
+              <div className="font-medium" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{f.q}</div>
+              <div className="text-sm mt-2 text-gray-700" style={{ fontFamily: bodyFont }}>{f.a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Testimonial ======
+function Testimonial() {
+  return (
+    <section className="py-20 bg-[linear-gradient(135deg,#8DB600_0%,#8DB600_46%,#C1272D_100%)]">
+      <div className="max-w-5xl mx-auto px-4 text-center">
+        <blockquote className="text-xl md:text-2xl leading-relaxed" style={{ color: palette.ivoryNeutral, fontFamily: bodyFont }}>
+          “Wid di right tools, di whole island become a classroom. Mèsi E‑stratèji.”
+        </blockquote>
+        <div className="mt-6 text-sm" style={{ color: "#E9E5E0", fontFamily: bodyFont }}>— Aïda M., Education Entrepreneur</div>
+      </div>
+    </section>
+  );
+}
+
+// ====== Footer & CTA ======
+function Footer() {
+  return (
+    <footer className="py-12" style={{ background: palette.warmRootBrown }}>
+      <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-sm" style={{ color: "#d9d8d5", fontFamily: bodyFont }}>
+        <div>
+          <div className="flex items-center gap-3">
+          <div
+    className="relative h-9 w-9 rounded-2xl overflow-hidden ring-1 ring-white/20 transition-transform group-hover:-translate-y-0.5"
+    style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
+  >
+    <img
+      src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
+      alt="E-stratèji symbol"
+      className="absolute inset-0 m-auto h-8 w-8 object-contain pointer-events-none select-none"
+      draggable="false"
+    />
+  </div>
+
+  {/* Text logo image replaces the text span */}
+  <img
+    src="https://res.cloudinary.com/dyeomcmin/image/upload/v1759382275/Estrateji_symbol_Text_White_emf9nn.png"
+    alt="E-stratèji"
+    className="h-6 -mx-3 w-auto object-contain transition-transform group-hover:-translate-y-0.5"
+    draggable="false"
+  />
+            </div>
+          <p className="mt-3 opacity-80">Learning that goes everywhere. Payments that just work.</p>
+        </div>
+        <div>
+          <div className="font-medium">Product</div>
+          <ul className="mt-2 space-y-1 opacity-90">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium">Company</div>
+          <ul className="mt-2 space-y-1 opacity-90">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium">Legal</div>
+          <ul className="mt-2 space-y-1 opacity-90">
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Refunds</a></li>
+          </ul>
+        </div>
+      </div>
+      <div className="mt-8 text-center text-xs" style={{ color: "#bdbcb8" }}>
+        © {new Date().getFullYear()} E‑stratèji. All rights reserved.
+      </div>
+    </footer>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen" style={{ background: palette.ivoryNeutral }}>
+      <FontImports />
+      <NavBar />
+      <RotatingHero />
+      {/* <LogosBar /> */}
+      <CreatorsStrip />
+      <Features />
+      <AIAssistants />
+      <TechMobile />
+      <CreatorBenefits />
+      <MediaPackages />
+      <Learners />
+      <Pricing />
+      <Testimonial />
+      <CTA />
+      <FAQ />
+      <Footer />
+    </div>
+  );
+}
+
+function CTA() {
+  return (
+    <section id="get-started" className="py-16">
+      <div className="max-w-5xl mx-auto px-4">
+        <div className="rounded-3xl p-8 md:p-12 border relative overflow-hidden transition-transform hover:-translate-y-0.5" style={{ ...softBorder("#e9e7e2"), ...glass(0.7), boxShadow: shadowColor(palette.appleGreen, 0.22) }}>
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-20" style={{ background: palette.appleGreen }} />
+          <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full opacity-20" style={{ background: palette.heritageRed }} />
+          <div className="relative">
+            <h3 className="text-2xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>Launch your first paid course this weekend</h3>
+            <p className="mt-2 text-gray-700" style={{ fontFamily: bodyFont }}>Connect payouts, set your price, share your link. We’ll handle the rest.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a href="#" className="px-6 py-3 rounded-2xl text-white transition hover:-translate-y-0.5" style={{ background: palette.absoluteBlack, fontFamily: bodyFont, boxShadow: shadowColor(palette.appleGreen) }}>Get started free</a>
+              <a href="#features" className="px-6 py-3 rounded-2xl border transition hover:-translate-y-0.5" style={{ ...softBorder(palette.blackOlive), color: palette.blackOlive, fontFamily: bodyFont, boxShadow: shadowColor(palette.burntOrange, 0.18) }}>Explore features</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 /** ========================================================================================================================================================= */
 /** ========================================================================================================================================================= */
 
