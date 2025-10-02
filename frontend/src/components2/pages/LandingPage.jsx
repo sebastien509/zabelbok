@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-
+import Lottie from 'lottie-react';
+import bgAnimation from '@/assets/bgAnimation.json';
 
 /**
  * E‑stratèji — Landing Page (Enhanced to rival Kajabi)
@@ -66,7 +67,6 @@ const shadowColor = (hex, alpha = 0.22, opts) => {
   return `${x}px ${y}px ${blur}px ${spread}px rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-<div class="bg-[linear-gradient(135deg,#8DB600_0%,#8DB600_46%,#C1272D_100%)]"></div>
 
 /// ====== Nav (hide on scroll) ======
 function NavBar() {
@@ -251,10 +251,20 @@ function RotatingHero() {
   const active = banners[index];
 
   return (
-    <section className="relative -my-8 overflow-hidden" style={{ background: palette.ivoryNeutral }}>
+    <section className="relative my-2 overflow-hidden" style={{ background: palette.ivoryNeutral }}>
       <div className="absolute inset-0 -z-10" style={{ background: `radial-gradient(1200px 600px at 20% -10%, ${active.accent}12%, transparent 50%)` }} />
       <div className="max-w-7xl mx-auto px-4 py-20 lg:py-28 grid lg:grid-cols-2 gap-10 items-center">
         <div>
+        <motion.div
+    className="absolute inset-0 flex items-center justify-center pointer-events-none  my-10 z-0"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 1.5 }}
+  >
+    <div className="w-full max-w-xl h-auto mt-40 opacity-20">
+      <Lottie animationData={bgAnimation} loop autoplay />
+    </div>
+  </motion.div>
           <motion.div key={active.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
             <div className="text-xs tracking-wide px-3 mx-2 w-fit uppercase py-1 rounded-full border" style={{ color: active.accent, fontFamily: bodyFont, ...softBorder(active.accent), ...glass(0.55) }}>{active.kicker}</div>
             <h1 className="mt-3 text-4xl lg:text-5xl leading-tight" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>{active.title}</h1>
