@@ -2,55 +2,165 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>E-strateji — Empowering Haiti through knowledge sharing and Tech build for Haiti</title>
-
-    <!-- ✅ Favicon -->
-    <link
-      rel="icon"
-      type="image/png"
-      href="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-Green_pwdksv.png"
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
 
-    <!-- ✅ Meta Description -->
+    <!-- =========================
+         Title & Meta (Caribbean vision)
+    ========================== -->
+    <title>
+      E-stratèji — Creators First. Built for the Caribbean (Haiti & Jamaica).
+    </title>
     <meta
       name="description"
-      content="E-strateji empowers Haitian creators to share knowledge, earn income, and reach communities through AI-powered, mobile-first, offline-ready learning tools."
+      content="E-stratèji helps Caribbean creators—Haiti & Jamaica—to share knowledge, earn sustainably, and reach learners anywhere with AI-powered, mobile-first, offline-ready tools."
+    />
+    <meta
+      name="keywords"
+      content="Estrateji, E-strateji, Haiti, Jamaica, Caribbean, online course platform, creators, learning, mobile-first, offline-ready, Stripe payouts, AI assistants"
     />
 
-    <!-- ✅ Social Sharing -->
-    <meta property="og:title" content="E-strateji — Empowering Haitian Creators" />
+    <!-- Canonical -->
+    <link rel="canonical" href="https://estrateji.io/" />
+
+    <!-- Theme color for PWA / mobile address bar -->
+    <meta name="theme-color" content="#8DB600" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+
+    <!-- =========================
+         Social / Open Graph
+    ========================== -->
+    <meta property="og:site_name" content="E-stratèji" />
+    <meta
+      property="og:title"
+      content="E-stratèji — Creators First. Built for the Caribbean (Haiti & Jamaica)."
+    />
     <meta
       property="og:description"
-      content="A mobile-first, offline-ready knowledge platform for Haitian creators and learners. Create. Learn. Earn."
+      content="Publish courses, get paid with Stripe, and teach across the Caribbean. Mobile-first, low-internet, and AI-assisted."
     />
     <meta
       property="og:image"
-      content="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-Green_pwdksv.png"
+      content="https://res.cloudinary.com/dyeomcmin/image/upload/v1759381743/Estrateji_symbol_Text_Black_ycv3mv.png"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://estrateji.io" />
+    <meta property="og:url" content="https://estrateji.io/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ht_HT" />
+    <meta property="og:locale:alternate" content="en_JM" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="E-strateji — Empowering Haitian Creators" />
+    <meta
+      name="twitter:title"
+      content="E-stratèji — Creators First. Built for the Caribbean (Haiti & Jamaica)."
+    />
     <meta
       name="twitter:description"
-      content="Share your expertise. Empower your community. Earn through education."
+      content="AI-powered, mobile-first learning for Haiti & Jamaica. Share your expertise. Empower your community. Earn through education."
     />
     <meta
       name="twitter:image"
-      content="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-Green_pwdksv.png"
+      content="https://res.cloudinary.com/dyeomcmin/image/upload/v1759381743/Estrateji_symbol_Text_Black_ycv3mv.png"
     />
 
-    <!-- ✅ Fonts (Optional) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <!-- =========================
+         Favicons & App Icons
+    ========================== -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://res.cloudinary.com/dyeomcmin/image/upload/v1759384367/estratejilab_logo_nbytcx.jpg"
+    />
+    <link rel="apple-touch-icon" href="/icon-192x192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- ✅ Vite main entry -->
+    <!-- =========================
+         Fonts (Rubik One + Rubik as fallback)
+         Nouvel'r should be self-hosted via @font-face in your CSS.
+    ========================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik+One&family=Rubik:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- =========================
+         Preloads (optional, safe to remove)
+    ========================== -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1400&auto=format&fit=crop"
+      imagesrcset=""
+    />
+
+    <!-- =========================
+         Vite main entry
+    ========================== -->
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- =========================
+         Structured Data (SEO): Organization + Website
+    ========================== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "E-stratèji",
+            "url": "https://estrateji.io/",
+            "logo": "https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-Green_pwdksv.png",
+            "sameAs": [
+              "https://twitter.com/",
+              "https://www.facebook.com/",
+              "https://www.instagram.com/"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "name": "E-stratèji",
+            "url": "https://estrateji.io/",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://estrateji.io/search?q={query}",
+              "query-input": "required name=query"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
 
-  <body class="antialiased text-gray-900 bg-[#FAF8F4] font-sans">
+  <body class="antialiased text-gray-900 bg-[#FAF9F6] font-sans">
     <div id="root"></div>
+
+    <!-- =========================
+         Mission & Offer (for crawlers & accessibility)
+         (Visible content is rendered by React; this is a fallback)
+    ========================== -->
+    <noscript>
+      <section style="max-width: 70ch; margin: 3rem auto; padding: 1rem;">
+        <h1 style="font-family: 'Rubik One', Rubik, system-ui, sans-serif;">
+          E-stratèji — Creators First. Built for the Caribbean.
+        </h1>
+        <p>
+          Our mission is simple: empower creators in Haiti and Jamaica to teach boldly, reach
+          learners anywhere (even on low internet), and earn sustainably. E-stratèji provides
+          AI-powered tools, mobile apps, and Stripe-powered payouts so your voice travels
+          from yard to diaspora.
+        </p>
+        <ul>
+          <li>Mobile-first, offline-ready learning</li>
+          <li>AI assistants for creators & learners</li>
+          <li>Stripe Express payouts (fast & trusted)</li>
+          <li>Media packages to amplify your reach</li>
+        </ul>
+      </section>
+    </noscript>
   </body>
 </html>
