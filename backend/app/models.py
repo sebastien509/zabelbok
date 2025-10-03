@@ -799,6 +799,13 @@ class CourseCompletion(db.Model):
     user = db.relationship("User", backref=db.backref("course_completions", cascade="all, delete-orphan"))
     course = db.relationship("Course", backref=db.backref("completions", cascade="all, delete-orphan"))
 
+
+
+
+
+# ============ STRIPE / PAYMENTS MODELS ============
+
+
 # ============ STRIPE / PAYMENTS MODELS ============
 
 class CreatorPayoutAccount(db.Model):

@@ -235,9 +235,9 @@ function NavBar() {
 // ====== Hero (Rotating) ======
 function RotatingHero() {
   const banners = useMemo(() => ([
-    { id: 1, kicker: "Creators First • Payouts in Stripe", title: "Own your classroom. Keep your culture.", copy: "From Kingston to Kafou—publish, price, and get paid. We handle the rails; you teach the world.", img: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=1400&auto=format&fit=crop", accent: palette.appleGreen, label: "Start creating" },
-    { id: 2, kicker: "Tech that travels • Low‑internet native", title: "Learning that reaches every corner.", copy: "Offline modules, captions in Kreyòl & Patwa, and mobile apps built for spotty networks.", img: "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1400&auto=format&fit=crop", accent: palette.burntOrange, label: "See the tech" },
-    { id: 3, kicker: "AI Assistants • Media Packages up to 1M impressions", title: "Teach boldly. We amplify your reach.", copy: "Creator copilots, learner tutors, and promo bundles that put your course in the spotlight.", img: "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1400&auto=format&fit=crop", accent: palette.heritageRed, label: "Meet your copilots" },
+    { id: 1, kicker: "Creators First • Payouts in Stripe", title: "Own your classroom. Keep your culture.", copy: "From Kingston to Kafou—publish, price, and get paid. We handle the rails; you teach the world.", img: "https://i.imgur.com/3QdKKXG.jpeg", accent: palette.appleGreen, label: "Start creating" },
+    { id: 2, kicker: "Tech that travels • Low‑internet native", title: "Learning that reaches every corner.", copy: "Offline modules, captions in Kreyòl & Patwa, and mobile apps built for spotty networks.", img: "https://i.imgur.com/pQYoqDg.jpeg", accent: palette.burntOrange, label: "See the tech" },
+    { id: 3, kicker: "AI Assistants • Media Packages up to 1M impressions", title: "Teach boldly. We amplify your reach.", copy: "Creator copilots, learner tutors, and promo bundles that put your course in the spotlight.", img: "https://i.imgur.com/M6Xk8QY.jpeg", accent: palette.heritageRed, label: "Meet your copilots" },
   ]), []);
 
   const [index, setIndex] = useState(0);
@@ -337,70 +337,111 @@ function LogosBar() {
     </section>
   );
 }
-
 function CreatorsStrip() {
   const heads = [
-    "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1548142813-c348350df52b?q=80&w=600&auto=format&fit=crop",
+    "https://res.cloudinary.com/dyeomcmin/image/upload/v1752393508/business-man-banner-concept-with-copy-space_quyz6d.jpg",
+    "https://res.cloudinary.com/dyeomcmin/image/upload/v1752393315/23214_arjlmd.jpg",
+    "https://media.istockphoto.com/id/1394347360/photo/confident-young-black-businesswoman-standing-at-a-window-in-an-office-alone.jpg?s=612x612&w=0&k=20&c=tOFptpFTIaBZ8LjQ1NiPrjKXku9AtERuWHOElfBMBvY=",
     "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1524503033411-c9566986fc8f?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1542204625-ca1f554f2b4a?q=80&w=600&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=600&auto=format&fit=crop",
+    "https://media.istockphoto.com/id/1140949330/photo/businesswoman-studio-head-shot.jpg?s=612x612&w=0&k=20&c=Mga3Qj6Ru1OT0qNNPXgqM4-Ff-GZsO-OJ-HJa2Pu7lk=",
+    "https://res.cloudinary.com/dyeomcmin/image/upload/v1745786404/aZJ6cPc_copy_mb4shf.jpg",
+    "https://media.istockphoto.com/id/2158069590/photo/black-lesbian-wearing-a-rainbow-print-t-shirt.jpg?s=612x612&w=0&k=20&c=0pO39lyBrh2-4M0R8b1tDCPArkF5j0gQ0DCYr-c1Va8=",
+    "https://res.cloudinary.com/dyeomcmin/image/upload/v1752392936/portrait-handsome-bearded-male_xln9em.jpg",
+    "https://res.cloudinary.com/dyeomcmin/image/upload/v1752393507/happy-young-african-man-writing-notes_cax09x.jpg",
+    "https://media.istockphoto.com/id/1448284028/photo/close-up-portrait-of-an-african-woman-with-piercings.jpg?s=612x612&w=0&k=20&c=iCvnBGvcIAS7cLozpK4rmUtr2Ga4HezVjSej8yl7QFE=",
   ];
-  const names = [
-    "Amara", "Jamal", "Nadine", "Kendrick", "Solange",
-    "Malik", "Yara", "Dante", "Imani", "Keisha",
-  ];
+  const names = ["Amara","Jamal","Nadine","Kendrick","Solange","Malik","Yara","Dante","Imani","Keisha"];
   const accents = [palette.appleGreen, palette.burntOrange, palette.heritageRed, palette.warmRootBrown];
 
-  return (
-    <section className="py-2 px-0 " style={{ background: palette.ivoryNeutral }}>
-      <div className="max-w-full mx-auto px-4">
-        <AutoScrollRow
-          items={heads}
-          speed={55}
-          itemRender={(src, i) => {
+  const Row = ({ items, speed = 48, reverse = false, size = "md" }) => {
+    const trackRef = useRef(null);
+
+    // Responsive fixed size via CSS clamp (prevents shrinking)
+    const SIZE_SM = "clamp(72px, 26vw, 112px)";
+    const SIZE_MD = "clamp(96px, 16vw, 176px)";
+    const sizeVar = size === "sm" ? SIZE_SM : SIZE_MD;
+
+    useEffect(() => {
+      const el = trackRef.current;
+      if (!el) return;
+      const keyframes = reverse
+        ? [{ transform: "translateX(0)" }, { transform: "translateX(50%)" }]
+        : [{ transform: "translateX(0)" }, { transform: "translateX(-50%)" }];
+      const anim = el.animate(keyframes, { duration: speed * 1000, iterations: Infinity, easing: "linear" });
+      return () => anim.cancel();
+    }, [speed, reverse]);
+
+    const doubled = [...items, ...items];
+
+    return (
+      <div className="overflow-visible w-fit">
+        <div
+          ref={trackRef}
+          className={`flex w-full items-center gap-6 whitespace-nowrap will-change-transform ${reverse ? "flex-row-reverse" : ""}`}
+          style={{ minWidth: "100%" }}
+        >
+          {doubled.map((src, i) => {
             const accent = accents[i % accents.length];
             const name = names[i % names.length];
             return (
-              <div className="group relative mx-3 my-4 flex flex-col items-center">
-                <div className="relative">
+              <div key={`${src}-${i}`} className="group relative mx-2  flex flex-col items-center shrink-0">
+                <div className="relative shrink-0" style={{ width: sizeVar, height: sizeVar }}>
                   <img
                     src={src}
                     alt={`Creator ${i + 1}`}
-                    className="h-44 w-44 rounded-3xl object-cover border transition-transform duration-300 group-hover:scale-[1.06]"
-                    style={{ ...softBorder("#eceae5"), boxShadow: shadowColor(accent, 0.26) }}
+                    className="w-full h-full rounded-2xl object-cover border transition-transform duration-300 group-hover:scale-[1.05]"
+                    style={{ ...softBorder("#eceae5"), boxShadow: shadowColor(accent, 0.24, { y: 6, blur: 14 }) }}
                   />
                   <span
-                    className="pointer-events-none absolute inset-0 rounded-3xl ring-2 transition-all"
-                    style={{ boxShadow: shadowColor(accent, 0.18), borderRadius: "1.5rem", borderColor: "transparent" }}
+                    className="pointer-events-none absolute inset-0 rounded-2xl ring-2 transition-all"
+                    style={{
+                      boxShadow: shadowColor(accent, 0.16, { y: 6, blur: 12 }),
+                      borderRadius: "1rem",
+                      borderColor: "transparent",
+                    }}
                   />
                 </div>
                 <div
-                  className="mt-3 px-3 py-1 rounded-full text-xs opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition"
-                  style={{ color: palette.blackOlive, ...softBorder(accent + "55"), ...glass(0.8) }}
+                  className="mt-2 px-2.5 py-1 rounded-full text-[11px] opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition shrink-0"
+                  style={{ color: palette.blackOlive, ...softBorder(accent + "55"), ...glass(0.85) }}
                 >
                   {name}
                 </div>
               </div>
             );
-          }}
-        />
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const rowA = heads.filter((_, idx) => idx % 2 === 0);
+  const rowB = heads.filter((_, idx) => idx % 2 === 1);
+
+  return (
+    <section className="py-4 w-full" style={{ background: palette.ivoryNeutral }}>
+      <div className="w-full  mx-0 px-4">
+        {/* Mobile: two rows, opposite directions */}
+        <div className="md:hidden space-y-3">
+          <Row items={rowA} speed={50} reverse={false} size="sm" />
+          <Row items={rowB} speed={52} reverse={true} size="sm" />
+        </div>
+        {/* md+: one larger row */}
+        <div className="hidden md:block">
+          <Row items={heads} speed={45} reverse={false} size="md" />
+        </div>
       </div>
     </section>
   );
 }
 
+
 // ====== Features ======
 function Features() {
   const cards = [
-    { title: "Creators keep up to 88%", desc: "Connect payouts in minutes with Stripe Express. We handle fees, access, refunds, and transfers.", color: palette.appleGreen, img: "https://images.unsplash.com/photo-1513258496099-48168024aec0?q=80&w=1200&auto=format&fit=crop" },
-    { title: "Low‑internet by design", desc: "Optimized modules, transcripts, captions in Kreyòl Ayisyen & Jamaican Patwa, and offline logs.", color: palette.burntOrange, img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1200&auto=format&fit=crop" },
-    { title: "All your course pieces", desc: "Lectures, books, quizzes, progress—integrated with a simple, modern CMS.", color: palette.heritageRed, img: "https://images.unsplash.com/photo-1518081461904-9ac5d491b2e7?q=80&w=1200&auto=format&fit=crop" },
+    { title: "Creators keep up to 88%", desc: "Connect payouts in minutes with Stripe Express. We handle fees, access, refunds, and transfers.", color: palette.appleGreen, img: "https://i.imgur.com/6Y0tzKF.jpeg" },
+    { title: "Low‑internet by design", desc: "Optimized modules, transcripts, captions in Kreyòl Ayisyen & Jamaican Patwa, and offline logs.", color: palette.burntOrange, img: "https://i.imgur.com/08c7i5y.jpeg" },
+    { title: "All your course pieces", desc: "Lectures, books, quizzes, progress—integrated with a simple, modern CMS.", color: palette.heritageRed, img: "https://i.imgur.com/Hq9UOVt.jpeg" },
   ];
   return (
     <section id="features" className="py-20">
@@ -462,7 +503,7 @@ function TechMobile() {
     <section id="mobile" className="py-20">
       <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-10 items-center">
         <div className="rounded-3xl overflow-hidden border bg-white transition-transform hover:-translate-y-1" style={{ ...softBorder("#eceae5"), ...glass(0.6), boxShadow: shadowColor(palette.appleGreen, 0.18) }}>
-          <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1400&auto=format&fit=crop" alt="Mobile preview" className="w-full h-96 object-cover" />
+          <img src="https://i.imgur.com/dYgj0NJ.jpeg" alt="Mobile preview" className="w-full h-96 object-cover" />
         </div>
         <div>
           <h2 className="text-3xl font-semibold" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>Tech that moves with the Caribbean</h2>
@@ -540,7 +581,7 @@ function CreatorBenefits() {
           </div>
         </div>
         <div className="rounded-3xl overflow-hidden border bg-white transition-transform hover:-translate-y-1" style={{ ...softBorder("#eceae5"), ...glass(0.6), boxShadow: shadowColor(palette.heritageRed, 0.18) }}>
-          <img src="https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1400&auto=format&fit=crop" alt="Creators" className="w-full h-96 object-cover" />
+          <img src="https://i.imgur.com/43TRxfF.jpeg" alt="Creators" className="w-full h-96 object-cover" />
         </div>
       </div>
     </section>
@@ -565,7 +606,7 @@ function Learners() {
           </ul>
         </div>
         <div className="rounded-3xl overflow-hidden border border-gray-700">
-          <img src="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?q=80&w=1400&auto=format&fit=crop" alt="Learners" className="w-full h-96 object-cover" />
+          <img src="https://i.imgur.com/Kc8zn7q.jpeg" alt="Learners" className="w-full h-96 object-cover" />
         </div>
       </div>
     </section>

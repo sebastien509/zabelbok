@@ -90,6 +90,8 @@ import { needsCreatorOnboarding } from './utils/onboarding';
 import { useAuth } from '@/components/auth/AuthProvider'; // adjust path
 
 
+import Bento from './components2/pages/template/Bento';
+
 export default function App() {
 
   const { user, isLoading } = useAuth(); // 👈 include isLoading
@@ -179,7 +181,7 @@ i18n.changeLanguage(preferredLanguage);
             {/* E-strateji Auth */}
             <Route path="/login" element={
             <RedirectIfLoggedIn>
-              <Login />
+              <Bento />
             </RedirectIfLoggedIn>
           } />           
           
