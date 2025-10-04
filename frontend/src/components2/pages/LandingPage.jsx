@@ -374,7 +374,7 @@ function CreatorsStrip() {
     const doubled = [...items, ...items];
 
     return (
-      <div className="overflow-visible w-fit">
+      <div className="overflow-hidden">
         <div
           ref={trackRef}
           className={`flex w-full items-center gap-6 whitespace-nowrap will-change-transform ${reverse ? "flex-row-reverse" : ""}`}
