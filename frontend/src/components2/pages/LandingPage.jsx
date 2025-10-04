@@ -122,28 +122,69 @@ function NavBar() {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-3 group">
-          {/* Gradient badge with icon over it */}
-          <div
-            className="relative h-9 w-9 rounded-2xl overflow-hidden ring-1 ring-white/20 transition-transform group-hover:-translate-y-0.5"
-            style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
-          >
-            <img
-              src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
-              alt="E-stratèji symbol"
-              className="absolute inset-0 m-auto h-8 w-8 object-contain pointer-events-none select-none"
-              draggable="false"
-            />
-          </div>
+      <a href="#" className="flex items-center gap-3 group/logo">
+  {/* Symbol over gradient */}
+  <div
+    className="relative h-9 w-9 rounded-2xl overflow-hidden ring-1 ring-white/20 transition-transform group-hover/logo:-translate-y-0.5"
+    style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
+    aria-hidden="true"
+  >
+    <img
+      src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
+      alt=""
+      className="absolute inset-0 m-auto h-8 w-8 object-contain pointer-events-none select-none"
+      draggable="false"
+    />
+  </div>
 
-          {/* Text logo image replaces the text span */}
-          <img
-            src="https://res.cloudinary.com/dyeomcmin/image/upload/v1759381743/Estrateji_symbol_Text_Black_ycv3mv.png"
-            alt="E-stratèji"
-            className="h-8 -mx-3 w-auto object-contain transition-transform group-hover:-translate-y-0.5"
-            draggable="false"
-          />
-        </a>
+  {/* Text logo */}
+  <img
+    src="https://res.cloudinary.com/dyeomcmin/image/upload/v1759381743/Estrateji_symbol_Text_Black_ycv3mv.png"
+    alt="E-stratèji"
+    className="h-7 -ml-3 w-auto object-contain transition-transform group-hover/logo:-translate-y-0.5"
+    draggable="false"
+  />
+
+  {/* Phonetic chip (Kreyòl + English) */}
+  <div className="hidden sm:flex items-center gap-2 pl-3 ml-1 rounded-full border bg-white/60 backdrop-blur-md
+                  ring-1 ring-black/5 transition-colors hover:bg-white/70"
+       style={{ borderColor: "#e7e5df", color: "#3B3C36" }}
+       aria-label="Pronunciation: Kreyòl and English">
+    {/* Divider dot */}
+    <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: "#8DB600" }} />
+    {/* Kreyòl */}
+    <span className="text-[11px] leading-none">
+      <span className="font-medium">Kreyòl:</span> <span className="opacity-90">/is-tra-té-ji/</span>
+    </span>
+    {/* Separator */}
+    <span className="text-black/20">|</span>
+    {/* English */}
+    <span className="text-[11px] leading-none">
+      <span className="font-medium">English:</span> <span className="opacity-90">/ee-strat-uh-jee/</span>
+    </span>
+
+    {/* Hover info tooltip */}
+    <div className="relative">
+      <span
+        className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold
+                   bg-black/5 text-black/60 hover:bg-black/10"
+        aria-hidden="true"
+      >
+        i
+      </span>
+      <div className="pointer-events-none absolute left-0 top-[125%] z-50 w-[220px] rounded-xl border bg-white/95 p-3 text-[11px]
+                      opacity-0 shadow-lg transition-opacity duration-200 group-hover/logo:opacity-100"
+           style={{ borderColor: "#e7e5df", color: "#3B3C36", boxShadow: "0 6px 16px rgba(59,60,54,0.12)" }}
+           role="tooltip"
+      >
+        <div className="font-medium mb-1">How to say “E-stratèji”</div>
+        <div><span className="font-medium">Kreyòl:</span> “is-tra-té-ji”</div>
+        <div><span className="font-medium">English:</span> “ee-strat-uh-jee”</div>
+      </div>
+    </div>
+  </div>
+</a>
+
 
         <div
           className="hidden lg:flex items-center gap-8 text-sm"
