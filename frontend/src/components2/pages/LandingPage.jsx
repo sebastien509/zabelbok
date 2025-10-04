@@ -757,7 +757,7 @@ export default function LandingPage() {
       <CreatorBenefits />
       <MediaPackages />
       <Learners />
-      <Pricing />
+      {/* <Pricing /> */}
       <Testimonial />
       <CTA />
       <FAQ />
