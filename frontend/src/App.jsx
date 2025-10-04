@@ -181,7 +181,7 @@ i18n.changeLanguage(preferredLanguage);
             {/* E-strateji Auth */}
             <Route path="/login" element={
             <RedirectIfLoggedIn>
-              <Bento />
+              <Login />
             </RedirectIfLoggedIn>
           } />           
           
