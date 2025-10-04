@@ -391,7 +391,7 @@ function CreatorsStrip() {
     "https://res.cloudinary.com/dyeomcmin/image/upload/v1752393507/happy-young-african-man-writing-notes_cax09x.jpg",
     "https://media.istockphoto.com/id/1448284028/photo/close-up-portrait-of-an-african-woman-with-piercings.jpg?s=612x612&w=0&k=20&c=iCvnBGvcIAS7cLozpK4rmUtr2Ga4HezVjSej8yl7QFE=",
   ];
-  const names = ["Amara","Jamal","Nadine","Kendrick","Solange","Malik","Yara","Dante","Imani","Keisha"];
+  const names = ["Amara","Jamal","Nadine","Kendrick","Solange","Sebastien","Yara","Dante","Imani","Keisha"];
   const accents = [palette.appleGreen, palette.burntOrange, palette.heritageRed, palette.warmRootBrown];
 
   const Row = ({ items, speed = 48, reverse = false, size = "md" }) => {
