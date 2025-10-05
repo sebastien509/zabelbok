@@ -1,20 +1,18 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app.extensions import db, bcrypt
-from app.models import User, StudentSubmission, Course, course_students
+from app.models import User, StudentSubmission, Course, Enrollment  # ⬅️ removed course_students, added Enrollment
 from flasgger import swag_from
-from datetime import timedelta
+from datetime import timedelta, datetime
 from sqlalchemy.exc import IntegrityError
 from app.utils.roles import role_required
 from app.utils.logger import log_event
-
-
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 # at top
 import re
-def slugify(s:str)->str:
+def slugify(s: str) -> str:
     s = re.sub(r'[^a-zA-Z0-9\s-]', '', s or '')
     s = re.sub(r'\s+', '-', s.strip().lower())
     s = re.sub(r'-{2,}', '-', s)
@@ -88,15 +86,6 @@ def get_public_creator_by_slug(slug):
         return jsonify({'error': 'Creator not found'}), 404
     return jsonify(user.to_public_dict()), 200
 
-# # keep existing public by id but use safe dict
-# @auth_bp.route('/public/<int:user_id>', methods=['GET'])
-# def get_public_creator(user_id):
-#     user = User.query.get(user_id)
-#     if not user or user.role not in ('professor', 'creator'):
-#         return jsonify({'error': 'Creator not found'}), 404
-#     return jsonify(user.to_public_dict()), 200
-
-
 @auth_bp.route('/login', methods=['POST'])
 def login():
     try:
@@ -157,9 +146,7 @@ def login():
 def get_current_user_view():
     user_id = int(get_jwt_identity())
     user = User.query.get_or_404(user_id)
-
-    return jsonify(user.to_dict())  # ✅ returns full profile including theme, banner_url, etc.
-
+    return jsonify(user.to_dict())  # returns full profile including theme, banner_url, etc.
 
 @auth_bp.route('/me/courses', methods=['GET'])
 @jwt_required()
@@ -183,23 +170,26 @@ def get_user_courses():
             courses = Course.query.filter_by(professor_id=user.id).all()
     elif user.role == 'student':
         if user.school_id == 1:  # Learner
-            courses = Course.query.filter_by(school_id=1).all()  # optional: filter enrolled only
+            # (optional) just learners at school 1; adjust if you only want enrolled:
+            # courses = user.enrolled_courses
+            courses = Course.query.filter_by(school_id=1).all()
         else:
             courses = user.enrolled_courses
+    else:
+        courses = []
 
     return jsonify([
-  {
-    "id": c.id,
-    "title": c.title,
-    "description": c.description,
-    "modules": [m.to_dict() for m in c.modules],
-    "students": [s.to_dict() for s in c.students],
-    "module_count": len(c.modules),
-    "student_count": len(c.students)
-  }
-  for c in courses
-])
-
+        {
+            "id": c.id,
+            "title": c.title,
+            "description": c.description,
+            "modules": [m.to_dict() for m in c.modules],
+            "students": [s.to_dict() for s in c.students],
+            "module_count": len(c.modules),
+            "student_count": len(c.students)
+        }
+        for c in courses
+    ])
 
 @auth_bp.route('/me/submissions', methods=['GET'])
 @jwt_required()
@@ -227,7 +217,6 @@ def get_user_submissions():
             "submitted_at": s.submitted_at.isoformat()
         } for s in submissions
     ]), 200
-
 
 # ================== GET ALL USERS BY ROLE ==================
 @auth_bp.route('/role/<string:role>', methods=['GET'])
@@ -257,7 +246,6 @@ def get_users_by_role(role):
     users = User.query.filter_by(role=role).all()
     return jsonify([u.to_dict() for u in users]), 200
 
-
 @auth_bp.route('/my-students', methods=['GET'])
 @jwt_required()
 @role_required('professor')
@@ -270,7 +258,7 @@ def get_users_by_role(role):
     }
 })
 def get_my_students():
-    professor_id = get_jwt_identity()
+    professor_id = int(get_jwt_identity())
 
     # Step 1: Get all course IDs taught by the professor
     courses = Course.query.filter_by(professor_id=professor_id).all()
@@ -279,16 +267,16 @@ def get_my_students():
     if not course_ids:
         return jsonify([]), 200
 
-    # Step 2: Query all students enrolled in those courses
-    students = db.session.query(User).join(
-        course_students, User.id == course_students.c.student_id
-    ).filter(
-        course_students.c.course_id.in_(course_ids),
-        User.role == 'student'
-    ).distinct().all()
+    # Step 2: Query all students enrolled in those courses using Enrollment model
+    students = (
+        db.session.query(User)
+        .join(Enrollment, Enrollment.user_id == User.id)
+        .filter(Enrollment.course_id.in_(course_ids), User.role == 'student')
+        .distinct()
+        .all()
+    )
 
     return jsonify([s.to_dict() for s in students]), 200
-
 
 @auth_bp.route('/me/profile', methods=['PUT'])
 @jwt_required()
@@ -324,22 +312,6 @@ def get_all_creators():
         'profile_image_url': u.profile_image_url
     } for u in creators]), 200
 
-# routes/auth.py or routes/user.py
-# @auth_bp.route("/me/style/settings", methods=["PUT"]) # modifies the Model Variables
-# @jwt_required()
-# def update_style_settings():
-#     user_id = get_jwt_identity()
-#     user = User.query.get(user_id)
-#     data = request.json
-
-#     if "theme" in data:
-#         user.theme = data["theme"]
-#     if "banner_url" in data:
-#         user.banner_url = data["banner_url"]
-
-#     db.session.commit()
-#     return jsonify({"msg": "Style updated", "user": user.to_dict()})
-
 @auth_bp.route('/creators/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_creator_by_id(user_id):
@@ -347,7 +319,6 @@ def get_creator_by_id(user_id):
     if not user or user.role != 'professor':
         return jsonify({'error': 'Creator not found'}), 404
     return jsonify(user.to_dict()), 200
-
 
 def public_creator_dict(user):
     return {
