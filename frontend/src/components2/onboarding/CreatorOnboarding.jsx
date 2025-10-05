@@ -9,17 +9,37 @@ import { updateProfile, updateStyle } from '@/services/auth'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { TemplateRenderer } from '@/components2/pages/template/index.jsx'
 
+// ---------- Brand palette (subtle, low-contrast-friendly) ----------
+const BRAND = {
+  absoluteBlack: '#000000',
+  blackOlive:   '#3B3C36',
+  ivory:        '#FAF9F6',
+  apple:        '#8DB600',
+  heritage:     '#C1272D',
+  burnt:        '#EE964B',
+  navy:         '#2C365E',
+}
+
+// small helper to add alpha to hex colors
+const withA = (hex, a = 0.1) => {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.split('').map(x => x + x).join('') : h, 16)
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  return `rgba(${r}, ${g}, ${b}, ${a})`
+}
+
+// app palettes user can select (keys must match your templates)
 const PALETTES = ['color-1', 'color-2']
 
-// ---- PLACEHOLDER art for theme cards (swap with real images anytime) ----
+// ---- placeholder art for theme cards (swap when ready) ----
 const THEME_CARDS = [
   {
     key: 'theme-1',
     title: 'Bento',
     cover: 'https://placehold.co/720x300?text=Bento+Cover',
     colors: {
-      'color-1': 'https://placehold.co/640x240/3498db/fff?text=Bento+color-1',
-      'color-2': 'https://placehold.co/640x240/e74c3c/fff?text=Bento+color-2',
+      'color-1': 'https://placehold.co/640x240/8DB600/ffffff?text=Bento+color-1',
+      'color-2': 'https://placehold.co/640x240/C1272D/ffffff?text=Bento+color-2',
     },
   },
   {
@@ -27,8 +47,8 @@ const THEME_CARDS = [
     title: 'Minimalistic',
     cover: 'https://placehold.co/720x300?text=Minimalistic+Cover',
     colors: {
-      'color-1': 'https://placehold.co/640x240/2ecc71/fff?text=Minimal+color-1',
-      'color-2': 'https://placehold.co/640x240/f39c12/fff?text=Minimal+color-2',
+      'color-1': 'https://placehold.co/640x240/3B3C36/ffffff?text=Minimal+color-1',
+      'color-2': 'https://placehold.co/640x240/EE964B/ffffff?text=Minimal+color-2',
     },
   },
   {
@@ -36,35 +56,24 @@ const THEME_CARDS = [
     title: 'Glassmorphism',
     cover: 'https://placehold.co/720x300?text=Glassmorphism+Cover',
     colors: {
-      'color-1': 'https://placehold.co/640x240/8e44ad/fff?text=Glass+color-1',
-      'color-2': 'https://placehold.co/640x240/16a085/fff?text=Glass+color-2',
+      'color-1': 'https://placehold.co/640x240/2C365E/ffffff?text=Glass+color-1',
+      'color-2': 'https://placehold.co/640x240/8DB600/ffffff?text=Glass+color-2',
     },
   },
 ]
 
 const PRESET_BANNERS = [
-  'https://placehold.co/1200x360/2980b9/ffffff?text=Banner+1',
-  'https://placehold.co/1200x360/27ae60/ffffff?text=Banner+2',
-  'https://placehold.co/1200x360/c0392b/ffffff?text=Banner+3',
-  'https://placehold.co/1200x360/f39c12/ffffff?text=Banner+4',
+  'https://placehold.co/1200x360/edf1e5/3B3C36?text=Subtle+Apple+Tint',
+  'https://placehold.co/1200x360/f5eaea/3B3C36?text=Soft+Heritage+Tint',
+  'https://placehold.co/1200x360/f5efe7/3B3C36?text=Warm+Ivory+Tint',
+  'https://placehold.co/1200x360/eff2f7/3B3C36?text=Soft+Navy+Tint',
 ]
 
 // Slide variants with direction
 const slide = {
-  enter: (dir) => ({
-    x: dir > 0 ? 40 : -40,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    transition: { duration: 0.35, ease: 'easeOut' },
-  },
-  exit: (dir) => ({
-    x: dir > 0 ? 80 : -80,
-    opacity: 0,
-    transition: { duration: 0.25, ease: 'easeIn' },
-  }),
+  enter: (dir) => ({ x: dir > 0 ? 36 : -36, opacity: 0 }),
+  center: { x: 0, opacity: 1, transition: { duration: 0.32, ease: 'easeOut' } },
+  exit:  (dir) => ({ x: dir > 0 ? 72 : -72, opacity: 0, transition: { duration: 0.22, ease: 'easeIn' } }),
 }
 
 const StepBadge = ({ index, active, done, label }) => (
@@ -72,13 +81,17 @@ const StepBadge = ({ index, active, done, label }) => (
     <div
       className={[
         'h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold',
-        active ? 'bg-[#EA7125] text-white shadow' : done ? 'bg-emerald-500 text-white' : 'bg-white/60 text-[#2C365E]',
-        'border border-white/30 backdrop-blur',
+        active ? 'text-white shadow' : done ? 'text-white' : '',
+        'border backdrop-blur',
       ].join(' ')}
+      style={{
+        background: active ? withA(BRAND.apple, 0.9) : done ? withA(BRAND.navy, 0.7) : withA(BRAND.ivory, 0.3),
+        borderColor: withA(BRAND.blackOlive, 0.15),
+      }}
     >
       {done ? '✓' : index}
     </div>
-    <span className={`text-sm ${active ? 'text-white' : 'text-white/80'}`}>{label}</span>
+    <span className="text-sm" style={{ color: active ? '#fff' : 'rgba(255,255,255,.85)' }}>{label}</span>
   </div>
 )
 
@@ -104,16 +117,12 @@ export default function CreatorOnboarding() {
   const { user, refreshUser } = useAuth()
 
   useEffect(() => {
-    // optional: if user already has setup, skip onward
-    // if (user?.bio && user?.theme && user?.banner_url) setStep(5)
+    // If user is already configured, you could skip steps here.
   }, [user])
 
   const paletteBoolean = useMemo(() => paletteKey === 'color-2', [paletteKey])
 
-  const go = (to) => {
-    setDir(to > step ? 1 : -1)
-    setStep(to)
-  }
+  const go = (to) => { setDir(to > step ? 1 : -1); setStep(to) }
   const next = () => go(Math.min(5, step + 1))
   const back = () => go(Math.max(1, step - 1))
 
@@ -209,27 +218,32 @@ export default function CreatorOnboarding() {
   const publicUrl = user?.slug ? `/creator/${user.slug}` : null
 
   return (
-    <div className="relative min-h-[100svh]">
-      {/* Gradient backdrop */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#2C365E] via-[#3f4975] to-[#EA7125] opacity-90" />
+    <div className="relative min-h-[100svh]" style={{ background: BRAND.ivory }}>
+      {/* Subtle layered backdrop (less gradient, more professional) */}
       <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/10 blur-3xl"
-          animate={{ y: [0, 20, 0], x: [0, 10, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        {/* ivory base */}
+        <div className="absolute inset-0" style={{ background: BRAND.ivory }} />
+        {/* faint radial tints */}
+        <div
+          className="absolute -top-24 -left-24 h-[22rem] w-[22rem] rounded-full blur-3xl"
+          style={{ background: withA(BRAND.apple, 0.14) }}
         />
-        <motion.div
-          className="absolute bottom-0 right-0 h-[28rem] w-[28rem] rounded-full bg-white/10 blur-3xl"
-          animate={{ y: [0, -15, 0], x: [0, -10, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        <div
+          className="absolute bottom-0 right-0 h-[26rem] w-[26rem] rounded-full blur-3xl"
+          style={{ background: withA(BRAND.navy, 0.10) }}
+        />
+        {/* very light linear wash */}
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(180deg, ${withA(BRAND.burnt, 0.04)}, transparent 40%)` }}
         />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-14">
         {/* Header + stepper */}
         <div className="mb-8">
-          <h1 className="text-white text-2xl md:text-3xl font-bold">Creator Onboarding</h1>
-          <p className="text-white/80">Let’s set up your page in a few steps.</p>
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: BRAND.blackOlive }}>Creator Onboarding</h1>
+          <p style={{ color: withA(BRAND.blackOlive, 0.7) }}>Let’s set up your page in a few steps.</p>
         </div>
 
         <div className="grid md:grid-cols-5 grid-cols-3 gap-4 mb-8">
@@ -240,7 +254,16 @@ export default function CreatorOnboarding() {
           <StepBadge index={5} label="Publish"  active={step === 5} done={false} />
         </div>
 
-        <div className="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-white/30 p-6 md:p-8 overflow-hidden">
+        {/* Card container */}
+        <div
+          className="rounded-2xl shadow-xl border p-6 md:p-8 overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'saturate(140%) blur(6px)',
+            WebkitBackdropFilter: 'saturate(140%) blur(6px)',
+            borderColor: withA(BRAND.blackOlive, 0.12),
+          }}
+        >
           <AnimatePresence mode="wait" custom={dir}>
             {step === 1 && (
               <motion.div
@@ -252,23 +275,28 @@ export default function CreatorOnboarding() {
                 exit="exit"
                 className="space-y-6"
               >
-                <h2 className="text-xl font-semibold text-[#2C365E]">Your Profile</h2>
+                <h2 className="text-xl font-semibold" style={{ color: BRAND.navy }}>Your Profile</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-[#2C365E]">Short Bio</label>
+                    <label className="text-sm font-medium" style={{ color: BRAND.navy }}>Short Bio</label>
                     <textarea
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       placeholder="Tell visitors who you are and what you publish…"
-                      className="mt-2 w-full min-h-[110px] rounded-lg border border-[#2C365E]/20 p-3 focus:outline-none focus:ring-2 focus:ring-[#EA7125]"
+                      className="mt-2 w-full min-h-[110px] rounded-lg border p-3 focus:outline-none"
+                      style={{
+                        borderColor: withA(BRAND.navy, 0.2),
+                        boxShadow: 'none',
+                      }}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#2C365E]">Preferred Language</label>
+                    <label className="text-sm font-medium" style={{ color: BRAND.navy }}>Preferred Language</label>
                     <select
-                      className="mt-2 w-full rounded-lg border border-[#2C365E]/20 p-3 focus:outline-none focus:ring-2 focus:ring-[#EA7125]"
+                      className="mt-2 w-full rounded-lg border p-3 focus:outline-none"
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
+                      style={{ borderColor: withA(BRAND.navy, 0.2) }}
                     >
                       <option value="en">English</option>
                       <option value="fr">Français</option>
@@ -276,7 +304,7 @@ export default function CreatorOnboarding() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-[#2C365E]">Profile Image</label>
+                    <label className="text-sm font-medium" style={{ color: BRAND.navy }}>Profile Image</label>
                     <Input
                       type="file"
                       accept="image/*"
@@ -288,7 +316,17 @@ export default function CreatorOnboarding() {
 
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={back} disabled>Back</Button>
-                  <Button onClick={handleSaveProfile} disabled={busy}>{busy ? 'Saving…' : 'Continue'}</Button>
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={busy}
+                    className="rounded-lg"
+                    style={{
+                      background: BRAND.absoluteBlack,
+                      color: '#fff',
+                    }}
+                  >
+                    {busy ? 'Saving…' : 'Continue'}
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -304,8 +342,8 @@ export default function CreatorOnboarding() {
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-[#2C365E]">Pick a Template</h2>
-                  <span className="text-sm text-[#2C365E]/70">Click a card to reveal its two color palettes.</span>
+                  <h2 className="text-xl font-semibold" style={{ color: BRAND.navy }}>Pick a Template</h2>
+                  <span className="text-sm" style={{ color: withA(BRAND.navy, 0.7) }}>Click a card to reveal its palettes.</span>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-5">
@@ -316,10 +354,13 @@ export default function CreatorOnboarding() {
                       <motion.div
                         key={t.key}
                         layout
-                        className={[
-                          'rounded-xl border overflow-hidden bg-white shadow-sm',
-                          isActive ? 'ring-2 ring-[#EA7125] border-transparent' : 'border-[#2C365E]/10',
-                        ].join(' ')}
+                        className="rounded-xl border overflow-hidden bg-white shadow-sm"
+                        style={{
+                          borderColor: isActive ? withA(BRAND.apple, 0.0) : withA(BRAND.blackOlive, 0.12),
+                          boxShadow: isActive ? `0 8px 26px ${withA(BRAND.apple, 0.18)}` : 'none',
+                          outline: isActive ? `2px solid ${withA(BRAND.apple, 0.9)}` : 'none',
+                          outlineOffset: isActive ? 0 : 0,
+                        }}
                       >
                         <button
                           className="w-full text-left"
@@ -331,10 +372,17 @@ export default function CreatorOnboarding() {
                           <img src={t.cover} alt={t.title} className="w-full h-44 object-cover" />
                           <div className="p-4">
                             <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-[#2C365E]">{t.title}</h3>
-                              {isActive && <span className="text-xs bg-[#EA7125] text-white px-2 py-1 rounded">Selected</span>}
+                              <h3 className="font-semibold" style={{ color: BRAND.navy }}>{t.title}</h3>
+                              {isActive && (
+                                <span
+                                  className="text-xs px-2 py-1 rounded"
+                                  style={{ background: withA(BRAND.apple, 0.9), color: '#fff' }}
+                                >
+                                  Selected
+                                </span>
+                              )}
                             </div>
-                            <p className="text-sm text-[#2C365E]/70 mt-1">Modern, responsive layout</p>
+                            <p className="text-sm" style={{ color: withA(BRAND.navy, 0.7) }}>Modern, responsive layout</p>
                           </div>
                         </button>
 
@@ -351,19 +399,22 @@ export default function CreatorOnboarding() {
                                 {PALETTES.map((pk) => (
                                   <button
                                     key={pk}
-                                    onClick={() => {
-                                      setTheme(t.key)
-                                      setPaletteKey(pk)
+                                    onClick={() => { setTheme(t.key); setPaletteKey(pk) }}
+                                    className="rounded-lg border overflow-hidden hover:shadow transition"
+                                    style={{
+                                      borderColor:
+                                        theme === t.key && paletteKey === pk
+                                          ? withA(BRAND.apple, 0.0)
+                                          : withA(BRAND.blackOlive, 0.12),
+                                      outline:
+                                        theme === t.key && paletteKey === pk
+                                          ? `2px solid ${withA(BRAND.apple, 0.9)}`
+                                          : 'none',
+                                      outlineOffset: 0,
                                     }}
-                                    className={[
-                                      'rounded-lg border overflow-hidden hover:shadow transition',
-                                      theme === t.key && paletteKey === pk
-                                        ? 'ring-2 ring-[#EA7125] border-transparent'
-                                        : 'border-[#2C365E]/10',
-                                    ].join(' ')}
                                   >
                                     <img src={t.colors[pk]} alt={`${t.title}-${pk}`} className="w-full h-28 object-cover" />
-                                    <div className="p-2 text-center text-xs text-[#2C365E]">{pk}</div>
+                                    <div className="p-2 text-center text-xs" style={{ color: BRAND.navy }}>{pk}</div>
                                   </button>
                                 ))}
                               </div>
@@ -377,7 +428,14 @@ export default function CreatorOnboarding() {
 
                 <div className="flex items-center justify-between">
                   <Button variant="outline" onClick={back}>Back</Button>
-                  <Button onClick={handleSaveTheme} disabled={busy}>{busy ? 'Saving…' : 'Continue'}</Button>
+                  <Button
+                    onClick={handleSaveTheme}
+                    disabled={busy}
+                    className="rounded-lg"
+                    style={{ background: withA(BRAND.apple, 0.9), color: '#fff' }}
+                  >
+                    {busy ? 'Saving…' : 'Continue'}
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -393,11 +451,12 @@ export default function CreatorOnboarding() {
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-[#2C365E]">Pick a Color Palette</h2>
+                  <h2 className="text-xl font-semibold" style={{ color: BRAND.navy }}>Pick a Color Palette</h2>
                   <select
-                    className="rounded-md border border-[#2C365E]/20 p-2 text-sm"
+                    className="rounded-md border p-2 text-sm"
                     value={paletteKey}
                     onChange={(e) => setPaletteKey(e.target.value)}
+                    style={{ borderColor: withA(BRAND.navy, 0.2), color: BRAND.navy }}
                   >
                     <option value="color-1">color-1 (default)</option>
                     <option value="color-2">color-2</option>
@@ -412,18 +471,21 @@ export default function CreatorOnboarding() {
                       <button
                         key={pk}
                         onClick={() => setPaletteKey(pk)}
-                        className={[
-                          'rounded-xl border overflow-hidden bg-white',
-                          paletteKey === pk ? 'ring-2 ring-[#EA7125] border-transparent shadow' : 'border-[#2C365E]/10',
-                          'hover:shadow transition',
-                        ].join(' ')}
+                        className="rounded-xl border overflow-hidden bg-white hover:shadow transition"
+                        style={{
+                          borderColor: paletteKey === pk ? withA(BRAND.apple, 0.0) : withA(BRAND.blackOlive, 0.12),
+                          outline: paletteKey === pk ? `2px solid ${withA(BRAND.apple, 0.9)}` : 'none',
+                          outlineOffset: 0,
+                        }}
                       >
                         <img src={themeCard.colors[pk]} alt={`${theme}-${pk}`} className="w-full h-56 object-cover" />
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium text-[#2C365E]">{pk}</p>
-                            {paletteKey === pk && <span className="text-xs bg-[#EA7125] text-white px-2 py-1 rounded">Selected</span>}
-                          </div>
+                        <div className="p-4 flex items-center justify-between">
+                          <p className="font-medium" style={{ color: BRAND.navy }}>{pk}</p>
+                          {paletteKey === pk && (
+                            <span className="text-xs px-2 py-1 rounded" style={{ background: withA(BRAND.apple, 0.9), color: '#fff' }}>
+                              Selected
+                            </span>
+                          )}
                         </div>
                       </button>
                     )
@@ -432,7 +494,14 @@ export default function CreatorOnboarding() {
 
                 <div className="flex items-center justify-between">
                   <Button variant="outline" onClick={back}>Back</Button>
-                  <Button onClick={handleSavePalette} disabled={busy}>{busy ? 'Saving…' : 'Continue'}</Button>
+                  <Button
+                    onClick={handleSavePalette}
+                    disabled={busy}
+                    className="rounded-lg"
+                    style={{ background: withA(BRAND.apple, 0.9), color: '#fff' }}
+                  >
+                    {busy ? 'Saving…' : 'Continue'}
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -447,18 +516,20 @@ export default function CreatorOnboarding() {
                 exit="exit"
                 className="space-y-6"
               >
-                <h2 className="text-xl font-semibold text-[#2C365E]">Banner</h2>
-                <p className="text-sm text-[#2C365E]/70">Choose a preset or paste your image URL.</p>
+                <h2 className="text-xl font-semibold" style={{ color: BRAND.navy }}>Banner</h2>
+                <p className="text-sm" style={{ color: withA(BRAND.navy, 0.7) }}>Choose a preset or paste your image URL.</p>
 
                 <div className="grid md:grid-cols-4 gap-4">
                   {PRESET_BANNERS.map((src, i) => (
                     <button
                       key={i}
                       onClick={() => setBannerUrl(src)}
-                      className={[
-                        'rounded-lg border overflow-hidden hover:shadow transition',
-                        bannerUrl === src ? 'ring-2 ring-[#EA7125] border-transparent' : 'border-[#2C365E]/10',
-                      ].join(' ')}
+                      className="rounded-lg border overflow-hidden hover:shadow transition"
+                      style={{
+                        borderColor: bannerUrl === src ? withA(BRAND.apple, 0.0) : withA(BRAND.blackOlive, 0.12),
+                        outline: bannerUrl === src ? `2px solid ${withA(BRAND.apple, 0.9)}` : 'none',
+                        outlineOffset: 0,
+                      }}
                     >
                       <img src={src} alt={`banner-${i}`} className="w-full h-28 object-cover" />
                     </button>
@@ -466,7 +537,7 @@ export default function CreatorOnboarding() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-[#2C365E]">Or paste a custom banner URL</label>
+                  <label className="text-sm font-medium" style={{ color: BRAND.navy }}>Or paste a custom banner URL</label>
                   <Input
                     value={bannerUrl}
                     onChange={(e) => setBannerUrl(e.target.value)}
@@ -477,7 +548,12 @@ export default function CreatorOnboarding() {
 
                 <div className="flex items-center justify-between">
                   <Button variant="outline" onClick={back}>Back</Button>
-                  <Button onClick={handleSaveBanner} disabled={busy || !bannerUrl}>
+                  <Button
+                    onClick={handleSaveBanner}
+                    disabled={busy || !bannerUrl}
+                    className="rounded-lg"
+                    style={{ background: withA(BRAND.apple, 0.9), color: '#fff' }}
+                  >
                     {busy ? 'Saving…' : 'Continue'}
                   </Button>
                 </div>
@@ -494,10 +570,15 @@ export default function CreatorOnboarding() {
                 exit="exit"
                 className="space-y-6"
               >
-                <h2 className="text-xl font-semibold text-[#2C365E]">Publish</h2>
-                <p className="text-sm text-[#2C365E]/70">Preview your actual template with your current selections, then publish.</p>
+                <h2 className="text-xl font-semibold" style={{ color: BRAND.navy }}>Publish</h2>
+                <p className="text-sm" style={{ color: withA(BRAND.navy, 0.7) }}>
+                  Preview your template with the current selections, then publish.
+                </p>
 
-                <div className="rounded-xl overflow-hidden border border-[#2C365E]/10 shadow bg-white">
+                <div
+                  className="rounded-xl overflow-hidden border shadow bg-white"
+                  style={{ borderColor: withA(BRAND.blackOlive, 0.12) }}
+                >
                   <div className="p-0">
                     <TemplateRenderer template={theme} paletteKey={paletteKey} data={viewData} />
                   </div>
@@ -509,15 +590,22 @@ export default function CreatorOnboarding() {
                     >
                       Visit Public Page
                     </Button>
-                    <span className="text-xs text-[#2C365E]/60">
-                      {publicUrl ? `/${publicUrl.replace(/^\//, '')}` : 'Your page will have a public URL after publish.'}
+                    <span className="text-xs" style={{ color: withA(BRAND.blackOlive, 0.7) }}>
+                      {publicUrl ? `/${publicUrl.replace(/^\//, '')}` : 'Your page will have a URL after publish.'}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Button variant="outline" onClick={back}>Back</Button>
-                  <Button onClick={handlePublish} disabled={busy}>{busy ? 'Publishing…' : 'Publish'}</Button>
+                  <Button
+                    onClick={handlePublish}
+                    disabled={busy}
+                    className="rounded-lg"
+                    style={{ background: BRAND.absoluteBlack, color: '#fff' }}
+                  >
+                    {busy ? 'Publishing…' : 'Publish'}
+                  </Button>
                 </div>
               </motion.div>
             )}

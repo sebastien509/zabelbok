@@ -183,51 +183,70 @@ Format:
 @upload_bp.route('/publish', methods=['POST'])
 @jwt_required()
 @role_required('professor')
-def publish_reviewed_module():
-    data = request.get_json()
+def publish_module():
+    data = request.get_json() or {}
+
+    # --- required fields ---
+    required = ["title", "video_url", "course_id", "order"]
+    missing = [k for k in required if not data.get(k)]
+    if missing:
+        return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
+
     user_id = get_jwt_identity()
+    # some setups return str; make it int for safety
+    try:
+        user_id = int(user_id)
+    except Exception:
+        pass
 
-    title = data.get("title")
-    description = data.get("description", "")
-    video_url = data.get("video_url")
-    transcript = data.get("transcript")
-    course_id = data.get("course_id")
-    order = data.get("order", 1)
-    quiz_data = data.get("quiz", [])
+    # --- ensure course belongs to same school / owned by professor ---
+    course = Course.query.get_or_404(data["course_id"])
+    professor = User.query.get_or_404(user_id)
+    if course.professor_id != professor.id and professor.role != "admin":
+        return jsonify({"error": "Unauthorized to publish to this course."}), 403
 
-    quiz = Quiz(
-        title=f"{title} - Quiz",
-        description="Reviewed AI-generated quiz",
-        course_id=course_id,
-        created_at=datetime.utcnow()
-    )
-    db.session.add(quiz)
-    db.session.flush()
+    # --- optional quiz payload ---
+    quiz_data = data.get("quiz") or []
+    quiz = None
+    if quiz_data:
+        quiz = Quiz(
+            title=f"{data['title']} - Quiz",
+            description="Reviewed AI-generated quiz",
+            course_id=course.id,
+            created_at=datetime.utcnow(),
+        )
+        db.session.add(quiz)
+        db.session.flush()  # get quiz.id
 
-    for q in quiz_data:
-        db.session.add(QuizQuestion(
-            quiz_id=quiz.id,
-            question_text=q["question_text"],
-            choices=q["choices"],
-            correct_answer=q["correct_answer"]
-        ))
+        for q in quiz_data:
+            if not all(k in q for k in ("question_text", "choices", "correct_answer")):
+                continue
+            db.session.add(QuizQuestion(
+                quiz_id=quiz.id,
+                question_text=q["question_text"],
+                choices=q["choices"],
+                correct_answer=q["correct_answer"]
+            ))
 
+    # --- create module (SET creator_id!) ---
     module = Module(
-        title=title,
-        description=description,
-        video_url=video_url,
-        transcript=transcript,
-        caption_url=video_url + "?captions=1",
-        course_id=course_id,
-        creator_id=user_id,
-        quiz_id=quiz.id,
-        order=order
+        title=data["title"],
+        description=data.get("description", ""),
+        video_url=data["video_url"],
+        transcript=data.get("transcript"),
+        caption_url=data.get("caption_url"),  # or derive if you want
+        order=int(data["order"]),
+        quiz_id=quiz.id if quiz else None,
+        course_id=course.id,
+        creator_id=professor.id,              # ✅ critical line
+        chapter_id=data.get("chapter_id"),
+        created_at=datetime.utcnow(),
     )
     db.session.add(module)
 
     db.session.add(ActivityLog(
-        user_id=user_id,
-        event=f"Published reviewed module '{title}'"
+        user_id=professor.id,
+        event=f"Published module '{module.title}' to course {course.id}"
     ))
 
     db.session.commit()

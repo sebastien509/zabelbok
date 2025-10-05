@@ -1,15 +1,10 @@
+# app/models.py
 from datetime import datetime
 from app.extensions import db, bcrypt
 
-# ============ ASSOCIATION TABLE ============
-
-course_students = db.Table(
-    'course_students',
-    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
-    db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True)
-)
-
-# ============ SCHOOL ============
+# ============================================================
+# SCHOOL
+# ============================================================
 
 class School(db.Model):
     __tablename__ = 'schools'
@@ -26,10 +21,13 @@ class School(db.Model):
             'id': self.id,
             'name': self.name,
             'location': self.location,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
-# ============ USER ============
+
+# ============================================================
+# USER
+# ============================================================
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -46,14 +44,14 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Style / public profile
-    theme = db.Column(db.String(20), default="theme-1")     # 'theme-1' | 'theme-2' | 'theme-3'
-    color = db.Column(db.Boolean, default=False)            # palette flag: False -> color-1, True -> color-2
+    theme = db.Column(db.String(20), default="theme-1")  # 'theme-1' | 'theme-2' | 'theme-3'
+    color = db.Column(db.Boolean, default=False)         # palette flag: False -> color-1, True -> color-2
     banner_url = db.Column(db.String(255), nullable=True)
 
     # Public slug
     slug = db.Column(db.String(120), unique=True, index=True)
 
-    # Enrollments
+    # Enrollments (through Enrollment model)
     enrollments = db.relationship(
         'Enrollment',
         back_populates='user',
@@ -90,6 +88,7 @@ class User(db.Model):
 
     @property
     def courses(self):
+        # For backward compatibility; enrolled courses for students
         return self.enrolled_courses
 
     # Serializers
@@ -100,7 +99,7 @@ class User(db.Model):
             'email': self.email,
             'role': self.role,
             'school_id': self.school_id,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'profile_image_url': self.profile_image_url,
             'bio': self.bio,
             'language': self.language,
@@ -113,7 +112,7 @@ class User(db.Model):
         if include_courses:
             if self.role in ("professor", "creator"):
                 data["courses"] = [
-                    course.to_creator_dict()  # safe creator view, includes payments snapshot
+                    course.to_creator_dict()  # includes payments snapshot
                     for course in (self.courses_authored or [])
                 ]
             elif self.role == "student":
@@ -144,7 +143,10 @@ class User(db.Model):
             data["courses"] = [c.to_public_dict() for c in (self.courses_authored or [])]
         return data
 
-# ============ COURSE ============
+
+# ============================================================
+# COURSE
+# ============================================================
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -157,12 +159,12 @@ class Course(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Monetization (platform-led)
-    is_paid = db.Column(db.Boolean, default=False)
-    currency = db.Column(db.String(10), default="usd")
-    price_cents = db.Column(db.Integer, default=0)                 # canonical single price
-    revenue_share_pct = db.Column(db.Float, default=0.88)          # creator share (1 - platform fee)
-    stripe_product_id = db.Column(db.String(120))                  # internal
-    stripe_price_id = db.Column(db.String(120))                    # internal
+    is_paid = db.Column(db.Boolean, nullable=False, default=False)
+    currency = db.Column(db.String(10), nullable=False, default="usd")
+    price_cents = db.Column(db.Integer, nullable=False, default=0)                        # canonical single price (cents)
+    revenue_share_pct = db.Column(db.Numeric(5, 4), nullable=False, default=0.8800)       # creator share as fraction, e.g. 0.8800
+    stripe_product_id = db.Column(db.String(120))                                         # internal
+    stripe_price_id = db.Column(db.String(120))                                           # internal
 
     # Content relationships
     modules = db.relationship('Module', backref='course', lazy=True)
@@ -188,24 +190,22 @@ class Course(db.Model):
         overlaps="enrollments"
     )
 
-    # ---- Access helpers ----
+    # ---- Access helpers (uses Enrollment) ----
     def is_accessible_by(self, user_id):
-        # Professor/creator
         if user_id == self.professor_id:
             return True
-        # Enrolled student
-        result = db.session.query(course_students).filter_by(
-            course_id=self.id, student_id=user_id
-        ).first()
-        return result is not None
+        from app.models import Enrollment
+        return db.session.query(
+            db.exists().where(Enrollment.course_id == self.id).where(Enrollment.user_id == user_id)
+        ).scalar()
 
-    # ---- Payments snapshots (safe) ----
+    # ---- Payments snapshot (safe) ----
     def _payments_snapshot(self):
         """
         Aggregate paid order items for this course (safe: no Stripe IDs).
         """
         from sqlalchemy import func
-        from app.models import OrderItem, Order  # safe local import
+        from app.models import OrderItem, Order  # local import to avoid circulars
 
         q = (
             db.session.query(
@@ -257,12 +257,11 @@ class Course(db.Model):
             "professor_name": self.professor.full_name if self.professor else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "student_count": len(self.students),
-            # Payments surface
             "payments": {
                 "is_paid": self.is_paid,
                 "currency": self.currency,
                 "price_cents": self.price_cents,
-                "revenue_share_pct": self.revenue_share_pct,  # e.g. 0.88
+                "revenue_share_pct": float(self.revenue_share_pct) if self.revenue_share_pct is not None else None,
                 "snapshot": self._payments_snapshot(),
             },
         }
@@ -279,8 +278,7 @@ class Course(db.Model):
 
     def to_dict(self, include_nested=False):
         """
-        General internal view (used widely). Mirrors prior behavior and
-        includes a minimal safe payments block (without stripe IDs).
+        General internal view (used widely). Includes a minimal safe payments block.
         """
         data = {
             "id": self.id,
@@ -291,12 +289,11 @@ class Course(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "student_count": len(self.students),
             "professor_name": self.professor.full_name if self.professor else None,
-            # minimal safe payments for internal use
             "payments": {
                 "is_paid": self.is_paid,
                 "currency": self.currency,
                 "price_cents": self.price_cents,
-                "revenue_share_pct": self.revenue_share_pct,
+                "revenue_share_pct": float(self.revenue_share_pct) if self.revenue_share_pct is not None else None,
             },
         }
         if include_nested:
@@ -310,7 +307,7 @@ class Course(db.Model):
             })
         return data
 
-    # ---- Course stats / overview (unchanged) ----
+    # ---- Course stats / overview ----
     def get_stats(self):
         return {
             "lectures": {
@@ -394,7 +391,10 @@ class Course(db.Model):
         """
         return html
 
-# ============ BOOK & CHAPTERS ============
+
+# ============================================================
+# BOOKS & CHAPTERS
+# ============================================================
 
 class Book(db.Model):
     __tablename__ = 'books'
@@ -414,9 +414,10 @@ class Book(db.Model):
             'title': self.title,
             'author': self.author,
             'pdf_url': self.pdf_url,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'chapters': [ch.to_dict() for ch in self.chapters]
         }
+
 
 class BookChapter(db.Model):
     __tablename__ = 'book_chapters'
@@ -432,10 +433,13 @@ class BookChapter(db.Model):
             'id': self.id,
             'title': self.title,
             'content_url': self.content_url,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-# ============ LECTURE ============
+
+# ============================================================
+# LECTURE
+# ============================================================
 
 class Lecture(db.Model):
     __tablename__ = 'lectures'
@@ -451,10 +455,13 @@ class Lecture(db.Model):
             'id': self.id,
             'title': self.title,
             'content_url': self.content_url,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-# ============ EXERCISE ============
+
+# ============================================================
+# EXERCISE
+# ============================================================
 
 class Exercise(db.Model):
     __tablename__ = 'exercises'
@@ -477,10 +484,11 @@ class Exercise(db.Model):
             'description': self.description,
             'course_id': self.course_id,
             'deadline': self.deadline.isoformat() if self.deadline else None,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'questions': [q.to_dict() for q in self.questions]
         }
+
 
 class ExerciseQuestion(db.Model):
     __tablename__ = 'exercise_questions'
@@ -496,8 +504,9 @@ class ExerciseQuestion(db.Model):
             'id': self.id,
             'question_text': self.question_text,
             'question_url': self.question_url,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
 
 class StudentSubmission(db.Model):
     __tablename__ = 'student_submissions'
@@ -514,7 +523,10 @@ class StudentSubmission(db.Model):
 
     student = db.relationship('User', backref='exercise_submissions', foreign_keys=[student_id])
 
-# ============ QUIZ ============
+
+# ============================================================
+# QUIZ
+# ============================================================
 
 class Quiz(db.Model):
     __tablename__ = 'quizzes'
@@ -537,10 +549,11 @@ class Quiz(db.Model):
             'description': self.description,
             'course_id': self.course_id,
             'deadline': self.deadline.isoformat() if self.deadline else None,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'questions': [q.to_dict() for q in self.questions]
         }
+
 
 class QuizQuestion(db.Model):
     __tablename__ = 'quiz_questions'
@@ -558,8 +571,9 @@ class QuizQuestion(db.Model):
             'question_text': self.question_text,
             'choices': self.choices,
             'correct_answer': self.correct_answer,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
 
 class QuizSubmission(db.Model):
     __tablename__ = 'quiz_submissions'
@@ -573,6 +587,7 @@ class QuizSubmission(db.Model):
 
     student = db.relationship('User', backref='quiz_submissions', foreign_keys=[student_id])
 
+
 class QuizAnswer(db.Model):
     __tablename__ = 'quiz_answers'
 
@@ -583,6 +598,7 @@ class QuizAnswer(db.Model):
     is_correct = db.Column(db.Boolean, default=False)
 
     question = db.relationship('QuizQuestion')
+
 
 class QuizResult(db.Model):
     __tablename__ = 'quiz_results'
@@ -599,33 +615,47 @@ class QuizResult(db.Model):
     student = db.relationship('User', backref='quiz_results')
     quiz = db.relationship('Quiz', backref='quiz_results')
 
-# ============ MESSAGE ============
+
+# ============================================================
+# MESSAGES / THREADS
+# ============================================================
 
 class Thread(db.Model):
     __tablename__ = 'threads'
+
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
     participants = db.relationship('ThreadParticipant', backref='thread', lazy=True)
     messages = db.relationship('Message', backref='thread', lazy=True)
 
+
 class ThreadParticipant(db.Model):
     __tablename__ = 'thread_participants'
+
     id = db.Column(db.Integer, primary_key=True)
     thread_id = db.Column(db.Integer, db.ForeignKey('threads.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
     user = db.relationship('User')
+
 
 class Message(db.Model):
     __tablename__ = 'messages'
+
     id = db.Column(db.Integer, primary_key=True)
     thread_id = db.Column(db.Integer, db.ForeignKey('threads.id'))
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     content = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
     sender = db.relationship('User')
 
-# ============ ACTIVITY LOG ============
+
+# ============================================================
+# ACTIVITY LOG
+# ============================================================
 
 class ActivityLog(db.Model):
     __tablename__ = 'activity_logs'
@@ -635,7 +665,10 @@ class ActivityLog(db.Model):
     event = db.Column(db.String(100), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ============ NOTIFICATION ============
+
+# ============================================================
+# NOTIFICATIONS
+# ============================================================
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
@@ -663,11 +696,14 @@ class Notification(db.Model):
             "related_id": self.related_id,
             "has_cta": self.has_cta,
             "is_read": self.is_read,
-            "created_at": self.created_at.isoformat(),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "read_at": self.read_at.isoformat() if self.read_at else None
         }
 
-# ============ MODULES / CHAPTERS / PROGRESS ============
+
+# ============================================================
+# MODULES / CHAPTERS / PROGRESS
+# ============================================================
 
 class Module(db.Model):
     __tablename__ = 'modules'
@@ -700,11 +736,12 @@ class Module(db.Model):
             'quiz_id': self.quiz_id,
             'creator_id': self.creator_id,
             'chapter_id': self.chapter_id,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }
         if include_nested and self.quiz:
             data['quiz'] = self.quiz.to_dict()
         return data
+
 
 class CourseChapter(db.Model):
     __tablename__ = 'course_chapters'
@@ -725,9 +762,10 @@ class CourseChapter(db.Model):
             'description': self.description,
             'course_id': self.course_id,
             'order': self.order,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'modules': [m.to_dict() for m in self.modules]
         }
+
 
 class ModuleProgress(db.Model):
     __tablename__ = 'module_progress'
@@ -749,6 +787,7 @@ class ModuleProgress(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
+
 class OfflineModuleLog(db.Model):
     __tablename__ = 'offline_module_logs'
 
@@ -764,10 +803,13 @@ class OfflineModuleLog(db.Model):
             'user_id': self.user_id,
             'module_id': self.module_id,
             'is_available_offline': self.is_available_offline,
-            'logged_at': self.logged_at.isoformat()
+            'logged_at': self.logged_at.isoformat() if self.logged_at else None
         }
 
-# ============ ENROLLMENTS / COMPLETIONS ============
+
+# ============================================================
+# ENROLLMENTS / COMPLETIONS
+# ============================================================
 
 class Enrollment(db.Model):
     __tablename__ = 'enrollments'
@@ -783,6 +825,7 @@ class Enrollment(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'course_id', name='_user_course_uc'),
     )
+
 
 class CourseCompletion(db.Model):
     __tablename__ = "course_completions"
@@ -800,13 +843,9 @@ class CourseCompletion(db.Model):
     course = db.relationship("Course", backref=db.backref("completions", cascade="all, delete-orphan"))
 
 
-
-
-
-# ============ STRIPE / PAYMENTS MODELS ============
-
-
-# ============ STRIPE / PAYMENTS MODELS ============
+# ============================================================
+# STRIPE / PAYMENTS
+# ============================================================
 
 class CreatorPayoutAccount(db.Model):
     __tablename__ = 'creator_payout_accounts'
@@ -823,6 +862,7 @@ class CreatorPayoutAccount(db.Model):
 
     creator = db.relationship('User', backref=db.backref('payout_account', uselist=False))
 
+
 class PlatformCustomer(db.Model):
     __tablename__ = 'platform_customers'
 
@@ -832,6 +872,7 @@ class PlatformCustomer(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref=db.backref('stripe_customer', uselist=False))
+
 
 class Order(db.Model):
     __tablename__ = 'orders'
@@ -849,6 +890,7 @@ class Order(db.Model):
     buyer = db.relationship('User')
     items = db.relationship('OrderItem', back_populates='order', cascade="all, delete-orphan")
 
+
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
 
@@ -865,6 +907,7 @@ class OrderItem(db.Model):
     course = db.relationship('Course')
     creator = db.relationship('User')
 
+
 class TransferLog(db.Model):
     __tablename__ = 'transfer_logs'
 
@@ -877,6 +920,7 @@ class TransferLog(db.Model):
     status = db.Column(db.String(30), default="created")  # created | failed | reversed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 class RefundLog(db.Model):
     __tablename__ = 'refund_logs'
 
@@ -887,6 +931,7 @@ class RefundLog(db.Model):
     amount = db.Column(db.Integer, nullable=False)
     reason = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class WebhookEvent(db.Model):
     __tablename__ = 'webhook_events'

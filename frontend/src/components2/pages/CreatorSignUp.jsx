@@ -1,53 +1,168 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { register, login, updateProfile } from '@/services/auth'; // THis is importing the routes defined in the services folder
+import { register, login, updateProfile } from '@/services/auth';
 import { Input } from '@/components2/ui/input';
 import { Button } from '@/components2/bento-UI/button';
 import { toast } from '@/components2/bento-UI/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components2/bento-UI/dialog';
+import { DialogDescription } from '@radix-ui/react-dialog';
 import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
+import { useAuth } from '@/components/auth/AuthProvider';
+
 import Lottie from 'lottie-react';
 import bgAnimation from '@/assets/bgAnimation.json';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DialogDescription } from '@radix-ui/react-dialog';
-import { useAuth } from '@/components/auth/AuthProvider';
+
+import { FaGoogle, FaCheckCircle } from "react-icons/fa";
+
+// ── Brand colors
+const brand = {
+  apple: "#8DB600",
+  heritage: "#C1272D",
+  burnt: "#EE964B",
+  ivory: "#FAF9F6",
+  olive: "#3B3C36",
+};
+
+// Optional: background video fallback
+const BG_VIDEO =
+  "https://cdn.coverr.co/videos/coverr-sunrise-over-hills-9711/1080p.mp4";
+
+// Tight soft shadow helper
+const softShadow = (hex = brand.olive, a = 0.16) => {
+  const c = hex.replace("#", "");
+  const n = parseInt(c.length === 3 ? c.split("").map(x => x + x).join("") : c, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `0 8px 22px rgba(${r},${g},${b},${a})`;
+};
+
+function GoogleButton({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      type="button"
+      className="w-full flex items-center justify-center gap-3 rounded-lg border bg-white text-[#222] py-3 transition-all hover:bg-[#f7f7f7]"
+      style={{ borderColor: "rgba(59,60,54,.15)", boxShadow: softShadow(brand.apple, 0.12) }}
+    >
+      <FaGoogle className="text-xl text-[#EA4335]" />
+      Continue with Google
+    </button>
+  );
+}
+
+function ValueCard({ title, points = [], accent = brand.apple }) {
+  return (
+    <div
+      className="rounded-xl p-4 bg-white/90 backdrop-blur border"
+      style={{ borderColor: "rgba(59,60,54,.08)", boxShadow: softShadow(accent, 0.14) }}
+    >
+      <div className="text-sm font-semibold" style={{ color: accent }}>{title}</div>
+      <ul className="mt-3 space-y-2 text-sm text-[#3B3C36]">
+        {points.map((p) => (
+          <li key={p} className="flex items-start gap-2">
+            <FaCheckCircle className="mt-[2px]" style={{ color: accent }} />
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** 
+ * Feature hero panel (md+ only)
+ * - Matches height of the form card via the same min-h
+ * - Hidden on mobile
+ * - Replace `HERO_IMG` with your brand image if desired
+ */
+const HERO_IMG = "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=1600&auto=format&fit=crop";
+
+function FeatureHeroMDUp() {
+  return (
+    <motion.aside
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.45, delay: 0.05 }}
+      className="hidden md:block w-full max-w-xl md:self-stretch"
+    >
+      <div
+        className="relative  bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden border"
+        style={{ borderColor: "rgba(255,255,255,.25)", minHeight: "620px" }} // ⬅ match form card min height
+      >
+        <img
+          src={HERO_IMG}
+          alt="E-stratèji creators"
+          className="absolute max-h-[400px] inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.15)_0%,rgba(0,0,0,.35)_100%)]" />
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium bg-white/90 text-[#3B3C36]">
+            Built for the Caribbean • Kreyòl & Patwa
+          </div>
+          <h3 className="mt-3 text-white text-2xl font-semibold">
+            Launch faster. Earn more. Teach your way.
+          </h3>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <ValueCard
+              title="Creators keep more"
+              accent={brand.apple}
+              points={["Stripe Express payouts", "Transparent fees", "Own your brand"]}
+            />
+            <ValueCard
+              title="Offline-friendly"
+              accent={brand.burnt}
+              points={["Low-data modules", "Mobile-first", "Captions & transcripts"]}
+            />
+          </div>
+        </div>
+      </div>
+    </motion.aside>
+  );
+}
 
 export default function CreatorSignUp() {
   const [step, setStep] = useState(1);
-  const [basicForm, setBasicForm] = useState({
-    full_name: '',
-    email: '',
-    password: ''
-  });
-  const [profileForm, setProfileForm] = useState({
-    bio: '',
-    language: 'en',
-    image: null
-  });
+  const [basicForm, setBasicForm] = useState({ full_name: '', email: '', password: '' });
+  const [profileForm, setProfileForm] = useState({ bio: '', language: 'en', image: null });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const handleBasicChange = (e) => setBasicForm({ ...basicForm, [e.target.name]: e.target.value });
   const handleProfileChange = (e) => setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
   const handleFileChange = (e) => setProfileForm(prev => ({ ...prev, image: e.target.files[0] }));
-  const { refreshUser } = useAuth(); // ✅ Correct usage
 
+  const handleOAuthSignup = async (provider = 'google') => {
+    try {
+      window.location.href = `/auth/${provider}`;
+    } catch (err) {
+      console.error('[OAuth Error]', err);
+      toast({
+        title: 'Google sign-in failed',
+        description: 'Please try again or use email sign-up.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleBasicSubmit = async () => {
     try {
       await register({ ...basicForm, role: 'professor', school_id: 1 });
       const res = await login(basicForm.email, basicForm.password);
-  
+
       localStorage.setItem('token', res.access_token);
       localStorage.setItem('user_id', res.user_id);
       await refreshUser();
-  
-      toast('Signup successful!', { description: 'Welcome to the platform.' });
-  
-      // 👉 Instead of setStep(2), jump into the onboarding flow
+
+      toast({ title: 'Signup successful!', description: 'Welcome to the platform.' });
       navigate('/creator/onboarding');
-    } catch {
-      toast.error('Signup Failed', { description: 'Email might already be used.' });
+    } catch (err) {
+      console.error('[Signup Error]', err);
+      toast({
+        title: 'Signup failed',
+        description: 'That email might already be used or your network failed.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -58,107 +173,164 @@ export default function CreatorSignUp() {
       if (profileForm.image) {
         imageUrl = await uploadToCloudinary(profileForm.image);
       }
+
       await updateProfile({
         bio: profileForm.bio,
         language: profileForm.language,
-        profile_image_url: imageUrl
+        profile_image_url: imageUrl,
       });
-      toast.success('Profile Updated', { description: 'Welcome to Estrateji!' });
+
+      toast({ title: 'Profile updated', description: 'Welcome to Estrateji!' });
       navigate('/creator/dashboard');
     } catch (err) {
       console.error('[Profile Submit Error]', err);
-      toast.error('Update Failed', { description: 'Could not save your profile.' });
+      toast({
+        title: 'Update failed',
+        description: 'Could not save your profile.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#FAF8F4] via-[#faf0e6] to-[#EA7125]/20">
-      {/* Animated background */}
+    <div className="relative md:max-h-[800px] py-20  overflow-hidden bg-[radial-gradient(1200px_600px_at_20%_-10%,rgba(141,182,0,0.08),transparent_50%)]">
+      {/* Background Video */}
+      <video
+        key="bg"
+        className="absolute inset-0 w-full h-full object-cover opacity-10"
+        autoPlay
+        muted
+        playsInline
+        loop
+      >
+        <source src={BG_VIDEO} type="video/mp4" />
+      </video>
+
+      {/* Lottie layer */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <Lottie 
-          animationData={bgAnimation} 
-          loop 
-          className="w-full h-full object-cover"
-        />
+        <Lottie animationData={bgAnimation} loop className="w-full h-full object-cover" />
       </div>
 
-      {/* Floating gradient bubbles */}
-      <div className="absolute top-0 left-0 w-64 h-64 rounded-full bg-[#EA7125]/10 blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-[#2C365E]/10 blur-3xl translate-x-1/2 translate-y-1/2" />
+      {/* Close */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-26 right-8 md:top- md:right-12 text-white rotate-45 text-3xl z-50 hover:scale-125 hover:text-[#C1272D] shadow-lg transition-transform"
+        aria-label="Close"
+      >
+        <motion.span whileHover={{ rotate: 90 }} className="block">+</motion.span>
+      </button>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+      {/* Layout */}
+      <div className="relative  z-10 flex flex-col md:flex-row items-stretch justify-center min-h-[450px] gap-6 p-4 md:p-6">
+        {/* Sign-up Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-lg bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden border border-[#2C365E]/10"
+          transition={{ duration: 0.45 }}
+          className="w-full max-w-md  bg-white/92 backdrop-blur rounded-xl shadow-2xl overflow-hidden z-20 border md:self-stretch"
+          style={{ borderColor: "rgba(59,60,54,.1)", minHeight: "620px" }} // ⬅ match panel height
         >
-          <div className="bg-gradient-to-r from-[#2C365E] to-[#EA7125] p-4">
+          <div className="p-4 bg-gradient-to-r from-[#8DB600] to-[#C1272D]">
             <h1 className="text-2xl md:text-3xl font-bold text-center text-white">🎥 Creator Sign Up</h1>
           </div>
 
-          <div className="p-6 md:p-8 space-y-6">
-            {step === 1 ? (
-              <motion.div
-                key="step1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-[#2C365E] mb-2">Full Name</label>
-                  <Input 
-                    name="full_name" 
-                    placeholder="John Doe" 
-                    onChange={handleBasicChange}
-                    className="border-[#2C365E]/20 focus:border-[#EA7125] focus:ring-[#EA7125]"
-                  />
+          <div className="p-6 space-y-6">
+            {/* MOBILE: Google first */}
+            <div className="block md:hidden">
+              <GoogleButton onClick={() => handleOAuthSignup('google')} />
+              <div className="relative flex items-center py-4">
+                <div className="flex-grow border-t" style={{ borderColor: "rgba(59,60,54,.12)" }} />
+                <span className="mx-3 text-[#3B3C36]/60 text-sm">or</span>
+                <div className="flex-grow border-t" style={{ borderColor: "rgba(59,60,54,.12)" }} />
+              </div>
+            </div>
+
+            {step === 1 && (
+              <motion.div key="step1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#3B3C36] mb-2">Full Name</label>
+                    <Input
+                      name="full_name"
+                      placeholder="John Doe"
+                      onChange={handleBasicChange}
+                      className="border-[#3B3C36]/20 focus:border-[#8DB600] focus:ring-[#8DB600]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#3B3C36] mb-2">Email</label>
+                    <Input
+                      name="email"
+                      type="email"
+                      placeholder="you@email.com"
+                      onChange={handleBasicChange}
+                      className="border-[#3B3C36]/20 focus:border-[#8DB600] focus:ring-[#8DB600]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#3B3C36] mb-2">Password</label>
+                    <Input
+                      name="password"
+                      type="password"
+                      placeholder="••••••••"
+                      onChange={handleBasicChange}
+                      className="border-[#3B3C36]/20 focus:border-[#8DB600] focus:ring-[#8DB600]"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={handleBasicSubmit}
+                    className="w-full rounded-lg text-lg py-3 bg-[#000] hover:bg-[#000]/90 text-white"
+                    style={{ boxShadow: softShadow(brand.apple, 0.22) }}
+                  >
+                    Continue
+                  </Button>
+
+                  {/* DESKTOP: Google under form (visible on md+) */}
+                  <div className="hidden md:block ">
+                    <div className="relative flex items-center py-4">
+                      <div className="flex-grow border-t" style={{ borderColor: "rgba(59,60,54,.12)" }} />
+                      <span className="mx-3 text-[#3B3C36]/60 text-sm">or</span>
+                      <div className="flex-grow border-t" style={{ borderColor: "rgba(59,60,54,.12)" }} />
+                    </div>
+                    <GoogleButton onClick={() => handleOAuthSignup('google')} />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#2C365E] mb-2">Email</label>
-                  <Input 
-                    name="email" 
-                    type="email" 
-                    placeholder="example@email.com" 
-                    onChange={handleBasicChange}
-                    className="border-[#2C365E]/20 focus:border-[#EA7125] focus:ring-[#EA7125]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#2C365E] mb-2">Password</label>
-                  <Input 
-                    name="password" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    onChange={handleBasicChange}
-                    className="border-[#2C365E]/20 focus:border-[#EA7125] focus:ring-[#EA7125]"
-                  />
-                </div>
-                <Button 
-                  onClick={handleBasicSubmit} 
-                  className="w-full rounded-lg text-lg py-3 bg-gradient-to-r from-[#EA7125] to-[#EA7125]/90 hover:from-[#EA7125]/90 hover:to-[#EA7125] transition-all shadow-md hover:shadow-lg"
-                >
-                  Continue
-                </Button>
               </motion.div>
-            ) : null}
+            )}
           </div>
         </motion.div>
+
+        {/* md+ FEATURE HERO (image) — hidden on mobile */}
+        <FeatureHeroMDUp />
+
+        {/* MOBILE: value cards below form */}
+        {/* <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
+          <ValueCard
+            title="Creators keep more"
+            accent={brand.apple}
+            points={["Payouts via Stripe Express", "Transparent platform fees", "No hidden costs"]}
+          />
+          <ValueCard
+            title="Built for the Caribbean"
+            accent={brand.burnt}
+            points={["Offline-friendly modules", "Kreyòl & Patwa support", "Lightweight mobile apps"]}
+          />
+        </div> */}
       </div>
 
+      {/* Step 2: Profile Dialog */}
       <AnimatePresence>
         {step === 2 && (
-          <Dialog open={step === 2} onOpenChange={(open) => setStep(open ? 2 : 1)}>
-            <DialogContent className="max-w-lg mx-auto bg-white/90 backdrop-blur-lg border border-[#2C365E]/10 rounded-xl overflow-hidden">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <div className="bg-gradient-to-r from-[#2C365E] to-[#66A569] p-4">
+          <Dialog open={step === 2} onOpenChange={(o) => setStep(o ? 2 : 1)}>
+            <DialogContent
+              className="max-w-lg mx-auto bg-white/92 backdrop-blur-lg border rounded-xl overflow-hidden"
+              style={{ borderColor: "rgba(59,60,54,.1)" }}
+            >
+              <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }}>
+                <div className="bg-gradient-to-r from-[#8DB600] to-[#C1272D] p-4">
                   <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-white">Complete Your Creator Profile</DialogTitle>
                     <DialogDescription className="text-sm text-white/90">
@@ -169,20 +341,20 @@ export default function CreatorSignUp() {
 
                 <div className="p-6 space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-[#2C365E] mb-2">Short Bio</label>
+                    <label className="block text-sm font-medium text-[#3B3C36] mb-2">Short Bio</label>
                     <textarea
                       name="bio"
                       placeholder="Tell us about you..."
                       onChange={handleProfileChange}
-                      className="w-full p-3 rounded-lg border border-[#2C365E]/20 focus:outline-none focus:ring-2 focus:ring-[#EA7125] focus:border-transparent min-h-[120px]"
+                      className="w-full p-3 rounded-lg border border-[#3B3C36]/20 focus:outline-none focus:ring-2 focus:ring-[#8DB600] focus:border-transparent min-h=[120px]"
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-[#2C365E] mb-2">Preferred Language</label>
+                    <label className="block text-sm font-medium text-[#3B3C36] mb-2">Preferred Language</label>
                     <select
                       name="language"
-                      className="w-full p-3 rounded-lg border border-[#2C365E]/20 focus:outline-none focus:ring-2 focus:ring-[#EA7125] focus:border-transparent"
+                      className="w-full p-3 rounded-lg border border-[#3B3C36]/20 focus:outline-none focus:ring-2 focus:ring-[#8DB600] focus:border-transparent"
                       onChange={handleProfileChange}
                     >
                       <option value="en">English</option>
@@ -190,42 +362,26 @@ export default function CreatorSignUp() {
                       <option value="ht">Kreyòl</option>
                     </select>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-[#2C365E] mb-2">Profile Image</label>
-                    <div className="flex items-center gap-4">
-                      <label className="flex-1 cursor-pointer">
-                        <div className="border-2 border-dashed border-[#2C365E]/30 rounded-lg p-4 hover:border-[#EA7125] transition-colors">
-                          <p className="text-center text-sm text-[#2C365E]/70">
-                            {profileForm.image 
-                              ? profileForm.image.name 
-                              : "Click to upload profile image"}
-                          </p>
-                        </div>
-                        <Input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleFileChange} 
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
+                    <label className="block text-sm font-medium text-[#3B3C36] mb-2">Profile Image</label>
+                    <label className="flex-1 cursor-pointer">
+                      <div className="border-2 border-dashed border-[#3B3C36]/30 rounded-lg p-4 hover:border-[#EE964B] transition-colors">
+                        <p className="text-center text-sm text-[#3B3C36]/70">
+                          {profileForm?.image ? profileForm.image.name : "Click to upload profile image"}
+                        </p>
+                      </div>
+                      <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                    </label>
                   </div>
-                  
-                  <Button 
-                    onClick={handleProfileSubmit} 
+
+                  <Button
+                    onClick={handleProfileSubmit}
                     disabled={loading}
-                    className="w-full rounded-lg text-lg py-3 bg-gradient-to-r from-[#66A569] to-[#66A569]/90 hover:from-[#66A569]/90 hover:to-[#66A569] transition-all shadow-md hover:shadow-lg mt-4"
+                    className="w-full rounded-lg text-lg py-3 bg-[#8DB600] hover:bg-[#8DB600]/90 text-white"
+                    style={{ boxShadow: softShadow(brand.apple, 0.22) }}
                   >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                      </span>
-                    ) : 'Finish Sign Up'}
+                    {loading ? "Saving..." : "Finish Sign Up"}
                   </Button>
                 </div>
               </motion.div>

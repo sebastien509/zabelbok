@@ -40,12 +40,33 @@ export const getCurrentUser = async () => {
   return res.data;
 };
 
+
+const toArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  return [];
+};
+
 export const getUserCourses = async () => {
-  const token = localStorage.getItem('token');
-  const res = await api.get(`${API_URL}auth/me/courses`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return res.data;
+  try {
+    // Uses axios baseURL + auth interceptor in `api`
+    const res = await api.get('/auth/me/courses');
+    return toArray(res.data);
+  } catch (err) {
+    // If that route isn't available (or returns 404), try role-aware /courses
+    if (err?.response?.status === 404) {
+      try {
+        const alt = await api.get('/courses');
+        return toArray(alt.data);
+      } catch (e2) {
+        console.error('[getUserCourses fallback error]', e2);
+        return [];
+      }
+    }
+    console.error('[getUserCourses error]', err);
+    return [];
+  }
 };
 
 export const getUserSubmissions = async () => {
