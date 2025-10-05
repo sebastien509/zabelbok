@@ -53,6 +53,37 @@ def head_ok(url: str) -> bool:
 def extract_audio_url(video_url: str) -> str:
     return video_url
 
+def normalize_correct_answer(choices, correct):
+    """
+    Map a variety of 'correct_answer' shapes to a short code (A, B, C, ...).
+    - If 'correct' matches a choice string, return its letter.
+    - If 'correct' is an int index, return its letter.
+    - If 'correct' already looks like 'A'/'B'/… (<=5 chars), keep uppercase.
+    """
+    if choices is None:
+        return None
+
+    try:
+        # If it's an int-like index
+        idx = int(correct)
+        if 0 <= idx < len(choices):
+            return chr(ord('A') + idx)
+    except (TypeError, ValueError):
+        pass
+
+    # If it's a string matching one of the choices
+    if isinstance(correct, str):
+        correct = correct.strip()
+        # exact match in choices -> map to letter
+        for i, c in enumerate(choices):
+            if isinstance(c, str) and c.strip() == correct:
+                return chr(ord('A') + i)
+        # already short like 'A' / 'b'
+        if 1 <= len(correct) <= 5:
+            return correct.upper()
+
+    # Fallback: first choice, if present
+    return 'A' if choices else None
 
 def generate_transcript(_audio_source: str) -> str:
     return (
@@ -393,13 +424,19 @@ def publish_module():
 
         # Insert questions
         for q in quiz_items:
+            letter = normalize_correct_answer(q["choices"], q["correct_answer"])
+            if not letter:
+                # Skip or default; here we default to 'A' to be failure-proof
+                letter = 'A'
+
             db.session.add(QuizQuestion(
                 quiz_id=quiz.id,
                 question_text=q["question_text"],
                 choices=q["choices"],
-                correct_answer=q["correct_answer"],
+                correct_answer=letter,   # <-- short code now
                 created_at=datetime.utcnow(),
             ))
+
 
         # Create Module (creator_id MUST be set)
         module = Module(
