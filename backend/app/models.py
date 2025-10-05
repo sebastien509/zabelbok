@@ -201,18 +201,14 @@ class Course(db.Model):
 
     # ---- Payments snapshot (safe) ----
     def _payments_snapshot(self):
-        """
-        Aggregate paid order items for this course (safe: no Stripe IDs).
-        """
         from sqlalchemy import func
-        from app.models import OrderItem, Order  # local import to avoid circulars
-
+        # No import of app.models here
         q = (
             db.session.query(
                 func.coalesce(func.sum(OrderItem.gross_amount), 0),
                 func.coalesce(func.sum(OrderItem.platform_fee_amount), 0),
                 func.coalesce(func.sum(OrderItem.creator_amount), 0),
-                func.count(OrderItem.id)
+                func.count(OrderItem.id),
             )
             .join(Order, OrderItem.order_id == Order.id)
             .filter(OrderItem.course_id == self.id, Order.status == "paid")
