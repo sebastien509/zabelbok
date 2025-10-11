@@ -887,7 +887,7 @@ export function TeamKalifa() {
       headshot:
         "https://res.cloudinary.com/dyeomcmin/image/upload/v1760145348/487420413_1208577587729964_5086394795150796538_n_zu07qx.jpg", // swap to your asset
       coverImage:
-        "https://images.unsplash.com/photo-1535469420023-2b46c2f9eb56?q=80&w=1600&auto=format&fit=crop", // warm tropical/Caribbean vibe
+        "https://res.cloudinary.com/dyeomcmin/image/upload/v1760137912/Screenshot_2025-10-10_at_7.11.08_PM_r27pok.png", // warm tropical/Caribbean vibe
   
       tagline:
         "Media & marketing strategist blending creative direction with data—telling the Caribbean’s stories with clarity, consistency, and heart.",
@@ -995,16 +995,16 @@ export function TeamKalifa() {
         },
       ],
   
-      ventures: [
-        {
-          name: "E-STRATEJI",
-          tagline: "Teach what you live. Learn what matters.",
-          desc: "Creator platform for the Caribbean—offline-friendly learning, fair payouts, and community-driven growth.",
-          logo:
-            "https://res.cloudinary.com/dyeomcmin/image/upload/v1759698943/edu-platform/estrateji-logo.png",
-          href: "https://estrateji.co",
-        },
-      ],
+      // ventures: [
+      //   {
+      //     name: "E-STRATEJI",
+      //     tagline: "Teach what you live. Learn what matters.",
+      //     desc: "Creator platform for the Caribbean—offline-friendly learning, fair payouts, and community-driven growth.",
+      //     logo:
+      //       "https://res.cloudinary.com/dyeomcmin/image/upload/v1759698943/edu-platform/estrateji-logo.png",
+      //     href: "https://estrateji.co",
+      //   },
+      // ],
   
       recognition: [
         "President — I’m Glad I’m a Girl Foundation (women’s rights & youth leadership)",
