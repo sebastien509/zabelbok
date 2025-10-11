@@ -1,1 +1,129 @@
 @import "tailwindcss";
+
+
+/* =========================
+   Brand Palette & Utilities
+   ========================= */
+
+/* Base palette (hex + rgb) */
+:root {
+    --absoluteBlack: #000000;
+    --absoluteBlack-rgb: 0 0 0;
+  
+    --appleGreen: #8DB600;
+    --appleGreen-rgb: 141 182 0;
+  
+    --heritageRed: #C1272D;
+    --heritageRed-rgb: 193 39 45;
+  
+    --warmRootBrown: #5D3721;
+    --warmRootBrown-rgb: 93 55 33;
+  
+    --burntOrange: #EE964B;
+    --burntOrange-rgb: 238 150 75;
+  
+    --ivoryNeutral: #FAF9F6;
+    --ivoryNeutral-rgb: 250 249 246;
+  
+    --blackOlive: #3B3C36;
+    --blackOlive-rgb: 59 60 54;
+  
+    /* ===== Default brand (change by applying a .theme-* class on <body>) ===== */
+    --brand-hex: var(--appleGreen);
+    --brand-rgb: var(--appleGreen-rgb);
+  }
+  
+  /* Theme switchers (apply to <html> or <body>) */
+  .theme-apple-green  { --brand-hex: var(--appleGreen);   --brand-rgb: var(--appleGreen-rgb); }
+  .theme-heritage-red { --brand-hex: var(--heritageRed);  --brand-rgb: var(--heritageRed-rgb); }
+  .theme-burnt-orange { --brand-hex: var(--burntOrange);  --brand-rgb: var(--burntOrange-rgb); }
+  .theme-warm-brown   { --brand-hex: var(--warmRootBrown);--brand-rgb: var(--warmRootBrown-rgb); }
+  .theme-black-olive  { --brand-hex: var(--blackOlive);   --brand-rgb: var(--blackOlive-rgb); }
+  .theme-ivory        { --brand-hex: var(--ivoryNeutral); --brand-rgb: var(--ivoryNeutral-rgb); }
+  
+  /* =========================
+     Glass helpers
+     ========================= */
+  
+  /* Subtle frosted-glass shadow */
+  .glass-shadow {
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+  
+  /* Generic glass panel */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.60);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    border-radius: 1rem;
+  }
+  
+  /* Brand-tinted overlay (nice for modals) */
+  .brand-tint-overlay {
+    background:
+      radial-gradient(
+        120% 80% at 20% 0%,
+        rgba(255, 255, 255, 0.25),
+        rgba(255, 255, 255, 0) 60%
+      ),
+      rgba(var(--brand-rgb), 0.40); /* 40% */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  
+  /* =========================
+     Brand opacity utilities
+     ========================= */
+  
+  /* Background tints */
+  .bg-brand-40 { background-color: rgba(var(--brand-rgb), 0.40) !important; }
+  .bg-brand-60 { background-color: rgba(var(--brand-rgb), 0.60) !important; }
+  .bg-brand-80 { background-color: rgba(var(--brand-rgb), 0.80) !important; }
+  
+  /* Borders */
+  .border-brand-40 { border-color: rgba(var(--brand-rgb), 0.40) !important; }
+  .border-brand-60 { border-color: rgba(var(--brand-rgb), 0.60) !important; }
+  .border-brand-80 { border-color: rgba(var(--brand-rgb), 0.80) !important; }
+  
+  /* Text */
+  .text-brand        { color: rgb(var(--brand-rgb)) !important; }
+  .text-brand-80     { color: rgba(var(--brand-rgb), 0.80) !important; }
+  .text-brand-60     { color: rgba(var(--brand-rgb), 0.60) !important; }
+  
+  /* Accents (buttons, chips) */
+  .btn-brand-80 {
+    background-color: rgba(var(--brand-rgb), 0.80) !important;
+    color: white !important;
+  }
+  .btn-brand-60 {
+    background-color: rgba(var(--brand-rgb), 0.60) !important;
+    color: #0b1220 !important; /* readable on mid tint */
+  }
+  
+
+  /* Custom scrollbar for sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--brand-rgb), 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--brand-rgb), 0.5);
+}
+
+/* Grid background pattern */
+.bg-grid-white\/\[0\.02\] {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.02)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}

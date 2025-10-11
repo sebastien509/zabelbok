@@ -1,13 +1,14 @@
+// CreatorSignUp.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { register, login, updateProfile } from '@/services/auth';
 import { Input } from '@/components2/ui/input';
 import { Button } from '@/components2/bento-UI/button';
 import { toast } from '@/components2/bento-UI/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components2/bento-UI/dialog';
-import { DialogDescription } from '@radix-ui/react-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components2/bento-UI/dialog';
 import { uploadToCloudinary } from '@/utils/uploadToCloudinary';
 import { useAuth } from '@/components/auth/AuthProvider';
+import AfterSignupModal from '../AfterSignUpModal';
 
 import Lottie from 'lottie-react';
 import bgAnimation from '@/assets/bgAnimation.json';
@@ -71,9 +72,6 @@ function ValueCard({ title, points = [], accent = brand.apple }) {
 
 /** 
  * Feature hero panel (md+ only)
- * - Matches height of the form card via the same min-h
- * - Hidden on mobile
- * - Replace `HERO_IMG` with your brand image if desired
  */
 const HERO_IMG = "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=1600&auto=format&fit=crop";
 
@@ -87,7 +85,7 @@ function FeatureHeroMDUp() {
     >
       <div
         className="relative  bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden border"
-        style={{ borderColor: "rgba(255,255,255,.25)", minHeight: "620px" }} // ⬅ match form card min height
+        style={{ borderColor: "rgba(255,255,255,.25)", minHeight: "620px" }}
       >
         <img
           src={HERO_IMG}
@@ -125,6 +123,10 @@ export default function CreatorSignUp() {
   const [basicForm, setBasicForm] = useState({ full_name: '', email: '', password: '' });
   const [profileForm, setProfileForm] = useState({ bio: '', language: 'en', image: null });
   const [loading, setLoading] = useState(false);
+
+  // NEW: show congrats modal instead of onboarding
+  const [showCongrats, setShowCongrats] = useState(false);
+
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 
@@ -137,9 +139,9 @@ export default function CreatorSignUp() {
       window.location.href = `/auth/${provider}`;
     } catch (err) {
       console.error('[OAuth Error]', err);
-      toast({
-        title: 'Google sign-in failed',
-        description: 'Please try again or use email sign-up.',
+      toast(
+       'Google sign-in failed',
+       { description: 'Please try again or use email sign-up.',
         variant: 'destructive',
       });
     }
@@ -154,13 +156,15 @@ export default function CreatorSignUp() {
       localStorage.setItem('user_id', res.user_id);
       await refreshUser();
 
-      toast({ title: 'Signup successful!', description: 'Welcome to the platform.' });
-      navigate('/creator/onboarding');
+      setShowCongrats(true);
+      toast('Signup successful!', {  description: 'Welcome to the platform.' });
+
+      // INSTEAD OF ONBOARDING, SHOW AFTER-SIGNUP MODAL
     } catch (err) {
       console.error('[Signup Error]', err);
-      toast({
-        title: 'Signup failed',
-        description: 'That email might already be used or your network failed.',
+      toast(
+       'Signup failed',
+       { description: 'That email might already be used or your network failed.',
         variant: 'destructive',
       });
     }
@@ -180,13 +184,13 @@ export default function CreatorSignUp() {
         profile_image_url: imageUrl,
       });
 
-      toast({ title: 'Profile updated', description: 'Welcome to Estrateji!' });
+      toast('Profile updated', { description: 'Welcome to Estrateji!' });
       navigate('/creator/dashboard');
     } catch (err) {
       console.error('[Profile Submit Error]', err);
-      toast({
-        title: 'Update failed',
-        description: 'Could not save your profile.',
+      toast(
+       'Update failed',
+       {description: 'Could not save your profile.',
         variant: 'destructive',
       });
     } finally {
@@ -230,7 +234,7 @@ export default function CreatorSignUp() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
           className="w-full max-w-md  bg-white/92 backdrop-blur rounded-xl shadow-2xl overflow-hidden z-20 border md:self-stretch"
-          style={{ borderColor: "rgba(59,60,54,.1)", minHeight: "620px" }} // ⬅ match panel height
+          style={{ borderColor: "rgba(59,60,54,.1)", minHeight: "620px" }}
         >
           <div className="p-4 bg-gradient-to-r from-[#8DB600] to-[#C1272D]">
             <h1 className="text-2xl md:text-3xl font-bold text-center text-white">🎥 Creator Sign Up</h1>
@@ -305,23 +309,9 @@ export default function CreatorSignUp() {
 
         {/* md+ FEATURE HERO (image) — hidden on mobile */}
         <FeatureHeroMDUp />
-
-        {/* MOBILE: value cards below form */}
-        {/* <div className="w-full max-w-md mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
-          <ValueCard
-            title="Creators keep more"
-            accent={brand.apple}
-            points={["Payouts via Stripe Express", "Transparent platform fees", "No hidden costs"]}
-          />
-          <ValueCard
-            title="Built for the Caribbean"
-            accent={brand.burnt}
-            points={["Offline-friendly modules", "Kreyòl & Patwa support", "Lightweight mobile apps"]}
-          />
-        </div> */}
       </div>
 
-      {/* Step 2: Profile Dialog */}
+      {/* Step 2: Profile Dialog (kept for future, not auto-used now) */}
       <AnimatePresence>
         {step === 2 && (
           <Dialog open={step === 2} onOpenChange={(o) => setStep(o ? 2 : 1)}>
@@ -389,6 +379,16 @@ export default function CreatorSignUp() {
           </Dialog>
         )}
       </AnimatePresence>
+
+      {/* NEW: After-signup modal replaces onboarding redirect */}
+      <AfterSignupModal
+        open={showCongrats}
+        userName={basicForm.full_name}
+        onClose={() => {
+          setShowCongrats(false);
+          navigate('/'); // send back to landing page
+        }}
+      />
     </div>
   );
 }

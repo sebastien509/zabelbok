@@ -67,6 +67,11 @@ import QuizBoard from './routes/student/QuizBoard';
 import StudentMessageDashboard from './routes/student/StudentMessageDashboard';
 import RoleBasedOfflinePage from './components/system/RoleBasedOfflinePage';
 
+import { TeamSebastien, TeamSimin, TeamKalifa } from "./components2/pages/platform/Team";
+import Magazine from './components2/pages/platform/NewsRoom.jsx/Magazine';
+import Articles from './components2/pages/platform/NewsRoom.jsx/Articles';
+import News from './components2/pages/platform/NewsRoom.jsx/News';
+
 
 import DualLandingPage from './components2/pages/DualLandingPage';
 
@@ -91,7 +96,7 @@ import { useAuth } from '@/components/auth/AuthProvider'; // adjust path
 
 
 import Bento from './components2/pages/template/Bento';
-
+import NewsPage from './components2/pages/platform/NewsRoom.jsx/NewsPage';
 export default function App() {
 
   const { user, isLoading } = useAuth(); // 👈 include isLoading
@@ -164,6 +169,14 @@ i18n.changeLanguage(preferredLanguage);
 
             <Route path="/:slug" element={<PublicCreatorPage />} />
 
+            <Route path="/sebastien-fenelon" element={<TeamSebastien />} />
+            <Route path="/simin-jodarson" element={<TeamSimin />} />
+            <Route path="/kalifa-facey" element={<TeamKalifa />} />
+
+            <Route path="/magazine" element={<Magazine />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/article/:slug" element={<Articles />} />
+            <Route path="/news/:slug" element={<NewsPage />} />
             {/* Amaider Auth */}
             <Route path="/amaider/login" element={
             <RedirectIfLoggedIn>
