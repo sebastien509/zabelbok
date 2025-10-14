@@ -885,7 +885,7 @@ export function TeamKalifa() {
       role: "Social Media & Communications @ E-STRATEJI",
       companyLine: "Kingston, Jamaica • E-STRATEJI",
       headshot:
-        "https://res.cloudinary.com/dyeomcmin/image/upload/v1760145348/487420413_1208577587729964_5086394795150796538_n_zu07qx.jpg", // swap to your asset
+        "https://res.cloudinary.com/dyeomcmin/image/upload/v1760461671/photo-output_vrz3cg.jpg", // swap to your asset
       coverImage:
         "https://res.cloudinary.com/dyeomcmin/image/upload/v1760137912/Screenshot_2025-10-10_at_7.11.08_PM_r27pok.png", // warm tropical/Caribbean vibe
   
