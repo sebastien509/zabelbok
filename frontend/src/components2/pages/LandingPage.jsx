@@ -724,7 +724,7 @@ function Testimonial() {
 }
 
 // ====== Footer & CTA ======
-function Footer() {
+export function Footer() {
   return (
     <footer className="py-12" style={{ background: palette.warmRootBrown }}>
       <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-sm" style={{ color: "#d9d8d5", fontFamily: bodyFont }}>
