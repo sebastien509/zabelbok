@@ -105,7 +105,7 @@ function TeamMemberPage({
               <img
                 src={headshot}
                 alt={`${name} headshot`}
-                className="h-20 w-20 rounded-2xl object-cover border border-white/40"
+                className="h-32 w-32 rounded-2xl object-cover border border-white/40"
                 loading="eager"
               />
               <div className="min-w-0 flex-1">
@@ -194,7 +194,7 @@ function TeamMemberPage({
               <img
                 src={headshot}
                 alt={`${name} headshot`}
-                className="h-24 w-24 lg:h-28 lg:w-28 rounded-2xl object-cover border border-white/40"
+                className="h-full min-w-42 lg:h-42 lg:w-42 rounded-2xl object-cover border border-white/40"
                 loading="eager"
               />
               <div className="min-w-0">

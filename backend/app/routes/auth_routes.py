@@ -18,32 +18,53 @@ def slugify(s: str) -> str:
     s = re.sub(r'-{2,}', '-', s)
     return s or 'user'
 
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
+
+    # Normalize & validate
+    full_name = (data.get('full_name') or '').strip()
+    email = (data.get('email') or '').strip().lower()
+    password = data.get('password')
+    role = (data.get('role') or 'creator').strip()
+    school_id = data.get('school_id')
+
+    if not full_name or not email or not password:
+        return jsonify({'error': 'full_name, email, and password are required'}), 422
+
+    # Slug: FE may provide, else derive a simple one
+    raw_slug = data.get('slug') or (slugify(full_name) if full_name else None)
+
     try:
-        # FE can send slug; if not, derive a tentative one (not guaranteeing uniqueness here)
-        raw_slug = data.get('slug') or slugify(data.get('full_name'))
         new_user = User(
-            full_name=data['full_name'],
-            email=data['email'],
-            password=(data['password']),
-            role=data['role'],
-            school_id=data.get('school_id'),
+            full_name=full_name,
+            email=email,
+            # ✅ store a hash, and use the correct column name:
+            password_hash=generate_password_hash(password, method='pbkdf2:sha256', salt_length=16),
+            role=role,
+            school_id=school_id,
             language='en',
             theme='theme-1',
             color=False,
-            slug=raw_slug  # may be None/dup; FE should check first (see /auth/slug-available)
+            slug=raw_slug
         )
         db.session.add(new_user)
         db.session.commit()
         return jsonify({'message': 'User registered successfully', 'user': new_user.to_dict()}), 201
+
     except IntegrityError:
         db.session.rollback()
         return jsonify({'error': 'Email or slug already exists'}), 409
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        # Log but don’t leak internals to client
+        try:
+            current_app.logger.exception("REGISTER failed")
+        except Exception:
+            pass
+        return jsonify({'error': 'Internal error'}), 500
+
 
 @auth_bp.route("/slug-available/<slug>", methods=["GET"])
 def slug_available(slug):
