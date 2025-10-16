@@ -46,14 +46,14 @@ def create_app():
         p.replace(".", r"\.").replace("*", r"[a-z0-9-]+") for p in wildcard_patterns
     ) if wildcard_patterns else None
 
-    # # Sensible defaults for local dev
-    # exact = exact_origins or [
-    #     "http://localhost:5173",
-    #     "http://127.0.0.1:5173",
-    #     "http://www.estrateji.com",
-    #     "http://estrateji.com",
-    #     "https://www.estrateji.com"
-    # ]
+    # Sensible defaults for local dev
+    exact = exact_origins or [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://www.estrateji.com",
+        "http://estrateji.com",
+        "https://www.estrateji.com"
+    ]
 
     cors_kwargs = dict(
         resources={r"/*": {"origins": exact}},   # exact allow-list
@@ -66,8 +66,8 @@ def create_app():
 
     # If you also want to allow preview subdomains (e.g., Vercel),
     # add a strict regex. Flask-CORS will echo the *matched* origin.
-    # if wildcard_regex:
-    #     cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
+    if wildcard_regex:
+        cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
 
     # CORS(app, **cors_kwargs)
     # # ✅ Init extensions
