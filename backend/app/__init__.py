@@ -37,37 +37,37 @@ def create_app():
             app.logger.setLevel(logging.INFO)
     app.logger.info("✅ Logging system initialized")
 
-    # # ✅ Load allowed frontend origins (comma-separated)
-    raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,https://www.estrateji.com,http://www.estrateji.com")
-    origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
-    exact_origins = [o for o in origins_list if "*" not in o]
-    wildcard_patterns = [o for o in origins_list if "*" in o]  # e.g. https://*.vercel.app
-    wildcard_regex = "|".join(
-        p.replace(".", r"\.").replace("*", r"[a-z0-9-]+") for p in wildcard_patterns
-    ) if wildcard_patterns else None
+    # # # ✅ Load allowed frontend origins (comma-separated)
+    # raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,https://www.estrateji.com,http://www.estrateji.com")
+    # origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    # exact_origins = [o for o in origins_list if "*" not in o]
+    # wildcard_patterns = [o for o in origins_list if "*" in o]  # e.g. https://*.vercel.app
+    # wildcard_regex = "|".join(
+    #     p.replace(".", r"\.").replace("*", r"[a-z0-9-]+") for p in wildcard_patterns
+    # ) if wildcard_patterns else None
 
     # Sensible defaults for local dev
-    exact = exact_origins or [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://www.estrateji.com",
-        "http://estrateji.com",
-        "https://www.estrateji.com"
-    ]
+    # exact = exact_origins or [
+    #     "http://localhost:5173",
+    #     "http://127.0.0.1:5173",
+    #     "http://www.estrateji.com",
+    #     "http://estrateji.com",
+    #     "https://www.estrateji.com"
+    # ]
 
-    cors_kwargs = dict(
-        resources={r"/*": {"origins": exact}},   # exact allow-list
-        supports_credentials=True,               # send/receive cookies if you use them
-        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-        expose_headers=["Content-Type", "Authorization"],
-        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        max_age=86400,                           # cache preflight ~1 day
-    )
+    # cors_kwargs = dict(
+    #     resources={r"/*": {"origins": exact}},   # exact allow-list
+    #     supports_credentials=True,               # send/receive cookies if you use them
+    #     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    #     expose_headers=["Content-Type", "Authorization"],
+    #     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    #     max_age=86400,                           # cache preflight ~1 day
+    # )
 
     # If you also want to allow preview subdomains (e.g., Vercel),
     # add a strict regex. Flask-CORS will echo the *matched* origin.
-    if wildcard_regex:
-        cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
+    # if wildcard_regex:
+    #     cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
 
     # CORS(app, **cors_kwargs)
     # # ✅ Init extensions
@@ -89,10 +89,10 @@ def create_app():
     })
 
     # Logs for visibility
-    app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
-    app.logger.info(f"🌐 Exact CORS Origins: {exact_origins}")
-    if wildcard_regex:
-        app.logger.info(f"🌐 Wildcard CORS Regex: {wildcard_regex}")
+    # app.logger.info(f"🚀 Starting app in {app.config.get('ENV', 'production')} mode")
+    # app.logger.info(f"🌐 Exact CORS Origins: {exact_origins}")
+    # if wildcard_regex:
+    #     app.logger.info(f"🌐 Wildcard CORS Regex: {wildcard_regex}")
 
     # ✅ Register blueprints
     from app.routes.auth_routes import auth_bp
