@@ -28,7 +28,7 @@ def create_app():
     app.logger.info("✅ Logging system initialized")
 
     # ✅ Load allowed frontend origins (comma-separated)
-    raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+    raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,https://www.estrateji.com,http://www.estrateji.com")
     origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
     exact_origins = [o for o in origins_list if "*" not in o]
     wildcard_patterns = [o for o in origins_list if "*" in o]  # e.g. https://*.vercel.app
