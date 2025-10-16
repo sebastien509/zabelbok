@@ -8,19 +8,25 @@ import yaml
 import logging
 import re
 
-
 def create_app():
     load_dotenv()
     app = Flask(__name__)
     app.config.from_object('config.Config')
     
-    # Simplify CORS - use this instead of your current complex setup
+    # ✅ Initialize extensions FIRST
+    db.init_app(app)
+    migrate.init_app(app, db)
+    bcrypt.init_app(app)
+    jwt.init_app(app)
+    
+    # ✅ THEN setup CORS
     CORS(app, 
-         resources={r"/*": {"origins": "*"}},  # Temporarily allow all for testing
+         resources={r"/*": {"origins": "*"}},
          supports_credentials=True,
          allow_headers=["*"],
          methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
     
+
     # ✅ Logging setup
     if not app.debug:
         gunicorn_logger = logging.getLogger("gunicorn.error")
@@ -31,7 +37,7 @@ def create_app():
             app.logger.setLevel(logging.INFO)
     app.logger.info("✅ Logging system initialized")
 
-    # ✅ Load allowed frontend origins (comma-separated)
+    # # ✅ Load allowed frontend origins (comma-separated)
     raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,https://www.estrateji.com,http://www.estrateji.com")
     origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
     exact_origins = [o for o in origins_list if "*" not in o]
@@ -40,14 +46,14 @@ def create_app():
         p.replace(".", r"\.").replace("*", r"[a-z0-9-]+") for p in wildcard_patterns
     ) if wildcard_patterns else None
 
-    # Sensible defaults for local dev
-    exact = exact_origins or [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://www.estrateji.com",
-        "http://estrateji.com",
-        "https://www.estrateji.com"
-    ]
+    # # Sensible defaults for local dev
+    # exact = exact_origins or [
+    #     "http://localhost:5173",
+    #     "http://127.0.0.1:5173",
+    #     "http://www.estrateji.com",
+    #     "http://estrateji.com",
+    #     "https://www.estrateji.com"
+    # ]
 
     cors_kwargs = dict(
         resources={r"/*": {"origins": exact}},   # exact allow-list
@@ -60,9 +66,15 @@ def create_app():
 
     # If you also want to allow preview subdomains (e.g., Vercel),
     # add a strict regex. Flask-CORS will echo the *matched* origin.
-    if wildcard_regex:
-        cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
+    # if wildcard_regex:
+    #     cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
 
+    # CORS(app, **cors_kwargs)
+    # # ✅ Init extensions
+    # db.init_app(app)
+    # migrate.init_app(app, db)
+    # bcrypt.init_app(app)
+    # jwt.init_app(app)
 
     # ✅ Swagger config
     with open('app/docs/swagger.yaml', 'r') as f:
