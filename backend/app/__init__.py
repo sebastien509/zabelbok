@@ -13,10 +13,14 @@ def create_app():
     load_dotenv()
     app = Flask(__name__)
     app.config.from_object('config.Config')
-    app.config["ENV"] = "production"
-    app.config["DEBUG"] = False
-    app.config["TESTING"] = False
-
+    
+    # Simplify CORS - use this instead of your current complex setup
+    CORS(app, 
+         resources={r"/*": {"origins": "*"}},  # Temporarily allow all for testing
+         supports_credentials=True,
+         allow_headers=["*"],
+         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+    
     # ✅ Logging setup
     if not app.debug:
         gunicorn_logger = logging.getLogger("gunicorn.error")
@@ -59,12 +63,6 @@ def create_app():
     if wildcard_regex:
         cors_kwargs["origins_regex"] = f"^({wildcard_regex})$"
 
-    CORS(app, **cors_kwargs)
-    # ✅ Init extensions
-    db.init_app(app)
-    migrate.init_app(app, db)
-    bcrypt.init_app(app)
-    jwt.init_app(app)
 
     # ✅ Swagger config
     with open('app/docs/swagger.yaml', 'r') as f:
