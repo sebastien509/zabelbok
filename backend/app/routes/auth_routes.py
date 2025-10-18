@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app.extensions import db, bcrypt
 from app.models import User, StudentSubmission, Course, Enrollment  # ⬅️ removed course_students, added Enrollment
@@ -40,8 +40,8 @@ def register():
         new_user = User(
             full_name=full_name,
             email=email,
-            # ✅ store a hash, and use the correct column name:
-            password_hash=generate_password_hash(password, method='pbkdf2:sha256', salt_length=16),
+            # ✅ FIXED: Use bcrypt instead of werkzeug
+            password_hash=bcrypt.generate_password_hash(password).decode('utf-8'),
             role=role,
             school_id=school_id,
             language='en',
@@ -58,8 +58,9 @@ def register():
         return jsonify({'error': 'Email or slug already exists'}), 409
     except Exception as e:
         db.session.rollback()
-        # Log but don’t leak internals to client
+        # Log but don't leak internals to client
         try:
+            from flask import current_app
             current_app.logger.exception("REGISTER failed")
         except Exception:
             pass
