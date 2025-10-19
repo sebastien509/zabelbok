@@ -1,266 +1,249 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useParams } from 'react-router-dom';
+import { getUserById } from '@/services/auth';
+import { getPublicCoursesByCreator } from '@/services/courses';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components2/ui/avatar';
+import { Loader2, Share2, Mail, Globe, BookOpen, Users, Star } from 'lucide-react';
+import { placeholderCreatorData } from './ placeholderCreatorData';
 
+// GlassmorphismTemplate.jsx
 const glassPalettes = {
-  'color-1': {
+  'color-1': { // Arctic Frost
     primary: '#3B82F6',
     secondary: '#06B6D4',
     accent: '#8B5CF6',
-    text1: '#FFFFFF',
-    text2: 'rgba(255,255,255,0.8)',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    cardBg: 'rgba(255, 255, 255, 0.1)',
-    buttonBg: 'rgba(59, 130, 246, 0.8)',
+    background: 'linear-gradient(135deg, #3B82F6 0%, #06B6D4 50%, #8B5CF6 100%)',
+    glassBg: 'rgba(255, 255, 255, 0.08)',
+    glassBorder: 'rgba(255, 255, 255, 0.15)',
+    glassShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
+    text: '#FFFFFF',
+    textSecondary: 'rgba(255, 255, 255, 0.75)',
+    buttonBg: 'rgba(255, 255, 255, 0.15)',
     buttonText: '#FFFFFF',
-    glassBorder: 'rgba(255, 255, 255, 0.2)',
-    glassShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-    overlay: 'rgba(0, 0, 0, 0.3)',
+    iconBg: 'rgba(255, 255, 255, 0.1)',
+    hoverBg: 'rgba(255, 255, 255, 0.12)',
+    backdropBlur: 'blur(16px)'
   },
-  'color-2': {
-    primary: '#EF4444',
-    secondary: '#F59E0B',
-    accent: '#DB2777',
-    text1: '#FFFFFF',
-    text2: 'rgba(255,255,255,0.8)',
-    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    cardBg: 'rgba(255, 255, 255, 0.1)',
-    buttonBg: 'rgba(239, 68, 68, 0.8)',
+  'color-2': { // Emerald Mist
+    primary: '#10B981',
+    secondary: '#059669',
+    accent: '#0D9488',
+    background: 'linear-gradient(135deg, #10B981 0%, #059669 50%, #0D9488 100%)',
+    glassBg: 'rgba(255, 255, 255, 0.08)',
+    glassBorder: 'rgba(255, 255, 255, 0.15)',
+    glassShadow: '0 8px 32px rgba(16, 185, 129, 0.25)',
+    text: '#FFFFFF',
+    textSecondary: 'rgba(255, 255, 255, 0.75)',
+    buttonBg: 'rgba(255, 255, 255, 0.15)',
     buttonText: '#FFFFFF',
-    glassBorder: 'rgba(255, 255, 255, 0.2)',
-    glassShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-    overlay: 'rgba(0, 0, 0, 0.3)',
-  },
-}
-
-// Safe data access utility
-const safeGet = (obj, path, defaultValue = '') => {
-  if (!obj) return defaultValue
-  const keys = path.split('.')
-  let result = obj
-  for (const key of keys) {
-    result = result?.[key]
-    if (result === null || result === undefined) return defaultValue
+    iconBg: 'rgba(255, 255, 255, 0.1)',
+    hoverBg: 'rgba(255, 255, 255, 0.12)',
+    backdropBlur: 'blur(16px)'
   }
-  return result
-}
+};
 
-export default function Glassmorphism({ paletteKey = 'color-1', data = {} }) {
-  const t = glassPalettes[paletteKey] ?? glassPalettes['color-1']
-  
-  // Font: Poppins
-  const fontStyle = {
-    fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif"
-  }
 
-  // Extract data with safe fallbacks
-  const creator = safeGet(data, 'creator', {})
-  const courses = safeGet(data, 'courses', [])
-  const highlights = safeGet(data, 'highlights', [])
-  const links = safeGet(data, 'links', [])
-  const stats = safeGet(data, 'stats', {})
+export default function GlassmorphismTemplate({ paletteKey = 'color-2', banner, data = placeholderCreatorData }) {
+  // const [creator, setCreator] = useState(null);
+  // const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { id } = useParams();
 
-  const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0)
-  const bannerUrl = safeGet(creator, 'banner_url')
+  const { creator, courses, highlights, links, stats } = data;
 
-  const glassStyle = {
-    background: t.cardBg,
-    backdropFilter: 'blur(20px)',
-    border: `1px solid ${t.glassBorder}`,
-    boxShadow: t.glassShadow,
-  }
+
+  const palette = glassPalettes[paletteKey] || glassPalettes['color-1'];
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const [creatorData, courseList] = await Promise.all([
+  //         getUserById(id),
+  //         getPublicCoursesByCreator(id)
+  //       ]);
+  //       setCreator(creatorData);
+  //       setCourses(courseList || []);
+  //     } catch (err) {
+  //       console.error("Error loading creator data:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [id]);
+
+  // if (loading || !creator) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background }}>
+  //       <Loader2 className="animate-spin w-8 h-8 text-white" />
+  //     </div>
+  //   );
+  // }
+
+  const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0);
 
   return (
-    <div className="min-h-screen" style={{ 
-      background: t.background,
-      ...fontStyle 
-    }}>
-      {/* Hero Section with Banner Background */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Banner Background */}
-        {bannerUrl ? (
-          <div className="absolute inset-0">
-            <img
-              src={bannerUrl}
-              alt="Banner"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none'
-              }}
-            />
-            <div className="absolute inset-0" style={{ background: t.overlay }}></div>
+    <div className="min-h-screen" style={{ background: palette.background }}>
+      {/* Main Container */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        {/* Header Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="inline-block backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-xl mb-8"
+            style={{ background: palette.glassBg }}
+          >
+            <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/30">
+              <AvatarImage src={creator.profile_image_url} />
+              <AvatarFallback className="text-xl">
+                {creator.full_name?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <h1 className="text-3xl font-bold mb-2" style={{ color: palette.text }}>
+              {creator.full_name}
+            </h1>
+            <p className="text-lg mb-4" style={{ color: palette.textSecondary }}>
+              {creator.bio || 'Educator & Course Creator'}
+            </p>
+            <div className="flex justify-center gap-4">
+              <button className="px-4 py-2 rounded-lg backdrop-blur-lg border border-white/20 transition-all hover:bg-white/10 flex items-center gap-2"
+                style={{ color: palette.text }}>
+                <Share2 size={16} />
+                Share
+              </button>
+              <button className="px-4 py-2 rounded-lg backdrop-blur-lg border border-white/20 transition-all hover:bg-white/10 flex items-center gap-2"
+                style={{ color: palette.text }}>
+                <Mail size={16} />
+                Contact
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12"
+        >
+          <div className="backdrop-blur-lg rounded-xl p-6 border border-white/20 text-center"
+               style={{ background: palette.glassBg }}>
+            <BookOpen className="w-8 h-8 mx-auto mb-2" style={{ color: palette.primary }} />
+            <div className="text-2xl font-bold" style={{ color: palette.text }}>{courses.length}</div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Courses</div>
           </div>
-        ) : (
-          <div className="absolute inset-0" style={{ background: t.background }}></div>
-        )}
-
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full opacity-20 blur-xl"
-               style={{ background: t.primary }}></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-20 blur-xl"
-               style={{ background: t.secondary }}></div>
-        </div>
-
-        <div className="relative max-w-6xl mx-auto text-center z-10 px-6">
-          {/* Profile Image with Glass Effect */}
-          <div className="inline-block p-4 rounded-3xl mb-8" style={glassStyle}>
-            <img
-              src={safeGet(creator, 'profile_image_url', 'https://placehold.co/150x150')}
-              alt={safeGet(creator, 'full_name', 'Professor')}
-              className="w-24 h-24 rounded-2xl object-cover border-2 border-white/30"
-              onError={(e) => {
-                e.target.src = 'https://placehold.co/150x150'
-              }}
-            />
-          </div>
-
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-white" style={fontStyle}>
-            {safeGet(creator, 'full_name', 'Professor Name')}
-          </h1>
           
-          <p className="text-xl mb-8 max-w-2xl mx-auto" style={{ color: t.text2 }}>
-            {safeGet(creator, 'bio', 'Transforming education through innovative course design')}
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex gap-4 justify-center mb-12 flex-wrap">
-            <button className="px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
-                    style={{ background: t.buttonBg, color: t.buttonText }}>
-              Browse Courses {courses.length > 0 && `(${courses.length})`}
-            </button>
-            <button className="px-8 py-3 rounded-xl font-semibold border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/10">
-              Learn More
-            </button>
+          <div className="backdrop-blur-lg rounded-xl p-6 border border-white/20 text-center"
+               style={{ background: palette.glassBg }}>
+            <Users className="w-8 h-8 mx-auto mb-2" style={{ color: palette.secondary }} />
+            <div className="text-2xl font-bold" style={{ color: palette.text }}>{totalStudents}</div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Students</div>
           </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-            <div className="rounded-2xl p-4" style={glassStyle}>
-              <div className="text-2xl font-bold text-white">{courses.length}</div>
-              <div style={{ color: t.text2 }}>Courses</div>
-            </div>
-            <div className="rounded-2xl p-4" style={glassStyle}>
-              <div className="text-2xl font-bold text-white">{totalStudents}</div>
-              <div style={{ color: t.text2 }}>Students</div>
-            </div>
-            <div className="rounded-2xl p-4" style={glassStyle}>
-              <div className="text-2xl font-bold text-white">{stats.average_rating || '4.9'}</div>
-              <div style={{ color: t.text2 }}>Rating</div>
-            </div>
-            <div className="rounded-2xl p-4" style={glassStyle}>
-              <div className="text-2xl font-bold text-white">100%</div>
-              <div style={{ color: t.text2 }}>Success</div>
-            </div>
+          
+          <div className="backdrop-blur-lg rounded-xl p-6 border border-white/20 text-center"
+               style={{ background: palette.glassBg }}>
+            <Star className="w-8 h-8 mx-auto mb-2" style={{ color: palette.accent }} />
+            <div className="text-2xl font-bold" style={{ color: palette.text }}>4.9/5</div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Rating</div>
           </div>
-        </div>
-      </section>
+          
+          <div className="backdrop-blur-lg rounded-xl p-6 border border-white/20 text-center"
+               style={{ background: palette.glassBg }}>
+            <Globe className="w-8 h-8 mx-auto mb-2" style={{ color: palette.primary }} />
+            <div className="text-2xl font-bold" style={{ color: palette.text }}>Online</div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Status</div>
+          </div>
+        </motion.div>
 
-      {/* Courses Section */}
-      <section className="relative py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12 text-white">
-            {courses.length > 0 ? 'Featured Courses' : 'Course Portfolio'}
+        {/* Courses Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: palette.text }}>
+            My Courses
           </h2>
           
           {courses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {courses.map((course) => (
-                <div key={course.id} className="rounded-3xl p-6 transition-all duration-500 hover:scale-105"
-                     style={glassStyle}>
-                  <div className="mb-4">
-                    <div className="w-12 h-12 rounded-xl mb-3 flex items-center justify-center"
-                         style={{ background: 'rgba(255,255,255,0.2)' }}>
-                      <span className="text-white font-bold">📚</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map((course, index) => (
+                <motion.div
+                  key={course.id}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="backdrop-blur-lg rounded-xl p-6 border border-white/20 cursor-pointer group"
+                  style={{ background: palette.glassBg }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
+                         style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})` }}>
+                      <BookOpen className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">{course.title}</h3>
-                    <p className="text-sm" style={{ color: t.text2 }}>
-                      {course.description}
-                    </p>
+                    <div className="text-xs px-2 py-1 rounded-full border border-white/20"
+                         style={{ color: palette.textSecondary }}>
+                      {course.student_count || 0} students
+                    </div>
                   </div>
                   
+                  <h3 className="font-semibold mb-2" style={{ color: palette.text }}>
+                    {course.title}
+                  </h3>
+                  <p className="text-sm mb-4 line-clamp-2" style={{ color: palette.textSecondary }}>
+                    {course.description}
+                  </p>
+                  
                   <div className="flex justify-between items-center">
-                    <span className="text-sm" style={{ color: t.text2 }}>
-                      {course.student_count} students enrolled
+                    <span className="text-sm font-semibold" style={{ color: palette.primary }}>
+                      Enroll Now
                     </span>
-                    <button className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors hover:bg-white/20"
-                            style={{ color: t.text1 }}>
-                      Enroll →
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3 text-yellow-400" />
+                      <span className="text-xs" style={{ color: palette.textSecondary }}>4.9</span>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : (
-            /* Empty State */
-            <div className="rounded-3xl p-12 text-center" style={glassStyle}>
-              <div className="text-6xl mb-4">🎓</div>
-              <h3 className="text-2xl font-semibold text-white mb-2">Courses Coming Soon</h3>
-              <p style={{ color: t.text2 }}>New courses are currently in development. Stay tuned!</p>
+            <div className="text-center py-12 backdrop-blur-lg rounded-xl border border-white/20"
+                 style={{ background: palette.glassBg }}>
+              <div className="text-4xl mb-4">📚</div>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: palette.text }}>
+                No Courses Available
+              </h3>
+              <p style={{ color: palette.textSecondary }}>
+                New courses coming soon!
+              </p>
             </div>
           )}
-        </div>
-      </section>
+        </motion.div>
 
-      {/* Additional Content Sections */}
-      <section className="relative py-16 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Highlights Section */}
-          <div className="rounded-3xl p-8" style={glassStyle}>
-            <h3 className="text-2xl font-semibold text-white mb-6">Highlights</h3>
-            <div className="space-y-4">
-              {highlights.map((highlight, index) => (
-                <div key={index} className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center mt-1"
-                       style={{ background: 'rgba(255,255,255,0.2)' }}>
-                    <span className="text-white text-sm">⭐</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-white">{highlight.title}</h4>
-                    <p style={{ color: t.text2 }}>{highlight.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Links Section */}
-          <div className="rounded-3xl p-8" style={glassStyle}>
-            <h3 className="text-2xl font-semibold text-white mb-6">Connect</h3>
-            <div className="space-y-3">
-              {links.map((link, index) => (
-                <a key={index} href={link.url} target="_blank" rel="noopener noreferrer"
-                   className="flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-white/10">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                       style={{ background: 'rgba(255,255,255,0.2)' }}>
-                    <span className="text-white text-sm">🔗</span>
-                  </div>
-                  <span className="text-white">{link.label}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Banner Usage Showcase */}
-      {bannerUrl && (
-        <section className="relative py-16 px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <h3 className="text-2xl font-semibold text-white mb-6">Teaching Environment</h3>
-            <div className="rounded-3xl overflow-hidden" style={glassStyle}>
-              <img
-                src={bannerUrl}
-                alt="Teaching Environment"
-                className="w-full h-64 object-cover"
-              />
-              <div className="p-6">
-                <p style={{ color: t.text2 }}>State-of-the-art learning facilities and resources</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+        {/* Bio Section */}
+        {creator.bio && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-12 backdrop-blur-lg rounded-xl p-8 border border-white/20"
+            style={{ background: palette.glassBg }}
+          >
+            <h3 className="text-xl font-semibold mb-4" style={{ color: palette.text }}>
+              About Me
+            </h3>
+            <p className="leading-relaxed" style={{ color: palette.textSecondary }}>
+              {creator.bio}
+            </p>
+          </motion.div>
+        )}
+      </div>
     </div>
-  )
+  );
 }
 
-export { glassPalettes }
+export { glassPalettes };

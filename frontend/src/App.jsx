@@ -96,6 +96,8 @@ import { useAuth } from '@/components/auth/AuthProvider'; // adjust path
 
 
 import Bento from './components2/pages/template/Bento';
+import TemplateTester from './components2/pages/template/TemplateTester';
+
 import NewsPage from './components2/pages/platform/NewsRoom.jsx/NewsPage';
 export default function App() {
 
@@ -160,6 +162,7 @@ i18n.changeLanguage(preferredLanguage);
               } />
 
             <Route path="/" element={<LandingPageE/>}/>
+            <Route path="/page" element={<TemplateTester/>}/>
 
             {/* <Route path="/amaider/login" element={
             <RedirectIfLoggedIn>

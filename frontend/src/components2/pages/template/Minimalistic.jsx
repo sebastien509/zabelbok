@@ -1,292 +1,235 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { getUserById } from '@/services/auth';
+import { getPublicCoursesByCreator } from '@/services/courses';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components2/ui/avatar';
+import { Loader2, Share2, Mail, BookOpen, Users, Star, ArrowRight } from 'lucide-react';
+import { placeholderCreatorData } from './ placeholderCreatorData';
 
+// MinimalisticTemplate.jsx
 const minimalPalettes = {
-  'color-1': {
-    primary: '#000000',
-    secondary: '#666666',
-    text1: '#000000',
-    text2: '#666666',
+  'color-1': { // Light Professional
+    primary: '#1E293B',
+    secondary: '#475569',
+    accent: '#3B82F6',
     background: '#FFFFFF',
-    cardBg: '#FFFFFF',
-    buttonBg: '#000000',
+    cardBg: '#F8FAFC',
+    border: '#E2E8F0',
+    text: '#1E293B',
+    textSecondary: '#64748B',
+    buttonBg: '#3B82F6',
     buttonText: '#FFFFFF',
-    border: '#E5E5E5',
-    accent: '#F5F5F5',
-    overlay: 'rgba(0,0,0,0.03)',
+    hoverBg: '#F1F5F9',
+    shadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    badgeBg: '#EFF6FF',
+    badgeText: '#1D4ED8'
   },
-  'color-2': {
-    primary: '#1A56DB',
+  'color-2': { // Warm Minimal
+    primary: '#374151',
     secondary: '#6B7280',
-    text1: '#111827',
-    text2: '#6B7280',
-    background: '#F9FAFB',
-    cardBg: '#FFFFFF',
-    buttonBg: '#1A56DB',
-    buttonText: '#FFFFFF',
+    accent: '#059669',
+    background: '#FFFFFF',
+    cardBg: '#F9FAFB',
     border: '#E5E7EB',
-    accent: '#F3F4F6',
-    overlay: 'rgba(0,0,0,0.03)',
+    text: '#111827',
+    textSecondary: '#6B7280',
+    buttonBg: '#059669',
+    buttonText: '#FFFFFF',
+    hoverBg: '#F3F4F6',
+    shadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    badgeBg: '#ECFDF5',
+    badgeText: '#047857'
   },
-}
-
-// Safe data access utility
-const safeGet = (obj, path, defaultValue = '') => {
-  if (!obj) return defaultValue
-  const keys = path.split('.')
-  let result = obj
-  for (const key of keys) {
-    result = result?.[key]
-    if (result === null || result === undefined) return defaultValue
+  'color-dark': { // Dark Mode
+    primary: '#F1F5F9',
+    secondary: '#94A3B8',
+    accent: '#60A5FA',
+    background: '#0F172A',
+    cardBg: '#1E293B',
+    border: '#334155',
+    text: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    buttonBg: '#3B82F6',
+    buttonText: '#FFFFFF',
+    hoverBg: '#334155',
+    shadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+    badgeBg: '#1E40AF',
+    badgeText: '#60A5FA'
   }
-  return result
-}
+};
 
-export default function Minimalism({ paletteKey = 'color-1', data = {} }) {
-  const t = minimalPalettes[paletteKey] ?? minimalPalettes['color-1']
-  
-  // Font: Helvetica Neue
-  const fontStyle = {
-    fontFamily: "'Helvetica Neue', Arial, sans-serif"
-  }
 
-  // Extract data with safe fallbacks
-  const creator = safeGet(data, 'creator', {})
-  const courses = safeGet(data, 'courses', [])
-  const highlights = safeGet(data, 'highlights', [])
-  const links = safeGet(data, 'links', [])
-  const stats = safeGet(data, 'stats', {})
 
-  const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0)
-  const bannerUrl = safeGet(creator, 'banner_url')
+export default function MinimalisticTemplate({ paletteKey = 'color-1', banner, data = placeholderCreatorData }) {
+  // const [creator, setCreator] = useState(null);
+  // const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { id } = useParams();
+
+  const palette = minimalPalettes[paletteKey] || minimalPalettes['color-2'];
+  const { creator, courses, highlights, links, stats } = data;
+
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const [creatorData, courseList] = await Promise.all([
+  //         getUserById(id),
+  //         getPublicCoursesByCreator(id)
+  //       ]);
+  //       setCreator(creatorData);
+  //       setCourses(courseList || []);
+  //     } catch (err) {
+  //       console.error("Error loading creator data:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [id]);
+
+  // if (loading || !creator) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-white">
+  //       <Loader2 className="animate-spin w-8 h-8 text-gray-600" />
+  //     </div>
+  //   );
+  // }
+
+  const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0);
 
   return (
-    <div className="min-h-screen" style={{ 
-      background: t.background, 
-      color: t.text1,
-      ...fontStyle 
-    }}>
-      {/* Minimal Header */}
-      <header className="border-b" style={{ borderColor: t.border }}>
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="text-xl font-light" style={{ color: t.primary }}>
-              {safeGet(creator, 'full_name', 'Professor')}
+    <div className="min-h-screen bg-white" style={{ color: palette.text }}>
+      {/* Simple Header */}
+      <div className="border-b" style={{ borderColor: palette.border }}>
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16 border-2" style={{ borderColor: palette.border }}>
+                <AvatarImage src={creator.profile_image_url} />
+                <AvatarFallback className="text-lg">
+                  {creator.full_name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold" style={{ color: palette.primary }}>
+                  {creator.full_name}
+                </h1>
+                <p className="text-sm" style={{ color: palette.textSecondary }}>
+                  Educator & Mentor
+                </p>
+              </div>
             </div>
-            <nav className="flex gap-8">
-              <a href="#courses" className="text-sm hover:underline" style={{ color: t.text2 }}>
-                Courses {courses.length > 0 && `(${courses.length})`}
-              </a>
-              <a href="#about" className="text-sm hover:underline" style={{ color: t.text2 }}>About</a>
-              <a href="#contact" className="text-sm hover:underline" style={{ color: t.text2 }}>Contact</a>
-            </nav>
+            <div className="flex gap-2">
+              <button className="p-2 rounded-lg border transition-colors hover:bg-gray-50"
+                      style={{ borderColor: palette.border, color: palette.textSecondary }}>
+                <Share2 size={16} />
+              </button>
+              <button className="p-2 rounded-lg border transition-colors hover:bg-gray-50"
+                      style={{ borderColor: palette.border, color: palette.textSecondary }}>
+                <Mail size={16} />
+              </button>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Hero Section with Banner */}
-      <section className="relative">
-        {bannerUrl && (
-          <div className="w-full h-80 md:h-96">
-            <img
-              src={bannerUrl}
-              alt="Banner"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none'
-              }}
-            />
-            <div className="absolute inset-0" style={{ background: t.overlay }}></div>
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Bio Section */}
+        {creator.bio && (
+          <div className="mb-12 text-center">
+            <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: palette.textSecondary }}>
+              {creator.bio}
+            </p>
           </div>
         )}
-        
-        <div className={`max-w-4xl mx-auto px-6 py-16 ${bannerUrl ? 'text-center -mt-20 relative z-10' : 'py-20'}`}>
-          {/* Profile Image */}
-          <div className={`mb-8 ${bannerUrl ? 'inline-block bg-white p-2 rounded-full shadow-lg' : ''}`}>
-            <img
-              src={safeGet(creator, 'profile_image_url', 'https://placehold.co/120x120')}
-              alt={safeGet(creator, 'full_name', 'Professor')}
-              className="w-24 h-24 rounded-full object-cover border"
-              style={{ borderColor: t.border }}
-              onError={(e) => {
-                e.target.src = 'https://placehold.co/120x120'
-              }}
-            />
-          </div>
 
-          <h1 className="text-4xl md:text-5xl font-light mb-4 tracking-tight" style={{ color: t.primary }}>
-            {safeGet(creator, 'full_name', 'Professor Name')}
-          </h1>
+        {/* Simple Stats */}
+        <div className="grid grid-cols-3 gap-6 mb-12">
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-1" style={{ color: palette.primary }}>
+              {courses.length}
+            </div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Courses</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-1" style={{ color: palette.primary }}>
+              {totalStudents}
+            </div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Students</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-1" style={{ color: palette.primary }}>
+              4.9
+            </div>
+            <div className="text-sm" style={{ color: palette.textSecondary }}>Rating</div>
+          </div>
+        </div>
+
+        {/* Courses Section */}
+        <div>
+          <h2 className="text-xl font-semibold mb-6 text-center" style={{ color: palette.primary }}>
+            Available Courses
+          </h2>
           
-          <p className="text-lg mb-8 max-w-2xl mx-auto leading-relaxed" style={{ color: t.text2 }}>
-            {safeGet(creator, 'bio', 'Creating meaningful learning experiences through carefully designed courses.')}
-          </p>
-
-          {/* Minimal CTA */}
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button className="px-6 py-2 text-sm border font-medium transition-colors"
-                    style={{ 
-                      borderColor: t.primary, 
-                      color: t.primary,
-                      background: t.background 
-                    }}>
-              View Courses {courses.length > 0 && `(${courses.length})`}
-            </button>
-            <button className="px-6 py-2 text-sm font-medium transition-colors"
-                    style={{ 
-                      background: t.buttonBg, 
-                      color: t.buttonText 
-                    }}>
-              Contact
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      {(courses.length > 0 || totalStudents > 0) && (
-        <section className="border-y" style={{ borderColor: t.border }}>
-          <div className="max-w-4xl mx-auto px-6 py-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <div className="text-2xl font-light mb-1" style={{ color: t.primary }}>
-                  {courses.length}
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: t.text2 }}>
-                  Courses
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-light mb-1" style={{ color: t.primary }}>
-                  {totalStudents}
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: t.text2 }}>
-                  Students
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-light mb-1" style={{ color: t.primary }}>
-                  {stats.average_rating || '4.9'}
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: t.text2 }}>
-                  Rating
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-light mb-1" style={{ color: t.primary }}>
-                  100%
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: t.text2 }}>
-                  Completion
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Courses Section */}
-      <section id="courses" className="max-w-6xl mx-auto px-6 py-20">
-        <h2 className="text-2xl font-light mb-12 text-center" style={{ color: t.primary }}>
-          {courses.length > 0 ? `Courses (${courses.length})` : 'Course Portfolio'}
-        </h2>
-        
-        {courses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {courses.map((course) => (
-              <div key={course.id} className="border-b pb-8" style={{ borderColor: t.border }}>
-                <h3 className="text-xl font-normal mb-3" style={{ color: t.primary }}>
-                  {course.title}
-                </h3>
-                
-                <p className="mb-4 leading-relaxed" style={{ color: t.text2 }}>
-                  {course.description}
-                </p>
-                
-                <div className="flex justify-between items-center text-sm">
-                  <span style={{ color: t.text2 }}>
-                    {course.student_count} students • {course.professor_name}
-                  </span>
-                  <button className="underline hover:no-underline" style={{ color: t.primary }}>
-                    Learn more
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Empty State */
-          <div className="text-center py-12 border-b" style={{ borderColor: t.border }}>
-            <div className="text-4xl mb-4">📖</div>
-            <h3 className="text-xl font-light mb-2" style={{ color: t.primary }}>Courses in Preparation</h3>
-            <p style={{ color: t.text2 }}>New educational content is being developed.</p>
-          </div>
-        )}
-      </section>
-
-      {/* Additional Sections */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Highlights */}
-          <div>
-            <h3 className="text-lg font-normal mb-6" style={{ color: t.primary }}>Teaching Approach</h3>
+          {courses.length > 0 ? (
             <div className="space-y-4">
-              {highlights.map((highlight, index) => (
-                <div key={index}>
-                  <h4 className="font-medium mb-1" style={{ color: t.primary }}>{highlight.title}</h4>
-                  <p className="text-sm" style={{ color: t.text2 }}>{highlight.desc}</p>
+              {courses.map((course) => (
+                <div key={course.id} 
+                     className="p-6 rounded-lg border transition-all hover:shadow-sm cursor-pointer group"
+                     style={{ 
+                       background: palette.cardBg, 
+                       borderColor: palette.border 
+                     }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-2" style={{ color: palette.primary }}>
+                        {course.title}
+                      </h3>
+                      <p className="text-sm mb-3 line-clamp-2" style={{ color: palette.textSecondary }}>
+                        {course.description}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs" style={{ color: palette.textSecondary }}>
+                        <span className="flex items-center gap-1">
+                          <Users size={12} />
+                          {course.student_count || 0} students
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Star size={12} />
+                          4.9 rating
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" 
+                               style={{ color: palette.accent }} />
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h3 className="text-lg font-normal mb-6" style={{ color: t.primary }}>Resources</h3>
-            <div className="space-y-2">
-              {links.map((link, index) => (
-                <a key={index} href={link.url} target="_blank" rel="noopener noreferrer"
-                   className="block py-2 text-sm hover:underline" style={{ color: t.text2 }}>
-                  {link.label}
-                </a>
-              ))}
+          ) : (
+            <div className="text-center py-12 rounded-lg border" 
+                 style={{ background: palette.cardBg, borderColor: palette.border }}>
+              <div className="text-3xl mb-3">📚</div>
+              <h3 className="text-lg font-semibold mb-2" style={{ color: palette.primary }}>
+                No Courses Available
+              </h3>
+              <p style={{ color: palette.textSecondary }}>
+                Check back later for new course offerings
+              </p>
             </div>
-          </div>
+          )}
         </div>
-      </section>
 
-      {/* Banner Showcase Section */}
-      {bannerUrl && (
-        <section className="border-t" style={{ borderColor: t.border }}>
-          <div className="max-w-4xl mx-auto px-6 py-16">
-            <h3 className="text-lg font-normal mb-6 text-center" style={{ color: t.primary }}>
-              Learning Environment
-            </h3>
-            <div className="bg-gray-50 rounded-lg overflow-hidden">
-              <img
-                src={bannerUrl}
-                alt="Learning Environment"
-                className="w-full h-64 object-cover"
-              />
-              <div className="p-6 text-center">
-                <p className="text-sm" style={{ color: t.text2 }}>
-                  Dedicated to providing the best educational experience
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Minimal Footer */}
-      <footer className="border-t text-center py-8" style={{ borderColor: t.border }}>
-        <div className="max-w-4xl mx-auto px-6">
-          <p className="text-sm" style={{ color: t.text2 }}>
-            © {new Date().getFullYear()} {safeGet(creator, 'full_name', 'Professor')}. All rights reserved.
+        {/* Simple Footer */}
+        <div className="mt-12 pt-8 border-t text-center" style={{ borderColor: palette.border }}>
+          <p className="text-sm" style={{ color: palette.textSecondary }}>
+            © 2024 {creator.full_name}. All rights reserved.
           </p>
         </div>
-      </footer>
+      </div>
     </div>
-  )
+  );
 }
 
-export { minimalPalettes as minimalisticPalettes }
+export { minimalPalettes };

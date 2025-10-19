@@ -8,6 +8,9 @@ import { uploadToCloudinary } from '@/utils/uploadToCloudinary'
 import { updateProfile, updateStyle } from '@/services/auth'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { TemplateRenderer } from '@/components2/pages/template/index.jsx'
+import { getUserCourses, getMe } from '@/services/auth';
+
+
 
 // ---------- Brand palette (subtle, low-contrast-friendly) ----------
 const BRAND = {
@@ -36,37 +39,37 @@ const THEME_CARDS = [
   {
     key: 'theme-1',
     title: 'Bento',
-    cover: 'https://placehold.co/720x300?text=Bento+Cover',
+    cover: 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838825/Screenshot_2025-10-18_at_9.51.00_PM_uxooid.png',
     colors: {
-      'color-1': 'https://placehold.co/640x240/8DB600/ffffff?text=Bento+color-1',
-      'color-2': 'https://placehold.co/640x240/C1272D/ffffff?text=Bento+color-2',
+      'color-1': 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838825/Screenshot_2025-10-18_at_9.51.00_PM_uxooid.png',
+      'color-2': 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838825/Screenshot_2025-10-18_at_9.51.18_PM_j1uaxp.png',
     },
   },
   {
     key: 'theme-2',
     title: 'Minimalistic',
-    cover: 'https://placehold.co/720x300?text=Minimalistic+Cover',
+    cover: 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838830/Screenshot_2025-10-18_at_9.53.28_PM_kxlcxf.png',
     colors: {
-      'color-1': 'https://placehold.co/640x240/3B3C36/ffffff?text=Minimal+color-1',
-      'color-2': 'https://placehold.co/640x240/EE964B/ffffff?text=Minimal+color-2',
+      'color-1': 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838830/Screenshot_2025-10-18_at_9.53.28_PM_kxlcxf.png',
+      'color-2': 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838826/Screenshot_2025-10-18_at_9.52.38_PM_sbnkga.png',
     },
   },
   {
     key: 'theme-3',
     title: 'Glassmorphism',
-    cover: 'https://placehold.co/720x300?text=Glassmorphism+Cover',
+    cover: 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838825/Screenshot_2025-10-18_at_9.51.43_PM_xa8vpu.png',
     colors: {
-      'color-1': 'https://placehold.co/640x240/2C365E/ffffff?text=Glass+color-1',
-      'color-2': 'https://placehold.co/640x240/8DB600/ffffff?text=Glass+color-2',
+      'color-1': 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838825/Screenshot_2025-10-18_at_9.51.43_PM_xa8vpu.png',
+      'color-2': 'https://res.cloudinary.com/dyeomcmin/image/upload/v1760838826/Screenshot_2025-10-18_at_9.52.00_PM_sm2rrx.png',
     },
   },
 ]
 
 const PRESET_BANNERS = [
-  'https://placehold.co/1200x360/edf1e5/3B3C36?text=Subtle+Apple+Tint',
-  'https://placehold.co/1200x360/f5eaea/3B3C36?text=Soft+Heritage+Tint',
-  'https://placehold.co/1200x360/f5efe7/3B3C36?text=Warm+Ivory+Tint',
-  'https://placehold.co/1200x360/eff2f7/3B3C36?text=Soft+Navy+Tint',
+  'https://res.cloudinary.com/dyeomcmin/image/upload/v1740689851/Geometric_abstract_art_marbling_colorful_wtiqv6.png',
+  'https://res.cloudinary.com/dyeomcmin/image/upload/v1740688147/2_ciw0y5.png',
+  'https://res.cloudinary.com/dyeomcmin/image/upload/v1740688148/bg3_ywoj4e.svg',
+  'https://res.cloudinary.com/dyeomcmin/image/upload/v1740688151/bgx_rt6jgw.png',
 ]
 
 // Slide variants with direction
@@ -80,9 +83,9 @@ const StepBadge = ({ index, active, done, label }) => (
   <div className="flex items-center gap-3">
     <div
       className={[
-        'h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold',
+        'h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold text-black',
         active ? 'text-white shadow' : done ? 'text-white' : '',
-        'border backdrop-blur',
+        'border backdrop-blur text-black',
       ].join(' ')}
       style={{
         background: active ? withA(BRAND.apple, 0.9) : done ? withA(BRAND.navy, 0.7) : withA(BRAND.ivory, 0.3),
@@ -91,13 +94,15 @@ const StepBadge = ({ index, active, done, label }) => (
     >
       {done ? '✓' : index}
     </div>
-    <span className="text-sm" style={{ color: active ? '#fff' : 'rgba(255,255,255,.85)' }}>{label}</span>
+    <span className="text-sm" style={{ color: active ? '#fff' : 'rgba(255,255,255,.85)' }}><a className='text-black text-base'>{label}</a></span>
   </div>
 )
+
 
 export default function CreatorOnboarding() {
   const [step, setStep] = useState(1)          // 1..5
   const [dir, setDir] = useState(1)            // motion direction
+  const [checkingBanner, setCheckingBanner] = useState(true)
 
   // profile fields
   const [bio, setBio] = useState('')
@@ -115,7 +120,34 @@ export default function CreatorOnboarding() {
   const [busy, setBusy] = useState(false)
   const navigate = useNavigate()
   const { user, refreshUser } = useAuth()
+  // Add this state for fresh user data
+  const [freshUserData, setFreshUserData] = useState(null);
+  const [loadingFreshData, setLoadingFreshData] = useState(false);
 
+  useEffect(() => {
+    const fetchFreshUserData = async () => {
+      if (step === 5) {
+        setLoadingFreshData(true);
+        try {
+          const [userData, coursesData] = await Promise.all([
+            getMe(),
+            getUserCourses()
+          ]);
+          
+          setFreshUserData({
+            user: userData,
+            courses: coursesData
+          });
+        } catch (error) {
+          console.error('Error fetching fresh user data:', error);
+        } finally {
+          setLoadingFreshData(false);
+        }
+      }
+    };
+  
+    fetchFreshUserData();
+  }, [step]);
   useEffect(() => {
     // If user is already configured, you could skip steps here.
   }, [user])
@@ -142,6 +174,15 @@ export default function CreatorOnboarding() {
     }
   }
 
+  useEffect(() => {
+    // If user already has a banner, skip onboarding and go to dashboard
+    if (user?.banner_url) {
+      navigate('/creator/dashboard', { replace: true })
+    }
+    setCheckingBanner(false)
+  }, [user, navigate])
+
+
   const handleSaveTheme = async () => {
     setBusy(true)
     try {
@@ -154,6 +195,7 @@ export default function CreatorOnboarding() {
       setBusy(false)
     }
   }
+
 
   const handleSavePalette = async () => {
     setBusy(true)
@@ -195,29 +237,76 @@ export default function CreatorOnboarding() {
   }
 
   // ---- Preview data for TemplateRenderer (Step 5) ----
-  const viewData = useMemo(() => ({
-    name: user?.full_name ?? 'Your Name',
-    headline: 'Creator & Educator',
-    bio: bio || user?.bio || 'Short bio goes here.',
-    avatarUrl: user?.profile_image_url || 'https://placehold.co/160x160',
-    bannerUrl: bannerUrl || user?.banner_url || '',
-    ctaUrl: '#',
-    ctaText: 'View Portfolio',
-    links: [
-      { label: 'Website', url: '#' },
-      { label: 'YouTube', url: '#' },
-      { label: 'Twitter', url: '#' },
-    ],
-    highlights: [
-      { title: '10+ Courses', desc: 'Across STEM & design' },
-      { title: '5k+ Learners', desc: 'Taught globally' },
-      { title: 'Top Rated', desc: '4.9/5 average' },
-    ],
-  }), [user, bio, bannerUrl])
+  const viewData = useMemo(() => {
+    // Use fresh data if available, otherwise fall back to existing data
+    const dataSource = freshUserData || { user, courses: [] };
+    const currentUser = dataSource.user || user;
+    const userCourses = dataSource.courses || user?.courses || [];
+  
+    return {
+      creator: {
+        id: currentUser?.id || 1,
+        full_name: currentUser?.full_name || 'Your Name',
+        bio: bio || currentUser?.bio || 'Creating meaningful learning experiences.',
+        profile_image_url: currentUser?.profile_image_url || 'https://placehold.co/160x160',
+        banner_url: bannerUrl || currentUser?.banner_url || '',
+        theme: theme,
+        color: paletteBoolean,
+        slug: currentUser?.slug || 'creator',
+        language: language || currentUser?.language || 'en',
+        created_at: currentUser?.created_at
+      },
+      courses: userCourses.map(course => ({
+        id: course.id,
+        title: course.title || 'Sample Course',
+        description: course.description || 'Comprehensive learning experience',
+        student_count: course.student_count || 0,
+        professor_name: currentUser?.full_name,
+        module_count: course.module_count || 0,
+        duration: course.duration || 'Self-paced',
+        level: course.level || 'All Levels',
+        rating: course.rating || 4.8,
+        price: course.price || 0,
+        image_url: course.image_url || '',
+        modules: course.modules || []
+      })),
+      template: theme,
+      paletteKey: paletteKey,
+      stats: {
+        total_courses: userCourses.length,
+        total_students: userCourses.reduce((sum, course) => sum + (course.student_count || 0), 0),
+        average_rating: userCourses.length > 0 ? 
+          userCourses.reduce((sum, course) => sum + (course.rating || 4.8), 0) / userCourses.length : 4.8,
+        completion_rate: 85
+      },
+      highlights: [
+        { title: 'Expert Educator', desc: 'Years of teaching experience' },
+        { title: 'Student Focused', desc: 'Proven track record of student success' },
+        { title: 'Quality Content', desc: 'Carefully crafted learning materials' },
+      ],
+      links: [
+        { label: 'Professional Profile', url: '#' },
+        { label: 'Contact', url: '#' },
+      ]
+    };
+  }, [freshUserData, user, bio, bannerUrl, theme, paletteKey, paletteBoolean, language]);
+  
+  const publicUrl = user?.slug ? `/creator/${user.slug}` : `/creator/${user?.id}`;
 
-  const publicUrl = user?.slug ? `/creator/${user.slug}` : null
+  if (checkingBanner) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking your profile...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
+
+    
     <div className="relative min-h-[100svh]" style={{ background: BRAND.ivory }}>
       {/* Subtle layered backdrop (less gradient, more professional) */}
       <div className="absolute inset-0 pointer-events-none">
@@ -246,14 +335,27 @@ export default function CreatorOnboarding() {
           <p style={{ color: withA(BRAND.blackOlive, 0.7) }}>Let’s set up your page in a few steps.</p>
         </div>
 
-        <div className="grid md:grid-cols-5 grid-cols-3 gap-4 mb-8">
-          <StepBadge index={1} label="Profile"  active={step === 1} done={step > 1} />
-          <StepBadge index={2} label="Template" active={step === 2} done={step > 2} />
-          <StepBadge index={3} label="Palette"  active={step === 3} done={step > 3} />
-          <StepBadge index={4} label="Banner"   active={step === 4} done={step > 4} />
-          <StepBadge index={5} label="Publish"  active={step === 5} done={false} />
-        </div>
+        <div>
+          {/* Mobile - Shows only current step */}
+          <div className="lg:hidden mb-6">
+            <div className="flex justify-baseline pl-4 "> 
+              {step === 1 && <StepBadge index={1} label="Profile" active={true} done={false} mobile />}
+              {step === 2 && <StepBadge index={2} label="Template" active={true} done={step > 2} mobile />}
+              {step === 3 && <StepBadge index={3} label="Palette" active={true} done={step > 3} mobile />}
+              {step === 4 && <StepBadge index={4} label="Banner" active={true} done={step > 4} mobile />}
+              {step === 5 && <StepBadge index={5} label="Publish" active={true} done={false} mobile />}
+            </div>
+          </div>
 
+          {/* Desktop - Shows all steps */}
+          <div className="hidden lg:grid md:grid-cols-5 grid-cols-3 gap-4 mb-8">
+            <StepBadge index={1} label="Profile" active={step === 1} done={step > 1} />
+            <StepBadge index={2} label="Template" active={step === 2} done={step > 2} />
+            <StepBadge index={3} label="Palette" active={step === 3} done={step > 3} />
+            <StepBadge index={4} label="Banner" active={step === 4} done={step > 4} />
+            <StepBadge index={5} label="Publish" active={step === 5} done={false} />
+          </div>
+        </div>
         {/* Card container */}
         <div
           className="rounded-2xl shadow-xl border p-6 md:p-8 overflow-hidden"
