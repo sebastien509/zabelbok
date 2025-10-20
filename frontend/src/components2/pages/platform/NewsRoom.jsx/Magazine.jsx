@@ -266,8 +266,8 @@ export function Sidebar({ isOpen, onClose }) {
               {[
                 { name: 'Magazine', path: '/magazine', color: 'bg-green-500' },
                 { name: 'Newsroom', path: '/news', color: 'bg-red-500' },
-                { name: 'Podcasts', path: '/podcasts', color: 'bg-orange-500' },
-                { name: 'Business', path: '/business', color: 'bg-amber-700' },
+                { name: 'Podcasts', path: '/magazine', color: 'bg-orange-500' },
+                { name: 'Home', path: '/', color: 'bg-amber-700' },
               ].map((item) => (
                 <Link
                   key={item.name}
