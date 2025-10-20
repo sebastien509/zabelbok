@@ -406,7 +406,7 @@ export default function MagazinePage() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link 
-                  to={`/articles/${mainStory.slug}`}
+                  to={`/article/${mainStory.slug}`}
                   className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 text-center"
                 >
                   Read Full Story

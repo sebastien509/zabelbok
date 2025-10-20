@@ -67,8 +67,6 @@ const shadowColor = (hex, alpha = 0.22, opts) => {
   return `${x}px ${y}px ${blur}px ${spread}px rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-
-/// ====== Nav (hide on scroll) ======
 function NavBar() {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -190,8 +188,10 @@ function NavBar() {
           className="hidden lg:flex items-center gap-8 text-sm"
           style={{ color: palette.blackOlive, fontFamily: bodyFont }}
         >
+          <div className="bg-white/70 text-md hover:bg-white text-orange-700   p-1 px-4 rounded-2xl border border-lime-300  ">
+          <Link classnames="" to="/magazine" className="hover:opacity-80">Magazine</Link>
+          </div>
           <a href="#features" className="hover:opacity-80">Features</a>
-          <a href="#ai" className="hover:opacity-80">AI Assistants</a>
           <a href="#mobile" className="hover:opacity-80">Tech & Mobile</a>
           <a href="#media" className="hover:opacity-80">Media Packages</a>
           <a href="#pricing" className="hover:opacity-80">Pricing</a>
@@ -239,8 +239,10 @@ function NavBar() {
           className="lg:hidden px-4 pb-4 space-y-2"
           style={{ color: palette.blackOlive, fontFamily: bodyFont }}
         >
+          <div className="bg-white/70 text-lg hover:bg-white text-orange-700   p-1 px-4 text-center mb-6 rounded-2xl border border-lime-300  ">
+          <Link classnames="" to="/magazine" className="hover:opacity-80 text-center">Magazine</Link>
+          </div>
           <a href="#features" className="block">Features</a>
-          <a href="#ai" className="block">AI Assistants</a>
           <a href="#mobile" className="block">Tech & Mobile</a>
           <a href="#media" className="block">Media Packages</a>
           <a href="#pricing" className="block">Pricing</a>
@@ -271,7 +273,6 @@ function NavBar() {
     </nav>
   );
 }
-
 
 // ====== Hero (Rotating) ======
 function RotatingHero() {

@@ -69,11 +69,11 @@ export default function ArticlePage() {
 
         {/* Featured Image */}
         {article.featured_image && (
-          <div className="mb-8 rounded-lg overflow-hidden">
+          <div className="mb-8 max-h-[500px] rounded-lg overflow-hidden">
             <img 
               src={article.featured_image} 
               alt={article.title}
-              className="w-full h-64 object-cover"
+              className="w-full min-h-64 object-cover"
             />
           </div>
         )}
