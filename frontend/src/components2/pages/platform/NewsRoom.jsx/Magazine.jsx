@@ -350,21 +350,21 @@ export function Sidebar({ isOpen, onClose }) {
       </div>
 
       {/* Desktop Sidebar - Fixed, No Scroll */}
-      <div className="hidden lg:block fixed top-26 px-6 left-0 h-[calc(100vh-8rem)] w-80  z-30 overflow-hidden">
-        <div className="h-full flex flex-col">
+      <div className="hidden lg:block fixed top-26 px-6 left-0 h-[calc(100vh-8rem)] w-80  z-30 overflow-visible">
+        <div className="h-full flex flex-col ">
           {/* Desktop Buttons */}
    
 
           {/* Desktop Navigation Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-visible">
             {/* Bento Navigation Grid */}
-            <div className="space-y-3  mb-6">
+            <div className="space-y-3  mb-6   ">
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { name: 'Magazine', path: '/magazine', color: 'bg-green-500' },
                   { name: 'Newsroom', path: '/news', color: 'bg-red-500' },
                   { name: 'Podcasts', path: '/podcasts', color: 'bg-orange-500' },
-                  { name: 'Business', path: '/business', color: 'bg-amber-700' },
+                  { name: 'Home', path: '/', color: 'bg-amber-700' },
                 ].map((item) => (
                   <Link
                     key={item.name}
