@@ -515,7 +515,7 @@ export default function MagazinePage() {
 </div>
 
             {/* Main Story Visual */}
-            <div className="relative z-40">
+            <div className="relative z-20">
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <div 
                   className="aspect-[4/3] bg-cover bg-center rounded-xl flex items-end justify-start p-6"
