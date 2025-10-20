@@ -69,7 +69,7 @@ import RoleBasedOfflinePage from './components/system/RoleBasedOfflinePage';
 
 import { TeamSebastien, TeamSimin, TeamKalifa } from "./components2/pages/platform/Team";
 import Magazine from './components2/pages/platform/NewsRoom.jsx/Magazine';
-import Articles from './components2/pages/platform/NewsRoom.jsx/Articles';
+import Articles from './components2/pages/platform/NewsRoom.jsx/ArticlePage';
 import News from './components2/pages/platform/NewsRoom.jsx/News';
 
 
