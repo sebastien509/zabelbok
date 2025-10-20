@@ -62,7 +62,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
       </div>
       {/* Text hidden on mobile, shown on sm and up */}
       <span className="text-lg font-semibold text-gray-900 hidden sm:block">
-        E-stratèji
+        E-strateji
       </span>
     </Link>
 
