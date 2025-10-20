@@ -45,22 +45,62 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
       }}
     >
       <div className="max-w-8xl mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Centered Logo */}
-        <div className="absolute left-1/2 transform -translate-x-1/2">
-          <Link to="/magazine" className="flex items-center gap-2">
-            <div
-              className="h-8 w-8 rounded-xl overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
-            >
-              <img
-                src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
-                alt="E-strateji"
-                className="h-7 w-7 object-contain m-auto"
-              />
-            </div>
-            <span className="text-lg font-semibold text-gray-900">E-stratèji</span>
-          </Link>
+      {/* Centered Logo with Magazine Badge - Mobile Optimized */}
+<div className="absolute left-1/2 transform -translate-x-1/2">
+  <div className="flex items-center  pr-2  gap-2 sm:gap-3">
+    {/* Main Logo - Text hidden on mobile */}
+    <Link to="/" className="flex items-center gap-2 group/logo">
+      <div
+        className="h-8 w-8 rounded-xl overflow-hidden transition-all duration-300 group-hover/logo:scale-110"
+        style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
+      >
+        <img
+          src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
+          alt="E-strateji"
+          className="h-7 w-7 object-contain m-auto pt-1"
+        />
+      </div>
+      {/* Text hidden on mobile, shown on sm and up */}
+      <span className="text-lg font-semibold text-gray-900 hidden sm:block">
+        E-stratèji
+      </span>
+    </Link>
+
+    {/* Magazine Badge - Compact on mobile */}
+    <div className="relative">
+      <Link 
+        to="/magazine" 
+        className="group/magazine inline-flex items-center gap-1 sm:gap-2 border bg-gradient-to-r from-green-50 to-red-50 hover:from-green-100 hover:to-red-100 text-gray-800 text-xs sm:text-sm font-semibold py-.5 sm:py-1 px-3 sm:px-4  border-transparent bg-clip-padding transition-all duration-300 hover:scale-105"
+        style={{
+          background: 'linear-gradient(135deg, rgba(141, 182, 0, 0.1), rgba(193, 39, 45, 0.1))',
+          borderImage: 'linear-gradient(135deg, #8DB600, #C1272D) 1',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+        }}
+      >
+        {/* Magazine Icon - Always visible */}
+        {/* <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md overflow-hidden flex items-center justify-center"
+             style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}>
+          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
         </div>
+         */}
+        {/* Text hidden on mobile, shown on md and up */}
+        <span className="hidden  text-lg md:block bg-gradient-to-r from-green-700 to-red-700 bg-clip-text text-transparent font-bold">
+          Magazine
+        </span>
+        
+        {/* Mobile: Show "Mag" abbreviation */}
+        <span className="md:hidden text-lg bg-gradient-to-r from-green-700 to-red-700 bg-clip-text text-transparent ">
+          Magazine
+        </span>
+      </Link>
+
+      {/* New Content Indicator - Hidden on smallest screens */}
+      <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full animate-ping opacity-75 hidden sm:block"></div>
+    </div>
+  </div>
+</div>
 
         {/* Right Side Buttons - Hidden on mobile */}
         <div className="hidden lg:flex items-center gap-3 ml-auto">
@@ -265,7 +305,7 @@ export function Sidebar({ isOpen, onClose }) {
         {/* Cover image */}
         <div className="aspect-[3/4] overflow-hidden">
           <img
-            src="https://64.media.tumblr.com/05e921ccfbe0528ff8c0d86fa488bf81/tumblr_o6lnlfInL91qhevr0o1_1280.jpg"
+            src="https://freight.cargo.site/w/1000/q/75/i/040ca37aba5557cc39f79248abafd89a68a31f85949dbfcf82bcf7edba2cc4b2/i-D-X-LOUS.jpg"
             alt="E-strateji Magazine — Latest Edition Cover"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
@@ -371,54 +411,111 @@ export default function MagazinePage() {
       />
       
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+      <section className="relative min-h-[80vh] flex items-center mt-5 rounded-t-2xl  justify-center bg-gradient-to-br from-gray-50 to-white">
+
+        {/* Animated Orbs — Vibrant, Big, Organic */}
+<div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+  {/* Apple Green — large hero orb */}
+  <div
+    className="absolute -top-32 -left-28 md:-top-40 md:-left-36
+               w-[28rem] h-[28rem] md:w-[34rem] md:h-[34rem]
+               rounded-full opacity-70 blur-3xl animate-orb-1 animate-hue will-change-transform"
+    style={{
+      background:
+        `radial-gradient(ellipse at 40% 40%,
+          color-mix(in oklab, var(--appleGreen) 90%, white 10%) 0%,
+          color-mix(in oklab, var(--appleGreen) 80%, transparent 20%) 28%,
+          color-mix(in oklab, var(--appleGreen) 55%, transparent 45%) 55%,
+          transparent 75%)`
+    }}
+  />
+
+  {/* Heritage Red — right mid orb */}
+  <div
+    className="absolute top-1/3 -right-24 md:-right-40
+               w-[22rem] h-[22rem] md:w-[28rem] md:h-[28rem]
+               rounded-full opacity-20 blur-2xl animate-orb-2 will-change-transform"
+    style={{
+      background:
+        `radial-gradient(ellipse at 40% 20%,
+          color-mix(in oklab, var(--heritageRed) 85%, white 15%) 0%,
+          color-mix(in oklab, var(--heritageRed) 70%, transparent 30%) 25%,
+          color-mix(in oklab, var(--heritageRed) 45%, transparent 55%) 42%,
+          transparent 50%)`
+    }}
+  />
+
+  {/* Burnt Orange — bottom glow */}
+  <div
+    className="absolute -bottom-32 left-1/5 md:left-1/4
+               w-[24rem] h-[24rem] md:w-[30rem] md:h-[30rem]
+               rounded-full opacity-60 blur-3xl animate-orb-3 will-change-transform"
+    style={{
+      background:
+        `radial-gradient(ellipse at 50% 60%,
+          color-mix(in oklab, var(--burntOrange) 85%, white 15%) 0%,
+          color-mix(in oklab, var(--burntOrange) 65%, transparent 35%) 35%,
+          color-mix(in oklab, var(--burntOrange) 40%, transparent 60%) 60%,
+          transparent 80%)`
+    }}
+  />
+
+
+
+  {/* Optional: faint vignette to contain color spill */}
+  {/* <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.06)_100%)]" /> */}
+</div>
+
         <div className="max-w-6xl mx-auto px-4 w-full py-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
-            {/* Main Story Content */}
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-lg">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">{mainStory.category}</span>
-              </div>
+       {/* Main Story Content */}
+<div className="space-y-6 relative overflow-hidden z-20">
 
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                {mainStory.title}
-              </h1>
 
-              <p className="text-xl text-gray-600 leading-relaxed">
-                {mainStory.excerpt}
-              </p>
 
-              <div className="flex flex-wrap items-center gap-4 text-gray-500 text-sm">
-                <span className="font-medium">{mainStory.author}</span>
-                <span>{mainStory.date}</span>
-                <span>{mainStory.readTime} min read</span>
-              </div>
+  <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 px-4 py-2 rounded-lg">
+    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+    <span className="text-sm font-medium text-gray-700">{mainStory.category}</span>
+  </div>
 
-              <div className="flex flex-wrap gap-2">
-                {mainStory.keywords.slice(0, 4).map(keyword => (
-                  <span key={keyword} className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                    #{keyword}
-                  </span>
-                ))}
-              </div>
+  <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+    {mainStory.title}
+  </h1>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link 
-                  to={`/article/${mainStory.slug}`}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 text-center"
-                >
-                  Read Full Story
-                </Link>
-                <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors duration-200">
-                  Share
-                </button>
-              </div>
-            </div>
+  <p className="text-xl text-gray-600 leading-relaxed">
+    {mainStory.excerpt}
+  </p>
+
+  <div className="flex flex-wrap items-center gap-4 text-gray-500 text-sm">
+    <span className="font-medium">{mainStory.author}</span>
+    <span>{mainStory.date}</span>
+    <span>{mainStory.read_time} min read</span>
+  </div>
+
+  <div className="flex flex-wrap gap-2">
+    {mainStory.keywords.slice(0, 4).map(keyword => (
+      <span key={keyword} className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+        #{keyword}
+      </span>
+    ))}
+  </div>
+
+  <div className="flex flex-col sm:flex-row gap-3">
+    <Link 
+      to={`/article/${mainStory.slug}`}
+      className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 text-center"
+    >
+      Read Full Story
+    </Link>
+    <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+      Share
+    </button>
+  </div>
+</div>
 
             {/* Main Story Visual */}
-            <div className="relative">
+            <div className="relative z-40">
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <div 
                   className="aspect-[4/3] bg-cover bg-center rounded-xl flex items-end justify-start p-6"
