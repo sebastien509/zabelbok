@@ -212,7 +212,7 @@ export function Sidebar({ isOpen, onClose }) {
         {/* Cover image */}
         <div className="aspect-[3/4] overflow-hidden">
           <img
-            src="https://64.media.tumblr.com/05e921ccfbe0528ff8c0d86fa488bf81/tumblr_o6lnlfInL91qhevr0o1_1280.jpg"
+            src="https://freight.cargo.site/w/1000/q/75/i/040ca37aba5557cc39f79248abafd89a68a31f85949dbfcf82bcf7edba2cc4b2/i-D-X-LOUS.jpg"
             alt="E-strateji Magazine — Latest Edition Cover"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
