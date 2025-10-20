@@ -76,6 +76,7 @@ export default function NewsPage() {
                 src={newsArticle.featured_image} 
                 alt={newsArticle.title}
                 className="w-full h-64 object-cover"
+                 data-preload="false" loading="lazy"
               />
             </div>
           )}
@@ -165,6 +166,7 @@ export default function NewsPage() {
                       src={news.featured_image} 
                       alt={news.title}
                       className="w-full h-32 object-cover rounded-lg mt-2 md:mt-0"
+                       data-preload="false" loading="lazy"
                     />
                   )}
                 </div>

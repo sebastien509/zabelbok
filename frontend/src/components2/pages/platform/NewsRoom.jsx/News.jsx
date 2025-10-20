@@ -25,6 +25,7 @@ export default function News() {
                     src={latestNews.featured_image} 
                     alt={latestNews.title}
                     className="w-full h-64 md:h-full object-cover"
+                     data-preload="false" loading="lazy"
                   />
                 )}
               </div>
@@ -89,6 +90,7 @@ export default function News() {
                       src={news.featured_image} 
                       alt={news.title}
                       className="w-full h-32 object-cover rounded-lg mt-2 md:mt-0"
+                       data-preload="false" loading="lazy"
                     />
                   )}
                 </div>

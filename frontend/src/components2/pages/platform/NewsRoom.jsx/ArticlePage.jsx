@@ -74,6 +74,7 @@ export default function ArticlePage() {
               src={article.featured_image} 
               alt={article.title}
               className="w-full min-h-64 object-cover"
+               data-preload="false" loading="lazy"
             />
           </div>
         )}

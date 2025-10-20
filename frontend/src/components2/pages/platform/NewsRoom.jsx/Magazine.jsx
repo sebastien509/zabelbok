@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import SEO from '@/components2/SEO';
 import { Link } from 'react-router-dom';
 import { Footer } from '../../LandingPage';
@@ -6,34 +5,130 @@ import FeaturedSection from './FeaturedSection';
 import ArticleGrid from './ArticleGrid';
 import articlesData from './articles.json';
 import newsroomData from './newsroom.json';
+import { useEffect, useRef, useState } from "react";
+
 
 export function Layout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const mainRef = useRef(null);
+
+  useEffect(() => {
+    const container = mainRef.current;
+    if (!container) return;
+
+    let total = 0;
+    let loaded = 0;
+    const seen = new WeakSet();
+    const SEL = 'img:not([data-preload="false"])';
+
+    const updateProgress = () => setProgress(total ? loaded / total : 1);
+    const finishIfDone = () => {
+      updateProgress();
+      if (loaded >= total) setReady(true);
+    };
+
+    const markDone = (img) => {
+      if (seen.has(img)) return;
+      seen.add(img);
+      loaded += 1;
+      finishIfDone();
+    };
+
+    const watchImages = (imgs) => {
+      const list = Array.from(imgs).filter((img) => !seen.has(img));
+      if (!list.length) {
+        if (total === 0) setReady(true);
+        return;
+      }
+      total += list.length;
+      updateProgress();
+
+      list.forEach((img) => {
+        if (img.complete && img.naturalWidth > 0) {
+          markDone(img);
+          return;
+        }
+        const onLoad = () => cleanup();
+        const onError = () => cleanup();
+        const cleanup = () => {
+          img.removeEventListener("load", onLoad);
+          img.removeEventListener("error", onError);
+          markDone(img);
+        };
+        img.addEventListener("load", onLoad, { once: true });
+        img.addEventListener("error", onError, { once: true });
+      });
+    };
+
+    // Initial batch
+    watchImages(container.querySelectorAll(SEL));
+
+    // Watch dynamically-added images and re-enter loading state
+    const mo = new MutationObserver((mutations) => {
+      const newImgs = [];
+      mutations.forEach((m) => {
+        m.addedNodes.forEach((n) => {
+          if (!(n instanceof HTMLElement)) return;
+          if (n.matches?.(SEL)) newImgs.push(n);
+          newImgs.push(...(n.querySelectorAll?.(SEL) || []));
+        });
+      });
+      if (newImgs.length) {
+        setReady(false);
+        watchImages(newImgs);
+      }
+    });
+    mo.observe(container, { childList: true, subtree: true });
+
+    return () => mo.disconnect();
+  }, []);
 
   return (
-
     <>
-    <div className="min-h-screen bg-ivoryNeutral">
-      <Navbar 
-        onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
-        isSidebarOpen={isSidebarOpen}
-      />
-      <div className='flex'>
-        <Sidebar
-          isOpen={isSidebarOpen} 
-          onClose={() => setIsSidebarOpen(false)} 
-        />
-        <main className="flex-1 transition-all duration-300 pt-16 min-h-screen">
-          <div className="lg:p-4 lg:ml-80 lg:pl-6 pt-4 sm:p-2 sm:pt-16  overflow-x-hidden ">
-            {children}
+      {/* Overlay while images load */}
+      {!ready && (
+        <div className="fixed inset-0 z-[9999] bg-ivoryNeutral flex flex-col items-center justify-center">
+          <div className="h-14 w-14 rounded-full border-4 border-appleGreen/30 border-t-appleGreen animate-spin" />
+          <div className="mt-4 text-blackOlive text-sm font-medium">
+            Loading… {Math.round(progress * 100)}%
           </div>
-        </main>
+        </div>
+      )}
+
+      <div className="min-h-screen bg-ivoryNeutral">
+        <Navbar
+          onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          isSidebarOpen={isSidebarOpen}
+        />
+        <div className="flex">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+          <main className="flex-1 transition-all duration-300 pt-16 min-h-screen">
+            <div
+              ref={mainRef}
+              className={`lg:p-4 lg:ml-80 lg:pl-6 pt-4 sm:p-2 sm:pt-16 overflow-x-hidden
+                          transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}
+            >
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
-    {/* <Footer/> */}
-  </>
+      {/* <Footer/> */}
+    </>
   );
 }
+
+/* Tip:
+   - To prevent a specific image from blocking initial load, render it with:
+     <img src="..." alt="..." data-preload="false" loading="lazy" />
+*/
+
+
 export function Navbar({ onMenuToggle, isSidebarOpen }) {
   return (
     <nav
@@ -58,6 +153,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
           src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
           alt="E-strateji"
           className="h-7 w-7 object-contain m-auto pt-1"
+           data-preload="false" loading="lazy"
         />
       </div>
       {/* Text hidden on mobile, shown on sm and up */}
@@ -215,6 +311,7 @@ export function Sidebar({ isOpen, onClose }) {
             src="https://freight.cargo.site/w/1000/q/75/i/040ca37aba5557cc39f79248abafd89a68a31f85949dbfcf82bcf7edba2cc4b2/i-D-X-LOUS.jpg"
             alt="E-strateji Magazine — Latest Edition Cover"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+             data-preload="false" loading="lazy"
           />
         </div>
 
@@ -308,6 +405,7 @@ export function Sidebar({ isOpen, onClose }) {
             src="https://freight.cargo.site/w/1000/q/75/i/040ca37aba5557cc39f79248abafd89a68a31f85949dbfcf82bcf7edba2cc4b2/i-D-X-LOUS.jpg"
             alt="E-strateji Magazine — Latest Edition Cover"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+             data-preload="false" loading="lazy"
           />
         </div>
 
