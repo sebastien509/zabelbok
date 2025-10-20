@@ -24,7 +24,7 @@ export function Layout({ children }) {
           onClose={() => setIsSidebarOpen(false)} 
         />
         <main className="flex-1 transition-all duration-300 pt-16 min-h-screen">
-          <div className="lg:p-4 lg:ml-80 lg:pl-6 pt-10 sm:p-2 sm:pt-16  overflow-x-hidden ">
+          <div className="lg:p-4 lg:ml-80 lg:pl-6 pt-4 sm:p-2 sm:pt-16  overflow-x-hidden ">
             {children}
           </div>
         </main>
@@ -47,14 +47,14 @@ export function Navbar({ onMenuToggle, isSidebarOpen }) {
       <div className="max-w-8xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Centered Logo */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/magazine" className="flex items-center gap-2">
             <div
               className="h-8 w-8 rounded-xl overflow-hidden"
               style={{ background: "linear-gradient(135deg, #8DB600, #C1272D)" }}
             >
               <img
                 src="https://res.cloudinary.com/dyeomcmin/image/upload/v1752340909/Estrateji-Symbol-white_ndemtl.png"
-                alt="E-stratèji"
+                alt="E-strateji"
                 className="h-7 w-7 object-contain m-auto"
               />
             </div>
@@ -372,7 +372,7 @@ export default function MagazinePage() {
       
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="max-w-6xl mx-auto px-4 w-full py-12">
+        <div className="max-w-6xl mx-auto px-4 w-full py-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
             {/* Main Story Content */}

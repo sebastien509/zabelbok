@@ -306,7 +306,7 @@ function RotatingHero() {
     </div>
   </motion.div>
           <motion.div key={active.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-            <div className="text-xs tracking-wide px-3 mx-2 w-fit uppercase py-1 rounded-full border" style={{ color: active.accent, fontFamily: bodyFont, ...softBorder(active.accent), ...glass(0.55) }}>{active.kicker}</div>
+            <div className="md:block hidden text-xs tracking-wide px-3 mx-2 w-fit uppercase py-1 rounded-full border" style={{ color: active.accent, fontFamily: bodyFont, ...softBorder(active.accent), ...glass(0.55) }}>{active.kicker}</div>
             <h1 className="mt-3 text-4xl lg:text-5xl leading-tight" style={{ color: palette.blackOlive, fontFamily: headlineFont }}>{active.title}</h1>
             <p className="mt-4 text-lg max-w-xl" style={{ color: palette.blackOlive, fontFamily: bodyFont }}>{active.copy}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
