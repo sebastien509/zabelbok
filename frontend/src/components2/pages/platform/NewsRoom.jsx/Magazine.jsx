@@ -448,20 +448,21 @@ export function Sidebar({ isOpen, onClose }) {
 }
 // Enhanced Magazine Page with proper sidebar integration
 export default function MagazinePage() {
+  const articles = articlesData?.articles ?? [];
+  const news = newsroomData?.newsroom ?? [];
+  const mainStory = articles.at(-1) ?? null;
 
-   // Use the first article as the main story
-   const mainStory = articlesData.articles[0];
-
-   // Combine articles and news for featured section (first 2 articles)
-   const featuredArticles = articlesData.articles.slice(0, 2);
-   
-   // Latest articles (remaining articles)
-  //  const latestArticles = articlesData.articles.slice(2);
-   
-   // Latest news (first 3 news items)
-   const latestNews = newsroomData.newsroom.slice(0, 3);
- 
-   const latestArticles = [
+  // Combine articles and news for featured section (first 2 articles)
+  const featuredArticles = articles.slice(0, 2);
+  
+  // Latest articles (remaining after the first 2), excluding mainStory
+  const latestArticles = articles
+    .slice(0)
+    .filter(a => (mainStory ? a.id !== mainStory.id : true));
+  
+  // Latest news (first 3 news items)
+  const latestNews = news.slice(0, 3);
+   const latestaArticles = [
     {
       id: 1,
       title: "Preserving Caribbean History Through Digital Archives",
