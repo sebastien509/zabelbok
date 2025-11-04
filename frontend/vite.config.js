@@ -1,5 +1,5 @@
 // vite.config.js
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      splitVendorChunkPlugin(), // improves chunking so index-*.js is smaller
       mode === 'production' &&
         VitePWA({
           registerType: 'autoUpdate',
@@ -33,11 +34,56 @@ export default defineConfig(({ mode }) => {
           },
           workbox: {
             navigateFallback: '/index.html',
-            globPatterns: ['**/*.{js,css,html,png,svg,ico,mp4,webm}'],
+            // Precache only code & core assets; exclude heavy media from precache
+            globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+            // Allow slightly larger entry bundles to be precached (default is 2 MiB)
+            maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+            // Use runtime caching for images, fonts, and videos instead of precache
+            runtimeCaching: [
+              {
+                urlPattern: /\/.*\.(?:png|jpg|jpeg|gif|webp|svg)$/,
+                handler: 'CacheFirst',
+                options: {
+                  cacheName: 'images',
+                  expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 3600 },
+                },
+              },
+              {
+                urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
+                handler: 'StaleWhileRevalidate',
+                options: { cacheName: 'google-fonts' },
+              },
+              {
+                urlPattern: /\/.*\.(?:mp4|webm)$/,
+                handler: 'CacheFirst',
+                options: {
+                  cacheName: 'media',
+                  expiration: { maxEntries: 20, maxAgeSeconds: 7 * 24 * 3600 },
+                },
+              },
+            ],
           },
         }),
     ].filter(Boolean),
+
     resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
+
+    // Shrink index-*.js further with manual chunks
+    build: {
+      sourcemap: false,
+      chunkSizeWarningLimit: 1200, // quiet warnings (KB)
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            router: ['react-router-dom'],
+            icons: ['lucide-react'],
+            // add other big libs here if needed
+          },
+        },
+      },
+    },
+
     server: {
       port: 5173,
       proxy: target
@@ -59,6 +105,7 @@ export default defineConfig(({ mode }) => {
           }
         : undefined,
     },
+
     preview: { port: 5173 },
   }
 })
