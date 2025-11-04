@@ -1,5 +1,5 @@
 // vite.config.js
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      splitVendorChunkPlugin(),
       mode === 'production' &&
         VitePWA({
           registerType: 'autoUpdate',
@@ -33,31 +34,56 @@ export default defineConfig(({ mode }) => {
           },
           workbox: {
             navigateFallback: '/index.html',
-    // only precache core web assets
-    globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-    // bump the max size (default 2 MiB)
-    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB,
-    runtimeCaching: [
-      {
-        urlPattern: /\/.*\.(?:png|jpg|jpeg|gif|webp|svg)$/,
-        handler: 'CacheFirst',
-        options: { cacheName: 'images', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 3600 } },
-      },
-      {
-        urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
-        handler: 'StaleWhileRevalidate',
-        options: { cacheName: 'google-fonts' },
-      },
-      {
-        urlPattern: /\/.*\.(?:mp4|webm)$/,
-        handler: 'CacheFirst',
-        options: { cacheName: 'media', expiration: { maxEntries: 20, maxAgeSeconds: 7 * 24 * 3600 } },
-      },
-    ],
+            // only precache core web assets (exclude big media)
+            globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+            // raise cap above default 2 MiB for entry chunks
+            maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+            // optional: if you still hit large entry files, ignore them from precache
+            // globIgnores: ['**/assets/index-*.js'],
+            runtimeCaching: [
+              {
+                urlPattern: /\/.*\.(?:png|jpg|jpeg|gif|webp|svg)$/i,
+                handler: 'CacheFirst',
+                options: {
+                  cacheName: 'images',
+                  expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 3600 },
+                },
+              },
+              {
+                urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
+                handler: 'StaleWhileRevalidate',
+                options: { cacheName: 'google-fonts' },
+              },
+              {
+                urlPattern: /\/.*\.(?:mp4|webm)$/i,
+                handler: 'CacheFirst',
+                options: {
+                  cacheName: 'media',
+                  expiration: { maxEntries: 20, maxAgeSeconds: 7 * 24 * 3600 },
+                },
+              },
+            ],
           },
         }),
     ].filter(Boolean),
+
     resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
+
+    build: {
+      sourcemap: false,
+      chunkSizeWarningLimit: 1200, // in KB
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            router: ['react-router-dom'],
+            icons: ['lucide-react'],
+            // add more libs if needed to keep index-*.js small
+          },
+        },
+      },
+    },
+
     server: {
       port: 5173,
       proxy: target
@@ -79,6 +105,7 @@ export default defineConfig(({ mode }) => {
           }
         : undefined,
     },
+
     preview: { port: 5173 },
   }
 })
