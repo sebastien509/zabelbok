@@ -127,6 +127,7 @@ const FOUNDERS = [
       "https://res.cloudinary.com/dyeomcmin/image/upload/v1760145224/1662682907647_kmcpgk.jpg",
     line:
       "Vision-driven builder focused on shaping E-strateji’s product, storytelling, and partnerships.",
+      href: "/simin-jodarson",
   },
   {
     name: "Sébastien Fenelon",
@@ -137,6 +138,7 @@ const FOUNDERS = [
       "https://res.cloudinary.com/dyeomcmin/image/upload/v1754422502/lehkzz3ra2vsyuxwc270.jpg",
     line:
       "Engineer & systems architect designing E-strateji’s offline-first, multilingual stack with integrated AI tools (quizzes, transcripts, smarter learning).",
+      href: "/sebastien-fenelon",
   },
 ];
 
@@ -147,6 +149,7 @@ const TEAM = [
     desc: "Connecting the heart of the people to the mission of the brand.",
     headshot:
       "https://res.cloudinary.com/dyeomcmin/image/upload/v1760461671/photo-output_vrz3cg.jpg",
+      href: "/kalifa-facey",
   },
   {
     name: "Dormenyo Mawulorm Kwadzo",
@@ -211,28 +214,44 @@ const FAQ = [
    Local Components
    ======================================================= */
 
-const PersonCard = ({ p }) => (
-  <div className="rounded-2xl border border-white/30 bg-white/60 p-5">
-    <div className="flex items-start gap-4">
-      <img
-        src={p.headshot}
-        alt={`${p.name} headshot`}
-        className="h-16 w-16 rounded-xl object-cover border border-white/50 flex-shrink-0"
-        loading="lazy"
-      />
-      <div className="min-w-0">
-        <div className="font-semibold">{p.name}</div>
-        <div className="text-xs text-black/60">{p.role}</div>
-        <p className="text-sm text-black/80 mt-2">{p.desc || p.line}</p>
-        {p.quote && (
-          <blockquote className="mt-3 text-sm italic text-black/70 border-l-2 pl-3 border-black/20">
-            {p.quote}
-          </blockquote>
-        )}
+   const PersonCard = ({ p }) => {
+    const CardInner = (
+      <div className="rounded-2xl border border-white/30 bg-white/60 p-5 transition-transform duration-200">
+        <div className="flex items-start gap-4">
+          <img
+            src={p.headshot}
+            alt={`${p.name} headshot`}
+            className="h-16 w-16 rounded-xl object-cover border border-white/50 flex-shrink-0"
+            loading="lazy"
+          />
+          <div className="min-w-0">
+            <div className="font-semibold">{p.name}</div>
+            <div className="text-xs text-black/60">{p.role}</div>
+            <p className="text-sm text-black/80 mt-2">{p.desc || p.line}</p>
+            {p.quote && (
+              <blockquote className="mt-3 text-sm italic text-black/70 border-l-2 pl-3 border-black/20">
+                {p.quote}
+              </blockquote>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-);
+    );
+  
+    // If p.href exists, wrap in Link (with hover/focus affordances)
+    return p.href ? (
+      <Link
+        to={p.href}
+        className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30 rounded-2xl"
+      >
+        <div className="group-hover:-translate-y-0.5 group-active:translate-y-0 transition-transform">
+          {CardInner}
+        </div>
+      </Link>
+    ) : (
+      CardInner
+    );
+  };
 
 const FaqItem = ({ item, idx }) => (
   <details className="group rounded-xl border border-white/30 bg-white/60 px-4 py-3">
