@@ -1,5 +1,5 @@
 import React, { forwardRef, useRef, useEffect, useState, useCallback } from 'react';
-import logoOverlay from '@/assets/react.svg';
+import logoOverlay from '@/assets/react.png';
 import { motion } from 'framer-motion';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
