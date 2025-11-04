@@ -1,7 +1,9 @@
 # app/models.py
 from datetime import datetime
 from app.extensions import db, bcrypt
-
+import os
+from sqlalchemy import func, inspect
+from sqlalchemy.exc import ProgrammingError, OperationalError
 # ============================================================
 # SCHOOL
 # ============================================================
@@ -201,27 +203,63 @@ class Course(db.Model):
 
     # ---- Payments snapshot (safe) ----
     def _payments_snapshot(self):
-        from sqlalchemy import func
-        # No import of app.models here
-        q = (
-            db.session.query(
-                func.coalesce(func.sum(OrderItem.gross_amount), 0),
-                func.coalesce(func.sum(OrderItem.platform_fee_amount), 0),
-                func.coalesce(func.sum(OrderItem.creator_amount), 0),
-                func.count(OrderItem.id),
-            )
-            .join(Order, OrderItem.order_id == Order.id)
-            .filter(OrderItem.course_id == self.id, Order.status == "paid")
-        )
-        gross_sum, fee_sum, creator_sum, count_items = q.first()
-        return {
-            "orders_count": int(count_items or 0),
-            "gross_cents": int(gross_sum or 0),
-            "platform_fee_cents": int(fee_sum or 0),
-            "creator_earned_cents": int(creator_sum or 0),
-            "currency": self.currency or "usd",
-        }
+        """
+        Returns revenue snapshot for this course.
+        - If payments tables aren't created yet (fresh DB) or disabled by flag,
+          return zeros instead of 500.
+        - When tables exist, returns the real aggregates.
+        """
+        # Optional feature flag to hard-disable payments math if desired
+        if os.getenv("ESTRATEJI_PAYMENTS_ENABLED", "1").lower() in {"0", "false", "off", "no"}:
+            return {
+                "orders_count": 0,
+                "gross_cents": 0,
+                "platform_fee_cents": 0,
+                "creator_earned_cents": 0,
+                "currency": self.currency or "usd",
+            }
 
+        insp = inspect(db.engine)
+        # If either table is missing, avoid querying
+        if not (insp.has_table("orders") and insp.has_table("order_items")):
+            return {
+                "orders_count": 0,
+                "gross_cents": 0,
+                "platform_fee_cents": 0,
+                "creator_earned_cents": 0,
+                "currency": self.currency or "usd",
+            }
+
+        try:
+            # NOTE: Order and OrderItem are defined below in this module—OK to reference here.
+            q = (
+                db.session.query(
+                    func.coalesce(func.sum(OrderItem.gross_amount), 0),
+                    func.coalesce(func.sum(OrderItem.platform_fee_amount), 0),
+                    func.coalesce(func.sum(OrderItem.creator_amount), 0),
+                    func.count(OrderItem.id),
+                )
+                .join(Order, OrderItem.order_id == Order.id)
+                .filter(OrderItem.course_id == self.id, Order.status == "paid")
+            )
+            gross_sum, fee_sum, creator_sum, count_items = q.first()
+            return {
+                "orders_count": int(count_items or 0),
+                "gross_cents": int(gross_sum or 0),
+                "platform_fee_cents": int(fee_sum or 0),
+                "creator_earned_cents": int(creator_sum or 0),
+                "currency": self.currency or "usd",
+            }
+        except (ProgrammingError, OperationalError):
+            # Covers race conditions or partial deploys where table exists but isn’t ready
+            db.session.rollback()
+            return {
+                "orders_count": 0,
+                "gross_cents": 0,
+                "platform_fee_cents": 0,
+                "creator_earned_cents": 0,
+                "currency": self.currency or "usd",
+            }
     # ---- Serializers ----
     def to_public_dict(self):
         return {
