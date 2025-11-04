@@ -192,9 +192,10 @@ function NavBar() {
           <Link classnames="" to="/magazine" className="hover:opacity-80">Magazine</Link>
           </div>
           <a href="#features" className="hover:opacity-80">Features</a>
-          <a href="#mobile" className="hover:opacity-80">Tech & Mobile</a>
           <a href="#media" className="hover:opacity-80">Media Packages</a>
           <a href="#pricing" className="hover:opacity-80">Pricing</a>
+          <Link classnames="" to="/about" className="hover:opacity-80">About</Link>
+
         </div>
 
         <div className="hidden lg:flex items-center gap-3">
@@ -243,9 +244,10 @@ function NavBar() {
           <Link classnames="" to="/magazine" className="hover:opacity-80 text-center">Magazine</Link>
           </div>
           <a href="#features" className="block">Features</a>
-          <a href="#mobile" className="block">Tech & Mobile</a>
           <a href="#media" className="block">Media Packages</a>
           <a href="#pricing" className="block">Pricing</a>
+          <Link classnames="" to="/about" className="hover:opacity-80">About</Link>
+
           <div className="pt-2 flex gap-2">
 
           <Link to="/login"
