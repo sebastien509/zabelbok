@@ -68,6 +68,7 @@ import StudentMessageDashboard from './routes/student/StudentMessageDashboard';
 import RoleBasedOfflinePage from './components/system/RoleBasedOfflinePage';
 
 import { TeamSebastien, TeamSimin, TeamKalifa } from "./components2/pages/platform/Team";
+import About from './components2/pages/platform/About';
 import Magazine from './components2/pages/platform/NewsRoom.jsx/Magazine';
 import ArticlePage from './components2/pages/platform/NewsRoom.jsx/ArticlePage';
 import News from './components2/pages/platform/NewsRoom.jsx/News';
@@ -171,7 +172,7 @@ i18n.changeLanguage(preferredLanguage);
           } /> */}
 
             <Route path="/:slug" element={<PublicCreatorPage />} />
-
+            <Route path="/about" element={<About />} />
             <Route path="/sebastien-fenelon" element={<TeamSebastien />} />
             <Route path="/simin-jodarson" element={<TeamSimin />} />
             <Route path="/kalifa-facey" element={<TeamKalifa />} />
