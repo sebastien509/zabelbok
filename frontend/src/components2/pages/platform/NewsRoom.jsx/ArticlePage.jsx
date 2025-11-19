@@ -4,198 +4,62 @@ import { Layout } from './Magazine';
 import articlesData from './articles.json';
 import { useMemo } from 'react';
 
-/** --- Simple Markdown approach (no extra installs) ---
- * We will:
- * 1) Convert your plain text to lightweight Markdown (add headings + bold list items)
- * 2) Convert that Markdown to basic HTML
- * 3) Inject it into the page
- *
- * NOTE: This is intentionally minimal and not a full Markdown engine.
- * It’s enough for headings, paragraphs, lists, bold (**text**), and blockquotes (>).
- */
-
-// Headings we want to render larger (H2)
-const SUBHEADS = new Set([
-  'The Tech Gap and Weak Infrastructure',
-  'Economic Reality and the Brain Drain',
-  'Policies, Paperwork, and Politics',
-  'Cultural and Social Factors',
-  'The Path to Progress',
-  'The Dream',
-  'Key Takeaways',
-  'What progress could look like'
-]);
-
-// List sections where following lines should become bold bullet items
-const LIST_TRIGGERS = new Set([
-  'The reason is simple:',
-  'Here’s what progress could look like:',
-  "Here's what progress could look like:",
-  'Key Takeaways'
-]);
-
-function toMarkdownLoose(plain = '') {
-  const lines = plain.split(/\r?\n/);
-  const out = [];
-  let inList = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
-    const line = raw.trim();
-
-    // Blank line handling ends list sections too
-    if (!line) {
-      if (inList) inList = false;
-      out.push('');
-      continue;
-    }
-
-    // If this line is exactly a known subhead -> make it Markdown H2
-    if (SUBHEADS.has(line)) {
-      out.push(`## ${line}`);
-      continue;
-    }
-
-    // If this line is a list trigger -> keep the trigger as a paragraph and switch to list mode
-    if (LIST_TRIGGERS.has(line)) {
-      out.push(line);
-      inList = true;
-      continue;
-    }
-
-    // While in a list section: convert each non-empty line to bold bullet
-    if (inList) {
-      out.push(`- **${line}**`);
-      continue;
-    }
-
-    // Quote lines (if user prefixed with a curly-quote line, we won't detect; use '>' if desired)
-    if (line.startsWith('>')) {
-      out.push(line); // already markdown quote
-      continue;
-    }
-
-    // First line could be the H1 title if it reads like a title (heuristic: very short or has capitalized words)
-    // We won’t force this; your page already renders the page title above.
-
-    // Default: keep as normal paragraph text
-    out.push(line);
+// Helper component for rendering content blocks
+function ContentBlock({ block }) {
+  if (typeof block === 'string') {
+    // Simple paragraph with basic bold support
+    const html = block.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return <p dangerouslySetInnerHTML={{ __html: html }} />;
   }
 
-  return out.join('\n');
+  switch (block.type) {
+    case 'list':
+      return (
+        <ul className="my-4 space-y-2">
+          {block.items.map((item, index) => (
+            <li key={index} className="flex items-start">
+              <span className="mr-2 mt-1.5 h-1.5 w-1.5 rounded-full bg-brand flex-shrink-0" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    
+    case 'quote':
+      return (
+        <blockquote className="border-l-4 border-brand pl-4 my-6 italic text-gray-700 text-lg">
+          {block.content}
+        </blockquote>
+      );
+    
+    case 'emphasis':
+      const html = block.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      return (
+        <p 
+          className="text-lg font-semibold text-blackOlive my-4"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
+    
+    default:
+      return null;
+  }
 }
 
-function escapeHtml(str = '') {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/**
- * Very basic Markdown -> HTML converter for the subset we generate:
- * - Headings (#, ##, ###)
- * - Bold (**bold**)
- * - Unordered lists (- item)
- * - Blockquotes (> quote)
- * - Paragraphs (by blank lines)
- */
-function markdownToHtmlBasic(md = '') {
-  // Escape first to avoid injecting raw HTML, then re-introduce our minimal tags
-  md = escapeHtml(md);
-
-  // Bold **text**
-  md = md.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-  const lines = md.split('\n');
-  const htmlParts = [];
-  let inList = false;
-  let inBlockquote = false;
-  let paragraph = [];
-
-  function flushParagraph() {
-    if (paragraph.length) {
-      htmlParts.push(`<p>${paragraph.join(' ')}</p>`);
-      paragraph = [];
-    }
-  }
-
-  function endList() {
-    if (inList) {
-      htmlParts.push('</ul>');
-      inList = false;
-    }
-  }
-
-  function endBlockquote() {
-    if (inBlockquote) {
-      htmlParts.push('</blockquote>');
-      inBlockquote = false;
-    }
-  }
-
-  for (let raw of lines) {
-    const line = raw; // already escaped
-    const trimmed = line.trim();
-
-    // Blank line -> end paragraph/list/blockquote as needed
-    if (!trimmed) {
-      flushParagraph();
-      endList();
-      endBlockquote();
-      continue;
-    }
-
-    // Headings
-    if (/^###\s+/.test(trimmed)) {
-      flushParagraph(); endList(); endBlockquote();
-      htmlParts.push(`<h3>${trimmed.replace(/^###\s+/, '')}</h3>`);
-      continue;
-    }
-    if (/^##\s+/.test(trimmed)) {
-      flushParagraph(); endList(); endBlockquote();
-      htmlParts.push(`<h2>${trimmed.replace(/^##\s+/, '')}</h2>`);
-      continue;
-    }
-    if (/^#\s+/.test(trimmed)) {
-      flushParagraph(); endList(); endBlockquote();
-      htmlParts.push(`<h1>${trimmed.replace(/^#\s+/, '')}</h1>`);
-      continue;
-    }
-
-    // Blockquote
-    if (/^&gt;\s?/.test(trimmed)) {
-      flushParagraph(); endList();
-      const content = trimmed.replace(/^&gt;\s?/, '');
-      if (!inBlockquote) {
-        htmlParts.push('<blockquote>');
-        inBlockquote = true;
-      }
-      htmlParts.push(`<p>${content}</p>`);
-      continue;
-    }
-
-    // Unordered list item
-    if (/^-\s+/.test(trimmed)) {
-      flushParagraph(); endBlockquote();
-      if (!inList) {
-        htmlParts.push('<ul>');
-        inList = true;
-      }
-      htmlParts.push(`<li>${trimmed.replace(/^-\s+/, '')}</li>`);
-      continue;
-    }
-
-    // Otherwise, part of a paragraph
-    paragraph.push(trimmed);
-  }
-
-  // Close any open blocks
-  flushParagraph();
-  endList();
-  endBlockquote();
-
-  return htmlParts.join('\n');
+// Helper component for rendering sections
+function ArticleSection({ section }) {
+  return (
+    <section className="my-8">
+      <h2 className="text-2xl font-bold text-blackOlive mb-4">
+        {section.title}
+      </h2>
+      <div className="space-y-4">
+        {section.content.map((block, index) => (
+          <ContentBlock key={index} block={block} />
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default function ArticlePage() {
@@ -220,15 +84,6 @@ export default function ArticlePage() {
     );
   }
 
-  // 1) Start from the raw text stored in JSON
-  const rawText = article.content ?? '';
-
-  // 2) Convert that plain text to simple markdown with our rules
-  const md = useMemo(() => toMarkdownLoose(rawText), [rawText]);
-
-  // 3) Convert markdown to minimal HTML
-  const html = useMemo(() => markdownToHtmlBasic(md), [md]);
-
   return (
     <Layout>
       <SEO
@@ -240,17 +95,6 @@ export default function ArticlePage() {
         author={article.author}
         tags={article.keywords}
       />
-
-      {/* Small typography tweak so H2/H3 look bigger even without Tailwind Typography */}
-      <style>{`
-        .article-body h1 { font-size: 2rem; line-height: 1.2; font-weight: 800; margin: 1.25rem 0 .75rem; }
-        .article-body h2 { font-size: 1.5rem; line-height: 1.25; font-weight: 800; margin: 1rem 0 .5rem; }
-        .article-body h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 700; margin: .75rem 0 .5rem; }
-        .article-body p { margin: .75rem 0; color: #374151; }
-        .article-body ul { list-style: disc; padding-left: 1.25rem; margin: .75rem 0; }
-        .article-body li { margin: .25rem 0; font-weight: 600; } /* make items bold */
-        .article-body blockquote { border-left: 4px solid #10b981; padding-left: .75rem; color: #111827; font-style: italic; margin: 1rem 0; }
-      `}</style>
 
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-w-0">
         {/* Breadcrumb */}
@@ -300,11 +144,20 @@ export default function ArticlePage() {
           </div>
         )}
 
-        {/* Article Content (Markdown -> HTML basic) */}
-        <div
-          className="article-body"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        {/* Article Content */}
+        <div className="article-content">
+          {/* Introduction */}
+          <div className="space-y-4 mb-8">
+            {article.content.introduction.map((block, index) => (
+              <ContentBlock key={index} block={block} />
+            ))}
+          </div>
+
+          {/* Sections */}
+          {article.content.sections.map((section, index) => (
+            <ArticleSection key={index} section={section} />
+          ))}
+        </div>
 
         {/* Article Footer */}
         <footer className="pt-8 border-t border-gray-200">

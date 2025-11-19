@@ -10,7 +10,101 @@
       "category": "Founder Story",
       "excerpt": "How growing up with unreliable infrastructure shaped a philosophy of building for reality, not perfect conditions.",
       "featured_image": "https://res.cloudinary.com/dyeomcmin/image/upload/a_hflip/v1760922961/new_2_ptzvvh.jpg",
-      "content": "I learned to code in Haiti by copying snippets from PDFs onto borrowed machines, compiling between blackouts, and debugging offline because the Wi-Fi wouldn't hold. At 15 or 16 I finished my first real project—a small C++ web browser with a clean, personalized interface—passed around on flash drives because that was the most reliable 'network' we had. Those years taught me a rule I still live by: build for reality, not for perfect conditions.\n\nReality in Haiti is power cuts and patchy internet. Teachers can't promise a livestream at 2 p.m. Students study when electricity returns, not when the syllabus says so. Entrepreneurs chase a signal from one neighborhood to the next, screenshotting receipts before the connection drops. Clinics try to protect patient dignity while juggling devices that may or may not turn on. When the grid is unreliable and the news cycle unpredictable, technology should reduce stress, not add to it; it should respect privacy, stretch scarce bandwidth, and keep working when the bars on a phone disappear. Teknoloji a dwe mache menm lè entènèt la pa mache.\n\nThat's the context that shaped me as a self-taught software developer and shapes the companies I build now. My main work today is InthraOS, an operating system for private, on-device AI. The principle is simple: run intelligence locally first, and only reach for the cloud when a clear policy allows it. That design is not about chasing trends; it's about respect—respect for the family that pays for data by the megabyte, for the nurse who cannot send notes to a third party, for the student who studies after midnight when power finally returns. Local-first systems are not a luxury in Haiti; they are what make tools usable on a bad day and trustworthy on a good one.\n\nUnreliable infrastructure does more than slow tasks; it narrows horizons. If the lesson won't load, a student learns to expect disappointment. If a device bricks during a blackout, a clinic stops experimenting with new processes. If the internet is the only path to knowledge, the student without it is told—quietly—that learning is not for them. Empowerment begins with building around those limits: caching, download-first workflows, data that stays close to the person it belongs to, and interfaces that assume the network might vanish at any time.\n\nI carry that mindset into how we help people learn. E-Strateji is the platform my team is building to give Haitian and Caribbean learners practical, relevant courses that work offline. Modules are downloadable, pages can be bilingual, and topics reflect daily needs: civics and history of Haiti, small-business fundamentals, foundational tech, self-development, and creative skills like design and photography. The goal isn't to impress with features; it's to keep learning moving when the power flickers.\n\nMarketing and visual expert Jodarson Simin is my co-founder on E-Strateji, leading how lessons look, how creators present themselves, and how we meet learners where they are.\n\nI don't believe the answer to instability is to romanticize struggle or to pretend that software is enough. What we can do is design for the moments people actually face: download now, study later; draft a quiz without uploading a roster; prepare materials that survive a blackout; keep sensitive information in the room where it was created. Quiet reliability is a form of dignity.\n\nThere is another part to empowerment that matters as much as software: work. If Haiti's talent is always told to leave to be valued, we will keep exporting our future. So here is a concrete offer instead of a pitch. We are hiring Haitian talent and opening internships for engineers, designers, editors, curriculum builders, and community coordinators to help shape E-Strateji from the inside. Students who want to learn by doing, teachers with a course outline in Kreyòl or English, designers who know how to communicate clearly on a small screen—we want to collaborate, teach, and pay fairly. The more we anchor this work in Haitian hands, the more it will reflect Haitian realities.\n\nI became a founder because constraints forced me to be practical. The outages that slowed me as a teenager also trained me to build for failure first: save locally, resume gracefully, never assume a stable connection, and never treat a person's data as expendable. InthraOS exists because private, local AI is one durable way to honor those rules. E-Strateji exists because learning should not wait for perfect conditions. Neither is a silver bullet, but both are steps toward a future where students study with confidence, workers upskill without fear, and families feel safer sharing information.\n\nHaiti deserves tools that are steady when life is not. If we keep dignity at the center—privacy when handling data, patience when the power blinks, and pride in hiring our own—we can build systems that make people feel capable again. The lights will flicker; the work should not.",
+      "content": {
+        "introduction": [
+          "I learned to code in Haiti the way a lot of us learned anything technical: half-prepared, half in the dark, and fully determined. I copied snippets from PDFs on borrowed machines, compiled between blackouts, and debugged offline because the Wi-Fi wouldn't hold long enough to send an error message.",
+          "At 15 or 16, I finished my first real project — a small C++ web browser with a clean, personalized interface, shared across flash drives because flash drives were the only 'network' we could trust.",
+          "Those years taught me a rule that still guides everything I build today:",
+          {
+            "type": "quote",
+            "content": "Build for reality, not for perfect conditions."
+          },
+          "And the reality in Haiti is simple: power cuts, patchy internet, and a rhythm of life that bends around electricity, signal, and chance."
+        ],
+        "sections": [
+          {
+            "title": "The Roots of My Philosophy",
+            "type": "section",
+            "content": [
+              "Growing up inside that instability shaped me as a developer and still shapes everything I design today.",
+              "My main work now is **InthraOS**, an operating system for private, on-device AI. The principle is simple:",
+              {
+                "type": "list",
+                "items": [
+                  "Run intelligence locally first.",
+                  "Reach for the cloud only when a clear rule allows it."
+                ]
+              },
+              "This isn't a trend — it's respect. Respect for the family paying data by the megabyte, the nurse who can't risk leaking patient notes, the student who studies after midnight when the power returns.",
+              "In Haiti, 'local-first' isn't innovation; it's survival.",
+              "Unreliable infrastructure doesn't just slow you down — it shrinks your imagination."
+            ]
+          },
+          {
+            "title": "Carrying That Philosophy Into E-Strateji",
+            "type": "section",
+            "content": [
+              "That mindset is at the heart of what my team and I are building: **E-strateji**, a Caribbean learning platform designed to function even when conditions aren't perfect.",
+              {
+                "type": "list",
+                "items": [
+                  "Courses are downloadable.",
+                  "Pages work in Kreyòl and English.",
+                  "The curriculum reflects real Caribbean realities."
+                ]
+              },
+              "My co-founder, **Jodarson Simin (Zaida)**, shapes the visual identity, creator experience, and storytelling. I focus on the infrastructure: how learners access content, how creators upload materials, and how the platform behaves with weak or unpredictable connections."
+            ]
+          },
+          {
+            "title": "Empowerment Is Also About Work",
+            "type": "section",
+            "content": [
+              "Tech isn't enough without opportunity. We're opening internships and collaborations for Caribbean talent:",
+              {
+                "type": "list",
+                "items": [
+                  "Engineers",
+                  "Designers",
+                  "Editors",
+                  "Curriculum creators",
+                  "Community builders"
+                ]
+              },
+              "Our rule is simple: **local first**. If we want a strong tech ecosystem, Haitians and Caribbean creators must be part of the foundation."
+            ]
+          },
+          {
+            "title": "Why I Build This Way",
+            "type": "section",
+            "content": [
+              "The outages that slowed me down growing up trained me to design for failure first:",
+              {
+                "type": "list",
+                "items": [
+                  "Save locally.",
+                  "Resume gracefully.",
+                  "Never assume stable connection.",
+                  "Never treat user data as disposable."
+                ]
+              },
+              {
+                "type": "emphasis",
+                "content": "**InthraOS** exists because private, local AI honors those rules."
+              },
+              {
+                "type": "emphasis",
+                "content": "**E-strateji** exists because learning shouldn't wait for perfect conditions."
+              },
+              "Haiti deserves tools that stay steady when life does not.",
+              {
+                "type": "quote",
+                "content": "The lights will flicker. The work shouldn't."
+              }
+            ]
+          }
+        ]
+      },
       "keywords": [
         "Haiti",
         "education technology",
@@ -34,7 +128,60 @@
       "category": "Founder Story",
       "excerpt": "How visual storytelling and cultural context are transforming digital education for Caribbean learners.",
       "featured_image": "https://res.cloudinary.com/dyeomcmin/image/upload/v1760922786/african-american-business-woman-by-window_wb568m.jpg",
-      "content": "When I first started working in digital marketing and visual design across the Caribbean, I noticed something fundamental was missing from most educational platforms: they didn't look or feel like they were made for us. The colors were muted, the imagery generic, the cultural references foreign. Learning materials designed in Silicon Valley or Europe might have technical excellence, but they lacked soul—they didn't speak our visual language or understand our context.\n\nIn Haiti and across the Caribbean, visual communication isn't just decoration; it's a vital part of how we share knowledge. From the vibrant tap-tap buses that tell stories through art to the colorful markets where every arrangement communicates value, we understand information through rich, expressive visuals. Yet most e-learning platforms offer sterile interfaces that feel disconnected from our reality.\n\nAt E-strateji, we're changing that. Every course interface, every lesson layout, every color palette is designed with Caribbean visual literacy in mind. We use colors that reflect our landscapes—the deep blues of our coastlines, the vibrant greens of our mountains, the warm tones of our architecture. Our illustrations feature people who look like our learners, in settings that feel familiar rather than foreign.\n\nBut visual design is about more than aesthetics; it's about accessibility. Many of our learners access courses on mobile devices with limited data plans. We optimize every image, use efficient color schemes that work on various screen qualities, and ensure that visual elements enhance understanding rather than distract from it. A well-designed diagram can replace paragraphs of text, making complex concepts accessible even with limited bandwidth.\n\nCultural context is equally crucial. We're building bilingual interfaces that seamlessly switch between Kreyòl and English, recognizing that many Caribbean learners think and learn in multiple languages. Our course materials include local examples and case studies—when teaching business fundamentals, we might use examples from Haitian entrepreneurs or Jamaican small business owners rather than generic international corporations.\n\nOne of our most exciting projects is developing visual frameworks for traditionally text-heavy subjects. How do you make civics engaging? Through interactive timelines of Caribbean history, visual maps showing political structures, and character-driven stories that make governance relatable. How do you teach financial literacy? Through culturally relevant scenarios and visual budgeting tools that reflect local economic realities.\n\nThe most rewarding part has been collaborating with Caribbean creators and educators. We're working with Haitian artists to develop illustration styles that feel authentic, with Jamaican educators to design assessment methods that respect different learning styles, with Dominican teachers to create visual aids that work in classroom settings with limited technology.\n\nThis approach isn't just about making education 'pretty'—it's about making it effective. When learners see themselves reflected in their educational materials, when the interface feels intuitive rather than foreign, when cultural references make concepts stickier, learning becomes more engaging and retention improves.\n\nWe're proving that quality education doesn't have to mean importing foreign templates. The Caribbean has its own design traditions, its own visual languages, its own ways of knowing. By honoring these in our digital platforms, we're not just building another e-learning site—we're creating an educational experience that truly serves Caribbean learners.\n\nAs we expand across the region, we're committed to maintaining this cultural authenticity. Each new market brings opportunities to learn local visual preferences and incorporate regional design elements. The goal is an educational platform that feels equally at home in Port-au-Prince, Kingston, Santo Domingo, and beyond—unified in quality but diverse in its cultural expression.\n\nEducation should celebrate where we come from while preparing us for where we're going. Through thoughtful design, we're building bridges between our rich cultural heritage and the digital future—creating learning experiences that are not just effective, but truly ours.",
+      "content": {
+        "introduction": [
+          "When I first started working in digital marketing and visual design across the Caribbean, I noticed something fundamental was missing from most educational platforms: they didn't look or feel like they were made for us. The colors were muted, the imagery generic, the cultural references foreign. Learning materials designed in Silicon Valley or Europe might have technical excellence, but they lacked soul—they didn't speak our visual language or understand our context.",
+          "In Haiti and across the Caribbean, visual communication isn't just decoration; it's a vital part of how we share knowledge. From the vibrant tap-tap buses that tell stories through art to the colorful markets where every arrangement communicates value, we understand information through rich, expressive visuals. Yet most e-learning platforms offer sterile interfaces that feel disconnected from our reality.",
+          "At E-strateji, we're changing that. Every course interface, every lesson layout, every color palette is designed with Caribbean visual literacy in mind."
+        ],
+        "sections": [
+          {
+            "title": "Visual Design as Cultural Expression",
+            "type": "section",
+            "content": [
+              "We use colors that reflect our landscapes—the deep blues of our coastlines, the vibrant greens of our mountains, the warm tones of our architecture. Our illustrations feature people who look like our learners, in settings that feel familiar rather than foreign.",
+              "But visual design is about more than aesthetics; it's about accessibility. Many of our learners access courses on mobile devices with limited data plans. We optimize every image, use efficient color schemes that work on various screen qualities, and ensure that visual elements enhance understanding rather than distract from it. A well-designed diagram can replace paragraphs of text, making complex concepts accessible even with limited bandwidth."
+            ]
+          },
+          {
+            "title": "Cultural Context and Bilingual Learning",
+            "type": "section",
+            "content": [
+              "Cultural context is equally crucial. We're building bilingual interfaces that seamlessly switch between Kreyòl and English, recognizing that many Caribbean learners think and learn in multiple languages. Our course materials include local examples and case studies—when teaching business fundamentals, we might use examples from Haitian entrepreneurs or Jamaican small business owners rather than generic international corporations.",
+              "One of our most exciting projects is developing visual frameworks for traditionally text-heavy subjects. How do you make civics engaging? Through interactive timelines of Caribbean history, visual maps showing political structures, and character-driven stories that make governance relatable. How do you teach financial literacy? Through culturally relevant scenarios and visual budgeting tools that reflect local economic realities."
+            ]
+          },
+          {
+            "title": "Collaboration with Caribbean Creators",
+            "type": "section",
+            "content": [
+              "The most rewarding part has been collaborating with Caribbean creators and educators. We're working with:",
+              {
+                "type": "list",
+                "items": [
+                  "Haitian artists to develop illustration styles that feel authentic",
+                  "Jamaican educators to design assessment methods that respect different learning styles",
+                  "Dominican teachers to create visual aids that work in classroom settings with limited technology"
+                ]
+              },
+              "This approach isn't just about making education 'pretty'—it's about making it effective. When learners see themselves reflected in their educational materials, when the interface feels intuitive rather than foreign, when cultural references make concepts stickier, learning becomes more engaging and retention improves."
+            ]
+          },
+          {
+            "title": "Building Our Own Educational Future",
+            "type": "section",
+            "content": [
+              "We're proving that quality education doesn't have to mean importing foreign templates. The Caribbean has its own design traditions, its own visual languages, its own ways of knowing. By honoring these in our digital platforms, we're not just building another e-learning site—we're creating an educational experience that truly serves Caribbean learners.",
+              "As we expand across the region, we're committed to maintaining this cultural authenticity. Each new market brings opportunities to learn local visual preferences and incorporate regional design elements. The goal is an educational platform that feels equally at home in Port-au-Prince, Kingston, Santo Domingo, and beyond—unified in quality but diverse in its cultural expression.",
+              {
+                "type": "quote",
+                "content": "Education should celebrate where we come from while preparing us for where we're going."
+              },
+              "Through thoughtful design, we're building bridges between our rich cultural heritage and the digital future—creating learning experiences that are not just effective, but truly ours."
+            ]
+          }
+        ]
+      },
       "keywords": [
         "Caribbean design",
         "visual education",
@@ -51,14 +198,116 @@
     {
       "id": 3,
       "slug": "caribbean-tech-hub-challenges",
-      "title": "Why the Caribbean Isn’t Yet a Tech Hub, and How We Can Change That",
+      "title": "Why the Caribbean Isn't Yet a Tech Hub, and How We Can Change That",
       "author": "Jodarson Simin (Zaida)",
       "position": "Co-founder & Creative Director, E-strateji",
       "date": "2025-10-24",
       "category": "Caribbean Innovation & Policy",
-      "excerpt": "Exploring why the Caribbean hasn’t yet become a tech hub and how education, policy, and cultural reform can drive transformation from within.",
+      "excerpt": "Exploring why the Caribbean hasn't yet become a tech hub and how education, policy, and cultural reform can drive transformation from within.",
       "featured_image": "https://res.cloudinary.com/dyeomcmin/image/upload/v1761330406/E-strateji-magazine-Caribbean-tech-hub-Article_fasnnf.jpg",
-      "content": "We have the creativity, the culture, and the hunger to build. But potential alone doesn’t create progress—and right now, too many barriers are standing in the way.\n\nAt E-strateji, we believe that understanding these challenges is the first step toward rewriting the story.\n\n## The Tech Gap and Weak Infrastructure\n\nLet’s start with the foundation: access.\n\nAcross the Caribbean, internet reliability remains one of the biggest obstacles to digital progress. In some territories, the connection is so poor that remote work or cloud-based collaboration feels impossible.\n\nPaired with this is a school system that hasn’t evolved with the times. Too many classrooms still train students for traditional roles, while the world races ahead with AI, automation, and digital entrepreneurship.\n\nWithout strong internet and a modern learning system, we’re leaving our next generation to dream without the tools to build.\n\n## Economic Reality and the Brain Drain\n\nEvery Caribbean person knows someone who left. It’s not just migration—it’s brain drain.\n\nTalented engineers, designers, and innovators often move abroad to find stability and recognition. The reason is simple:\n\n- **Limited local investment in tech**\n- **Small markets and high operational costs**\n- **Salaries far below international standards**\n\nWhen opportunity doesn’t exist at home, leaving becomes a survival strategy. The tragedy is that half of the Caribbean’s brightest minds now live abroad, building wealth elsewhere instead of here.\n\n## Policies, Paperwork, and Politics\n\nInnovation happens easily where systems support it. But in the Caribbean, red tape and inconsistent policy often kill ideas before they grow.\n\nStartups face endless paperwork just to register. Tech companies get no clear legal framework for things like fintech or data management. Governments talk about “digital transformation” but rarely follow through with measurable action.\n\nIf the region wants to attract investment and nurture innovation, policy reform is non-negotiable.\n\n## Cultural and Social Factors\n\nBehind the policy, there’s something deeper—culture.\n\nIn many Caribbean families, ambition is measured by security, not creativity. A stable job is seen as success; risk is seen as not being careful. That mindset, though understandable, limits innovation.\n\nBy the time many young people realize they could have built something, responsibilities take over—bills, family, survival. The dream pauses.\n\nWe must rebuild confidence in our youth: to see failure as learning, to take risks, to innovate without apology.\n\n> “A stable job should not be the ceiling of our dreams.”\n\n## The Path to Progress\n\nTransformation won’t come from outsiders. It must start with us—the creators, the educators, the dreamers.\n\n### What progress could look like\n\n- **Modernize education, placing coding, digital literacy, and entrepreneurship at the core.**\n- **Invest in local creators, making it easier to start, scale, and monetize digital projects.**\n- **Improve infrastructure, ensuring high-speed internet reaches every island and community.**\n- **Simplify regulations for startups and innovators.**\n- **Build regionally, connecting economies, languages, and tech ecosystems.**\n\nWhen Suriname and Curaçao work together to unite regional data centers, that’s not just progress—it’s proof of what collaboration can achieve.\n\n## The Dream\n\nThe Caribbean doesn’t need to wait for Silicon Valley to “discover” us. We can build our own—an ecosystem where knowledge flows freely, where creators and learners drive innovation from within.\n\nAt E-strateji, this is the future we believe in:\nA Caribbean that teaches, builds, and competes globally—on our own terms.\n\nBecause the question isn’t can we become a tech hub. It’s when we will decide to make it happen.\n\n## Key Takeaways\n\n- **The Caribbean has the potential but lacks the infrastructure and systems to support a thriving tech ecosystem.**\n- **Weak internet access and outdated education hinder innovation.**\n- **Brain drain continues as talented professionals leave for better opportunities abroad.**\n- **Bureaucracy and policy gaps block startup growth and tech investment.**\n- **Cultural attitudes toward risk and failure must shift to encourage creativity and entrepreneurship.**\n- **Progress depends on regional unity, policy reform, and investment in education and creators.**",
+      "content": {
+        "introduction": [
+          "We have the creativity, the culture, and the hunger to build. But potential alone doesn't create progress—and right now, too many barriers are standing in the way.",
+          "At E-strateji, we believe that understanding these challenges is the first step toward rewriting the story."
+        ],
+        "sections": [
+          {
+            "title": "The Tech Gap and Weak Infrastructure",
+            "type": "section",
+            "content": [
+              "Let's start with the foundation: access.",
+              "Across the Caribbean, internet reliability remains one of the biggest obstacles to digital progress. In some territories, the connection is so poor that remote work or cloud-based collaboration feels impossible.",
+              "Paired with this is a school system that hasn't evolved with the times. Too many classrooms still train students for traditional roles, while the world races ahead with AI, automation, and digital entrepreneurship.",
+              "Without strong internet and a modern learning system, we're leaving our next generation to dream without the tools to build."
+            ]
+          },
+          {
+            "title": "Economic Reality and the Brain Drain",
+            "type": "section",
+            "content": [
+              "Every Caribbean person knows someone who left. It's not just migration—it's brain drain.",
+              "Talented engineers, designers, and innovators often move abroad to find stability and recognition. The reason is simple:",
+              {
+                "type": "list",
+                "items": [
+                  "**Limited local investment in tech**",
+                  "**Small markets and high operational costs**",
+                  "**Salaries far below international standards**"
+                ]
+              },
+              "When opportunity doesn't exist at home, leaving becomes a survival strategy. The tragedy is that half of the Caribbean's brightest minds now live abroad, building wealth elsewhere instead of here."
+            ]
+          },
+          {
+            "title": "Policies, Paperwork, and Politics",
+            "type": "section",
+            "content": [
+              "Innovation happens easily where systems support it. But in the Caribbean, red tape and inconsistent policy often kill ideas before they grow.",
+              "Startups face endless paperwork just to register. Tech companies get no clear legal framework for things like fintech or data management. Governments talk about 'digital transformation' but rarely follow through with measurable action.",
+              "If the region wants to attract investment and nurture innovation, policy reform is non-negotiable."
+            ]
+          },
+          {
+            "title": "Cultural and Social Factors",
+            "type": "section",
+            "content": [
+              "Behind the policy, there's something deeper—culture.",
+              "In many Caribbean families, ambition is measured by security, not creativity. A stable job is seen as success; risk is seen as not being careful. That mindset, though understandable, limits innovation.",
+              "By the time many young people realize they could have built something, responsibilities take over—bills, family, survival. The dream pauses.",
+              "We must rebuild confidence in our youth: to see failure as learning, to take risks, to innovate without apology.",
+              {
+                "type": "quote",
+                "content": "A stable job should not be the ceiling of our dreams."
+              }
+            ]
+          },
+          {
+            "title": "The Path to Progress",
+            "type": "section",
+            "content": [
+              "Transformation won't come from outsiders. It must start with us—the creators, the educators, the dreamers.",
+              "Here's what progress could look like:",
+              {
+                "type": "list",
+                "items": [
+                  "**Modernize education**, placing coding, digital literacy, and entrepreneurship at the core.",
+                  "**Invest in local creators**, making it easier to start, scale, and monetize digital projects.",
+                  "**Improve infrastructure**, ensuring high-speed internet reaches every island and community.",
+                  "**Simplify regulations** for startups and innovators.",
+                  "**Build regionally**, connecting economies, languages, and tech ecosystems."
+                ]
+              },
+              "When Suriname and Curaçao work together to unite regional data centers, that's not just progress—it's proof of what collaboration can achieve."
+            ]
+          },
+          {
+            "title": "The Dream",
+            "type": "section",
+            "content": [
+              "The Caribbean doesn't need to wait for Silicon Valley to 'discover' us. We can build our own—an ecosystem where knowledge flows freely, where creators and learners drive innovation from within.",
+              "At E-strateji, this is the future we believe in: A Caribbean that teaches, builds, and competes globally—on our own terms.",
+              "Because the question isn't can we become a tech hub. It's when we will decide to make it happen."
+            ]
+          },
+          {
+            "title": "Key Takeaways",
+            "type": "section",
+            "content": [
+              {
+                "type": "list",
+                "items": [
+                  "**The Caribbean has the potential but lacks the infrastructure and systems to support a thriving tech ecosystem.**",
+                  "**Weak internet access and outdated education hinder innovation.**",
+                  "**Brain drain continues as talented professionals leave for better opportunities abroad.**",
+                  "**Bureaucracy and policy gaps block startup growth and tech investment.**",
+                  "**Cultural attitudes toward risk and failure must shift to encourage creativity and entrepreneurship.**",
+                  "**Progress depends on regional unity, policy reform, and investment in education and creators.**"
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "keywords": [
         "Caribbean tech",
         "tech gap",
@@ -70,6 +319,124 @@
         "Talent leaving the country"
       ],
       "read_time": 6
+    },
+    {
+      "id": 1,
+      "slug": "teaching-building-when-lights-wont-stay-on",
+      "title": "Teaching and building when the lights won't stay on",
+      "author": "Sébastien Fenelon",
+      "position": "Co-founder & CTO, E-strateji",
+      "date": "2025-10-15",
+      "category": "Founder Story",
+      "excerpt": "How growing up with unreliable infrastructure shaped a philosophy of building for reality, not perfect conditions.",
+      "featured_image": "https://res.cloudinary.com/dyeomcmin/image/upload/a_hflip/v1760922961/new_2_ptzvvh.jpg",
+      "content": {
+        "introduction": [
+          "I learned to code in Haiti the way a lot of us learned anything technical: half-prepared, half in the dark, and fully determined. I copied snippets from PDFs on borrowed machines, compiled between blackouts, and debugged offline because the Wi-Fi wouldn't hold long enough to send an error message.",
+          "At 15 or 16, I finished my first real project — a small C++ web browser with a clean, personalized interface, shared across flash drives because flash drives were the only 'network' we could trust.",
+          "Those years taught me a rule that still guides everything I build today:",
+          {
+            "type": "quote",
+            "content": "Build for reality, not for perfect conditions."
+          },
+          "And the reality in Haiti is simple: power cuts, patchy internet, and a rhythm of life that bends around electricity, signal, and chance."
+        ],
+        "sections": [
+          {
+            "title": "The Roots of My Philosophy",
+            "type": "section",
+            "content": [
+              "Growing up inside that instability shaped me as a developer and still shapes everything I design today.",
+              "My main work now is **InthraOS**, an operating system for private, on-device AI. The principle is simple:",
+              {
+                "type": "list",
+                "items": [
+                  "Run intelligence locally first.",
+                  "Reach for the cloud only when a clear rule allows it."
+                ]
+              },
+              "This isn't a trend — it's respect. Respect for the family paying data by the megabyte, the nurse who can't risk leaking patient notes, the student who studies after midnight when the power returns.",
+              "In Haiti, 'local-first' isn't innovation; it's survival.",
+              "Unreliable infrastructure doesn't just slow you down — it shrinks your imagination."
+            ]
+          },
+          {
+            "title": "Carrying That Philosophy Into E-Strateji",
+            "type": "section",
+            "content": [
+              "That mindset is at the heart of what my team and I are building: **E-strateji**, a Caribbean learning platform designed to function even when conditions aren't perfect.",
+              {
+                "type": "list",
+                "items": [
+                  "Courses are downloadable.",
+                  "Pages work in Kreyòl and English.",
+                  "The curriculum reflects real Caribbean realities."
+                ]
+              },
+              "My co-founder, **Jodarson Simin (Zaida)**, shapes the visual identity, creator experience, and storytelling. I focus on the infrastructure: how learners access content, how creators upload materials, and how the platform behaves with weak or unpredictable connections."
+            ]
+          },
+          {
+            "title": "Empowerment Is Also About Work",
+            "type": "section",
+            "content": [
+              "Tech isn't enough without opportunity. We're opening internships and collaborations for Caribbean talent:",
+              {
+                "type": "list",
+                "items": [
+                  "Engineers",
+                  "Designers",
+                  "Editors",
+                  "Curriculum creators",
+                  "Community builders"
+                ]
+              },
+              "Our rule is simple: **local first**. If we want a strong tech ecosystem, Haitians and Caribbean creators must be part of the foundation."
+            ]
+          },
+          {
+            "title": "Why I Build This Way",
+            "type": "section",
+            "content": [
+              "The outages that slowed me down growing up trained me to design for failure first:",
+              {
+                "type": "list",
+                "items": [
+                  "Save locally.",
+                  "Resume gracefully.",
+                  "Never assume stable connection.",
+                  "Never treat user data as disposable."
+                ]
+              },
+              {
+                "type": "emphasis",
+                "content": "**InthraOS** exists because private, local AI honors those rules."
+              },
+              {
+                "type": "emphasis",
+                "content": "**E-strateji** exists because learning shouldn't wait for perfect conditions."
+              },
+              "Haiti deserves tools that stay steady when life does not.",
+              {
+                "type": "quote",
+                "content": "The lights will flicker. The work shouldn't."
+              }
+            ]
+          }
+        ]
+      },
+      "keywords": [
+        "Haiti",
+        "education technology",
+        "offline learning",
+        "local-first AI",
+        "digital infrastructure",
+        "Caribbean tech",
+        "self-taught developer",
+        "InthraOS",
+        "E-strateji"
+      ],
+      "read_time": 8
     }
   ]
 }

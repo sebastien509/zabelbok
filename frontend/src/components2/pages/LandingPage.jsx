@@ -246,7 +246,7 @@ function NavBar() {
           <a href="#features" className="block">Features</a>
           <a href="#media" className="block">Media Packages</a>
           <a href="#pricing" className="block">Pricing</a>
-          <Link classnames="" to="/about" className="hover:opacity-80">About</Link>
+          <Link classnames="" to="/about" className="hover:opacity-80">About us</Link>
 
           <div className="pt-2 flex gap-2">
 

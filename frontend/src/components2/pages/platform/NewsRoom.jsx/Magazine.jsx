@@ -308,7 +308,7 @@ export function Sidebar({ isOpen, onClose }) {
         {/* Cover image */}
         <div className="aspect-[3/4] overflow-hidden">
           <img
-            src="https://freight.cargo.site/w/1000/q/75/i/040ca37aba5557cc39f79248abafd89a68a31f85949dbfcf82bcf7edba2cc4b2/i-D-X-LOUS.jpg"
+            src="https://res.cloudinary.com/dyeomcmin/image/upload/v1763576667/E-strateji-Mag-Article-sebastien-fenelon_tyq6gc.jpg"
             alt="E-strateji Magazine — Latest Edition Cover"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
              data-preload="false" loading="lazy"
@@ -402,7 +402,7 @@ export function Sidebar({ isOpen, onClose }) {
         {/* Cover image */}
         <div className="aspect-[3/4] overflow-hidden">
           <img
-            src="https://freight.cargo.site/w/1000/q/75/i/040ca37aba5557cc39f79248abafd89a68a31f85949dbfcf82bcf7edba2cc4b2/i-D-X-LOUS.jpg"
+            src="https://res.cloudinary.com/dyeomcmin/image/upload/v1763576667/E-strateji-Mag-Article-sebastien-fenelon_tyq6gc.jpg"
             alt="E-strateji Magazine — Latest Edition Cover"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
              data-preload="false" loading="lazy"
