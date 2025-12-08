@@ -321,10 +321,10 @@
       "read_time": 6
     },
     {
-      "id": 1,
+      "id": 4,
       "slug": "teaching-building-when-lights-wont-stay-on",
       "title": "Teaching and building when the lights won't stay on",
-      "author": "Sébastien Fenelon",
+      "author": "Jodarson Simin (Zaida)",
       "position": "Co-founder & CTO, E-strateji",
       "date": "2025-10-15",
       "category": "Founder Story",
@@ -437,6 +437,150 @@
         "E-strateji"
       ],
       "read_time": 8
+    },
+    {
+      "id": 5,
+      "slug": "the-unicorn-mindset-caribbean",
+      "title": "The Unicorn Mindset in the Caribbean",
+      "author": "Sébastien Fenelon",
+      "position": "Co-founder & CEO, E-strateji",
+      "date": "2025-10-20",
+      "category": "Founder Story",
+      "excerpt": "Why the Caribbean produces some of the boldest, most resilient builders in the world — and why the next unicorn might come from an island.",
+      "featured_image": "https://res.cloudinary.com/dyeomcmin/image/upload/v1765214448/THE-UNICORN-MINDSET-IN-THE-CARIBBEAN_ciflif.jpg",
+      "content": {
+        "introduction": [
+          "The Caribbean has always raised dreamers, but never the soft kind.",
+          "We come from places where the sun hits hard, the odds hit harder, and somehow we still walk like destiny owes us a favor.",
+          "And that’s exactly where the Unicorn Mindset begins.",
+          {
+            "type": "quote",
+            "content": "A unicorn isn’t just a billion-dollar company. It’s a way of thinking that turns the improbable into the inevitable."
+          }
+        ],
+        "sections": [
+          {
+            "title": "1. We come from scarcity, so we build with precision",
+            "type": "section",
+            "content": [
+              "Most people learn innovation in classrooms.",
+              "We learn it in the streets, in the lakou, in the whispers of aunties fixing everything with two paperclips and a piece of string.",
+              "Caribbean people don’t 'ideate.' We improvise. We upgrade. We hack life because life hacked us first.",
+              "And that instinct — that scrappy genius — is the real beginning of a unicorn."
+            ]
+          },
+          {
+            "title": "2. Our culture makes us resilient by design",
+            "type": "section",
+            "content": [
+              "Elsewhere they talk about grit.",
+              "We call it 'fòk ou kenbe tèt ou.'",
+              "We’ve survived storms, outages, migrations, heartbreaks, and systems that were never built for us.",
+              "So when we aim for something massive — a platform, a movement, a company — we’re not delusional.",
+              "We’re trained."
+            ]
+          },
+          {
+            "title": "3. We think global but we love local",
+            "type": "section",
+            "content": [
+              "There’s something powerful about being from a small island or a country the world underestimates.",
+              "It gives you humility… but also fire.",
+              "We know the world is bigger than our borders, but we also know our people deserve solutions that carry our accent, our rhythm, our struggles, our pride.",
+              "That duality is a unicorn trait."
+            ]
+          },
+          {
+            "title": "4. We don't chase validation, we build proof",
+            "type": "section",
+            "content": [
+              "Many founders wait for approval.",
+              "Caribbean founders ship with whatever we have: the WiFi we have, the laptop we have, the courage we have.",
+              "The unicorn mindset isn’t perfection — it’s momentum.",
+              {
+                "type": "list",
+                "items": [
+                  "Ship fast.",
+                  "Fix while moving.",
+                  "Learn as you build.",
+                  "Trust your voice even when the room doesn’t."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "5. We carry legacy on our backs",
+            "type": "section",
+            "content": [
+              "Every Caribbean kid who tries to build something big isn’t just building for themselves.",
+              "They’re building to break a pattern. To rewrite a story. To give their family a different ending than the one they were handed.",
+              "And that sacred weight creates leaders who don’t quit."
+            ]
+          },
+          {
+            "title": "6. A unicorn mindset requires audacity",
+            "type": "section",
+            "content": [
+              "Let’s be honest: when you say you want to build something big from the Caribbean, people look at you like you’re writing fiction.",
+              "Good.",
+              "Let them laugh. Let them doubt.",
+              {
+                "type": "quote",
+                "content": "Unicorns aren’t meant to be understood early. That’s part of the magic."
+              }
+            ]
+          },
+          {
+            "title": "7. Our superpower is that we’re rooted in community",
+            "type": "section",
+            "content": [
+              "If Silicon Valley had community the way the Caribbean has community — neighbors who show up, elders who guide you, cousins who hype you — they wouldn’t call it networking.",
+              "They’d call it what we’ve always called it: fanmi.",
+              "And a founder with fanmi behind them? That’s a storm."
+            ]
+          },
+          {
+            "title": "So what is the Unicorn Mindset in the Caribbean?",
+            "type": "section",
+            "content": [
+              "It’s the refusal to let geography cap your dreams.",
+              "It’s the decision to build even when resources are thin.",
+              "It’s the courage to speak of possibility in a place where possibility is rare.",
+              "It’s tradition and innovation dancing together.",
+              "It’s remembering that our ancestors survived worse, so we can build better.",
+              {
+                "type": "quote",
+                "content": "A unicorn isn’t a myth here. It’s a promise."
+              },
+              "And someone from this region — someone who speaks like us, jokes like us, prays like us, hustles like us — will prove it.",
+              "Maybe that someone is already building.",
+              "Maybe that someone is you."
+            ]
+          }
+        ]
+      },
+      "keywords": [
+        "Caribbean",
+        "founder mindset",
+        "resilience",
+        "startup culture",
+        "innovation",
+        "island entrepreneurs",
+        "Caribbean tech",
+        "E-strateji",
+        "unicorn mindset"
+      ],
+      "read_time": 7
     }
   ]
 }
+
+
+
+
+
+
+
+
+
+

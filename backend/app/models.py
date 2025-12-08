@@ -4,6 +4,7 @@ from app.extensions import db, bcrypt
 import os
 from sqlalchemy import func, inspect
 from sqlalchemy.exc import ProgrammingError, OperationalError
+
 # ============================================================
 # SCHOOL
 # ============================================================
