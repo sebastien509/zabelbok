@@ -9,7 +9,6 @@ import { getMyEnrollments } from '@/services/enrollments';
 import { getCoursesBySchool } from '@/services/courses';
 import { CourseDB, save as saveCourse } from '@/utils/cDB';
 
-
 export default function LearnerDashboard() {
   const [myCourses, setMyCourses] = useState([]);
   const [allCourses, setAllCourses] = useState([]);

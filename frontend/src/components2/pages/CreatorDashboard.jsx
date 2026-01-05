@@ -80,7 +80,7 @@ export default function CreatorDashboard() {
       </button>
 
       {/* Sidebar */}
-      <div className="hidden md:block">
+      <div className="hidden md:block ">
         <CreatorSidebar
           onCustomize={() => setNeedsCustomization(true)}
           onRefresh={() => setRefreshKey(prev => prev + 1)}

@@ -4,6 +4,9 @@ from app.extensions import db, bcrypt
 import os
 from sqlalchemy import func, inspect
 from sqlalchemy.exc import ProgrammingError, OperationalError
+from sqlalchemy.ext.associationproxy import association_proxy
+from decimal import Decimal
+
 
 # ============================================================
 # SCHOOL
@@ -56,18 +59,12 @@ class User(db.Model):
 
     # Enrollments (through Enrollment model)
     enrollments = db.relationship(
-        'Enrollment',
-        back_populates='user',
+        "Enrollment",
+        back_populates="user",
         cascade="all, delete-orphan",
-        overlaps="enrolled_courses,students"
     )
 
-    enrolled_courses = db.relationship(
-        'Course',
-        secondary='enrollments',
-        back_populates='students',
-        overlaps="enrollments"
-    )
+
 
     # Courses authored (for professors/creators)
     courses_authored = db.relationship(
@@ -152,46 +149,54 @@ class User(db.Model):
 # ============================================================
 
 class Course(db.Model):
-    __tablename__ = 'courses'
+    __tablename__ = "courses"
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
-    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
-    professor_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    school_id = db.Column(db.Integer, db.ForeignKey("schools.id"), nullable=False)
+    professor_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Monetization (platform-led)
     is_paid = db.Column(db.Boolean, nullable=False, default=False)
     currency = db.Column(db.String(10), nullable=False, default="usd")
-    price_cents = db.Column(db.Integer, nullable=False, default=0)                        # canonical single price (cents)
-    revenue_share_pct = db.Column(db.Numeric(5, 4), nullable=False, default=0.8800)       # creator share as fraction, e.g. 0.8800
-    stripe_product_id = db.Column(db.String(120))                                         # internal
-    stripe_price_id = db.Column(db.String(120))                                           # internal
+    price_cents = db.Column(db.Integer, nullable=False, default=0)
+    revenue_share_pct = db.Column(db.Numeric(5, 4), nullable=False, default=Decimal("0.8800"))
+    stripe_product_id = db.Column(db.String(120))
+    stripe_price_id = db.Column(db.String(120))
 
     # Content relationships
-    modules = db.relationship('Module', backref='course', lazy=True)
-    lectures = db.relationship('Lecture', backref='course', lazy=True)
-    books = db.relationship('Book', backref='course', lazy=True)
-    exercises = db.relationship('Exercise', backref='course', lazy=True)
-    quizzes = db.relationship('Quiz', backref='course', lazy=True)
+    modules = db.relationship("Module", backref="course", lazy=True)
+    lectures = db.relationship("Lecture", backref="course", lazy=True)
+    books = db.relationship("Book", backref="course", lazy=True)
+    exercises = db.relationship("Exercise", backref="course", lazy=True)
+    quizzes = db.relationship("Quiz", backref="course", lazy=True)
 
-    professor = db.relationship('User', foreign_keys=[professor_id])
+    # Professor relationship (ONLY ONCE)
+    professor = db.relationship(
+        "User",
+        foreign_keys=[professor_id],
+        overlaps="author,courses_authored,professor,courses",
+    )
 
-    # Enrollment relationships
+    # Enrollment relationships (Enrollment is a model)
     enrollments = db.relationship(
-        'Enrollment',
-        back_populates='course',
+        "Enrollment",
+        back_populates="course",
         cascade="all, delete-orphan",
-        overlaps="students,enrolled_courses"
     )
 
+    # ✅ Students relationship via Enrollment table (read-only list of User)
     students = db.relationship(
-        'User',
-        secondary='enrollments',
-        back_populates='enrolled_courses',
-        overlaps="enrollments"
+        "User",
+        secondary="enrollments",
+        primaryjoin="Course.id == Enrollment.course_id",
+        secondaryjoin="User.id == Enrollment.user_id",
+        viewonly=True,
+        lazy="select",
     )
+
 
     # ---- Access helpers (uses Enrollment) ----
     def is_accessible_by(self, user_id):
@@ -199,18 +204,13 @@ class Course(db.Model):
             return True
         from app.models import Enrollment
         return db.session.query(
-            db.exists().where(Enrollment.course_id == self.id).where(Enrollment.user_id == user_id)
+            db.exists()
+            .where(Enrollment.course_id == self.id)
+            .where(Enrollment.user_id == user_id)
         ).scalar()
 
     # ---- Payments snapshot (safe) ----
     def _payments_snapshot(self):
-        """
-        Returns revenue snapshot for this course.
-        - If payments tables aren't created yet (fresh DB) or disabled by flag,
-          return zeros instead of 500.
-        - When tables exist, returns the real aggregates.
-        """
-        # Optional feature flag to hard-disable payments math if desired
         if os.getenv("ESTRATEJI_PAYMENTS_ENABLED", "1").lower() in {"0", "false", "off", "no"}:
             return {
                 "orders_count": 0,
@@ -221,7 +221,6 @@ class Course(db.Model):
             }
 
         insp = inspect(db.engine)
-        # If either table is missing, avoid querying
         if not (insp.has_table("orders") and insp.has_table("order_items")):
             return {
                 "orders_count": 0,
@@ -232,7 +231,7 @@ class Course(db.Model):
             }
 
         try:
-            # NOTE: Order and OrderItem are defined below in this module—OK to reference here.
+            # Order / OrderItem must exist in models
             q = (
                 db.session.query(
                     func.coalesce(func.sum(OrderItem.gross_amount), 0),
@@ -252,7 +251,6 @@ class Course(db.Model):
                 "currency": self.currency or "usd",
             }
         except (ProgrammingError, OperationalError):
-            # Covers race conditions or partial deploys where table exists but isn’t ready
             db.session.rollback()
             return {
                 "orders_count": 0,
@@ -261,6 +259,7 @@ class Course(db.Model):
                 "creator_earned_cents": 0,
                 "currency": self.currency or "usd",
             }
+
     # ---- Serializers ----
     def to_public_dict(self):
         return {
@@ -272,17 +271,12 @@ class Course(db.Model):
             "professor_name": self.professor.full_name if self.professor else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "student_count": len(self.students),
-            # public pricing surface (safe): do NOT expose stripe_* IDs
             "is_paid": self.is_paid,
             "currency": self.currency,
             "price_cents": self.price_cents if self.is_paid else 0,
         }
 
     def to_creator_dict(self, include_nested=False):
-        """
-        Safe for creators: includes pricing config and revenue snapshot.
-        Does NOT expose stripe_product_id / stripe_price_id.
-        """
         base = {
             "id": self.id,
             "title": self.title,
@@ -847,18 +841,18 @@ class OfflineModuleLog(db.Model):
 # ============================================================
 
 class Enrollment(db.Model):
-    __tablename__ = 'enrollments'
+    __tablename__ = "enrollments"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey("courses.id"), nullable=False)
     enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship('User', back_populates='enrollments', overlaps="enrolled_courses,students")
-    course = db.relationship('Course', back_populates='enrollments', overlaps="students,enrolled_courses")
+    user = db.relationship("User", back_populates="enrollments")
+    course = db.relationship("Course", back_populates="enrollments")
 
     __table_args__ = (
-        db.UniqueConstraint('user_id', 'course_id', name='_user_course_uc'),
+        db.UniqueConstraint("user_id", "course_id", name="_user_course_uc"),
     )
 
 

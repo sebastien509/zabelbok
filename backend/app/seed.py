@@ -11,7 +11,7 @@ def hash_password(password):
 def seed_data():
     with app.app_context():
         db.drop_all()
-        db.create_all()
+        # db.create_all()
 
         # 1. School
         school = School(
