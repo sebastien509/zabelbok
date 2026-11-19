@@ -21,15 +21,24 @@ export async function createModule(payload) {
  * payload: { title, description, course_id, order, created_at, video_url, transcript, quiz, caption_url? }
  * returns: saved module (to_dict with include_nested)
  */
-export async function publishReviewedModule(payload) {
-  try {
-    const { data } = await api.post('/modules/publish', payload);
-    return data;
-  } catch (err) {
-    console.error('[publishReviewedModule Error]', err);
-    throw err;
-  }
-}
+
+
+// export const getModulesByCourse = async (courseId) => {
+//   const res = await api.get(`/modules/course/${courseId}`);
+//   return res.data;
+// };
+
+// ✅ Use /modules/process to get transcript+quiz for review
+export const processModule = async (payload) => {
+  const res = await api.post(`/modules/process`, payload);
+  return res.data; // { transcript, quiz_questions, caption_url, duration_sec, language }
+};
+
+// ✅ Publish reviewed module
+export const publishReviewedModule = async (payload) => {
+  const res = await api.post(`/modules/publish`, payload);
+  return res.data; // module dict
+};
 
 /** Get all modules for a course */
 export async function getModulesByCourse(courseId) {

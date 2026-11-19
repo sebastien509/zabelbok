@@ -1,0 +1,704 @@
+import articlesData from "../components2/pages/platform/NewsRoom.jsx/articles.json";
+import newsroomData from "../components2/pages/platform/NewsRoom.jsx/newsroom.json";
+
+const INTHRACORE_BASE_URL =
+  String(
+    import.meta.env.VITE_INTHRACORE_BASE_URL ||
+    ""
+  ).replace(/\/$/, "");
+
+const INTHRACORE_FEED_URL =
+  import.meta.env.VITE_INTHRACORE_NEWSROOM_URL ||
+  (
+    INTHRACORE_BASE_URL
+      ? `${INTHRACORE_BASE_URL}/api/public/estrateji`
+      : ""
+  );
+
+const INTHRACORE_FEED_TIMEOUT_MS =
+  7000;
+
+/* ============================================================
+   NORMALIZATION
+============================================================ */
+
+function clean(value) {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
+}
+
+function normalizeReadTime(value) {
+  if (
+    typeof value === "number" &&
+    Number.isFinite(value)
+  ) {
+    return value;
+  }
+
+  if (
+    typeof value === "string"
+  ) {
+    const match =
+      value.match(/\d+/);
+
+    if (match) {
+      return Number(
+        match[0]
+      );
+    }
+  }
+
+  return null;
+}
+
+function normalizeAuthor(author) {
+  if (
+    typeof author ===
+    "string"
+  ) {
+    return author;
+  }
+
+  if (
+    author &&
+    typeof author ===
+      "object"
+  ) {
+    return (
+      author.name ||
+      author.label ||
+      "E-strateji"
+    );
+  }
+
+  return "E-strateji";
+}
+
+function normalizeImage(item) {
+  const raw =
+    item?.featured_image ||
+    item?.coverImageUrl ||
+    item?.cover_image_url ||
+    item?.image ||
+    item?.heroImage ||
+    item?.thumbnail ||
+    "";
+
+  if (
+    typeof raw ===
+    "string"
+  ) {
+    return raw;
+  }
+
+  return (
+    raw?.src ||
+    raw?.url ||
+    ""
+  );
+}
+
+function normalizeImageAlt(item) {
+  if (
+    item?.image &&
+    typeof item.image ===
+      "object"
+  ) {
+    return (
+      item.image.alt ||
+      item.image_alt ||
+      item.coverImageAlt ||
+      item.title ||
+      ""
+    );
+  }
+
+  return (
+    item?.image_alt ||
+    item?.coverImageAlt ||
+    item?.title ||
+    ""
+  );
+}
+
+function normalizeImageCredit(item) {
+  if (
+    item?.image &&
+    typeof item.image ===
+      "object"
+  ) {
+    return (
+      item.image.credit ||
+      item.image_credit ||
+      item.coverImageCredit ||
+      ""
+    );
+  }
+
+  return (
+    item?.image_credit ||
+    item?.coverImageCredit ||
+    ""
+  );
+}
+
+function normalizeKeySentence(item) {
+  if (
+    clean(
+      item?.key_sentence
+    )
+  ) {
+    return item.key_sentence;
+  }
+
+  if (
+    clean(
+      item?.keySentence
+    )
+  ) {
+    return item.keySentence;
+  }
+
+  if (
+    Array.isArray(
+      item?.quotableClaims
+    ) &&
+    item.quotableClaims.length
+  ) {
+    const claim =
+      item.quotableClaims[0];
+
+    if (
+      typeof claim ===
+      "string"
+    ) {
+      return claim;
+    }
+
+    if (
+      claim &&
+      typeof claim ===
+        "object"
+    ) {
+      return (
+        claim.text ||
+        claim.claim ||
+        claim.quote ||
+        ""
+      );
+    }
+  }
+
+  return (
+    item?.excerpt ||
+    item?.subtitle ||
+    item?.dek ||
+    item?.description ||
+    ""
+  );
+}
+
+export function normalizeStory(
+  item = {},
+  fallbackType = "article"
+) {
+  const type =
+    item.type === "news" ||
+    item.contentType ===
+      "news"
+      ? "news"
+      : fallbackType;
+
+  const slug =
+    item.slug ||
+    item.id ||
+    "";
+
+  const readTime =
+    normalizeReadTime(
+      item.read_time ??
+      item.readTime ??
+      item.readingTime
+    );
+
+  const featuredImage =
+    normalizeImage(item);
+
+  return {
+    /*
+     * Preserve all legacy fields so current UI components
+     * remain compatible.
+     */
+    ...item,
+
+    id:
+      item.id ||
+      `${type}:${slug}`,
+
+    slug,
+
+    type,
+
+    title:
+      item.title ||
+      "Untitled",
+
+    excerpt:
+      item.excerpt ||
+      item.subtitle ||
+      item.dek ||
+      item.description ||
+      "",
+
+    category:
+      item.category ||
+      item.topicLabel ||
+      item.topic ||
+      (
+        type === "news"
+          ? "News"
+          : "Article"
+      ),
+
+    author:
+      normalizeAuthor(
+        item.author
+      ),
+
+    position:
+      item.position ||
+      item.authorRole ||
+      item.author?.role ||
+      "",
+
+    date:
+      item.date ||
+      item.publishedAt ||
+      item.published_at ||
+      "",
+
+    read_time:
+      readTime,
+
+    /*
+     * Compatibility aliases.
+     */
+    readTime:
+      readTime
+        ? `${readTime} min read`
+        : "",
+
+    featured_image:
+      featuredImage,
+
+    image:
+      featuredImage,
+
+    image_alt:
+      normalizeImageAlt(
+        item
+      ),
+
+    image_credit:
+      normalizeImageCredit(
+        item
+      ),
+
+    key_sentence:
+      normalizeKeySentence(
+        item
+      ),
+
+    keywords:
+      Array.isArray(
+        item.keywords
+      )
+        ? item.keywords
+        : Array.isArray(
+            item.tags
+          )
+          ? item.tags
+          : [],
+
+    content:
+      item.content ??
+      item.body ??
+      "",
+
+    canonical_url:
+      item.canonical_url ||
+      item.canonicalUrl ||
+      "",
+
+    source:
+      item.source ||
+      "estrateji",
+
+    status:
+      item.status ||
+      "published",
+  };
+}
+
+/* ============================================================
+   LOCAL FALLBACK
+============================================================ */
+
+function newestFirst(
+  items
+) {
+  return [
+    ...items,
+  ].sort(
+    (a, b) => {
+      const aTime =
+        new Date(
+          a.date ||
+          a.publishedAt ||
+          0
+        ).getTime();
+
+      const bTime =
+        new Date(
+          b.date ||
+          b.publishedAt ||
+          0
+        ).getTime();
+
+      return (
+        (
+          Number.isNaN(
+            bTime
+          )
+            ? 0
+            : bTime
+        ) -
+        (
+          Number.isNaN(
+            aTime
+          )
+            ? 0
+            : aTime
+        )
+      );
+    }
+  );
+}
+
+export function getLocalNewsroomContent() {
+  const articles =
+    (
+      articlesData?.articles ||
+      []
+    ).map(
+      (item) =>
+        normalizeStory(
+          item,
+          "article"
+        )
+    );
+
+  const news =
+    (
+      newsroomData?.newsroom ||
+      []
+    ).map(
+      (item) =>
+        normalizeStory(
+          item,
+          "news"
+        )
+    );
+
+  return {
+    articles:
+      newestFirst(
+        articles
+      ),
+
+    news:
+      newestFirst(
+        news
+      ),
+
+    source:
+      "local",
+  };
+}
+
+/* ============================================================
+   LIVE CONTENT
+============================================================ */
+
+function normalizePayload(
+  payload
+) {
+  const root =
+    payload?.content ||
+    payload ||
+    {};
+
+  let articles =
+    root.articles ||
+    [];
+
+  let news =
+    root.news ||
+    root.newsroom ||
+    [];
+
+  if (
+    Array.isArray(
+      root.items
+    )
+  ) {
+    articles =
+      root.items.filter(
+        (item) =>
+          item.type !==
+          "news"
+      );
+
+    news =
+      root.items.filter(
+        (item) =>
+          item.type ===
+          "news"
+      );
+  }
+
+  return {
+    articles:
+      newestFirst(
+        (
+          Array.isArray(
+            articles
+          )
+            ? articles
+            : []
+        ).map(
+          (item) =>
+            normalizeStory(
+              item,
+              "article"
+            )
+        )
+      ),
+
+    news:
+      newestFirst(
+        (
+          Array.isArray(
+            news
+          )
+            ? news
+            : []
+        ).map(
+          (item) =>
+            normalizeStory(
+              item,
+              "news"
+            )
+        )
+      ),
+
+    source:
+      "api",
+  };
+}
+
+export async function getNewsroomContent() {
+  const local =
+    getLocalNewsroomContent();
+
+  /*
+   * No InthraCore URL configured:
+   * E-strateji remains fully local.
+   */
+  if (
+    !INTHRACORE_FEED_URL
+  ) {
+    return local;
+  }
+
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () =>
+        controller.abort(),
+      INTHRACORE_FEED_TIMEOUT_MS
+    );
+
+  try {
+    const response =
+      await fetch(
+        INTHRACORE_FEED_URL,
+        {
+          method:
+            "GET",
+
+          headers: {
+            Accept:
+              "application/json",
+          },
+
+          signal:
+            controller.signal,
+        }
+      );
+
+    if (
+      !response.ok
+    ) {
+      throw new Error(
+        `InthraCore feed returned ${response.status}`
+      );
+    }
+
+    const payload =
+      await response.json();
+
+    const live =
+      normalizePayload(
+        payload
+      );
+
+    /*
+     * Merge by slug.
+     *
+     * Existing E-strateji JSON is the base.
+     * InthraCore overwrites the same slug.
+     */
+    const merge = (
+      fallback,
+      incoming
+    ) => {
+      const map =
+        new Map();
+
+      fallback.forEach(
+        (item) => {
+          if (
+            item?.slug
+          ) {
+            map.set(
+              item.slug,
+              item
+            );
+          }
+        }
+      );
+
+      incoming.forEach(
+        (item) => {
+          if (
+            item?.slug
+          ) {
+            map.set(
+              item.slug,
+              {
+                ...item,
+
+                source:
+                  item.source ||
+                  "inthracore",
+              }
+            );
+          }
+        }
+      );
+
+      return newestFirst(
+        [
+          ...map.values(),
+        ]
+      );
+    };
+
+    return {
+      articles:
+        merge(
+          local.articles,
+          live.articles
+        ),
+
+      news:
+        merge(
+          local.news,
+          live.news
+        ),
+
+      source:
+        live.articles.length ||
+        live.news.length
+          ? "hybrid"
+          : "local",
+    };
+  } catch (error) {
+    /*
+     * InthraCore can be unavailable without taking
+     * the E-strateji magazine offline.
+     */
+    if (
+      import.meta.env.DEV
+    ) {
+      console.info(
+        "[newsroom] InthraCore unavailable; using local JSON",
+        error?.message ||
+        ""
+      );
+    }
+
+    return local;
+  } finally {
+    clearTimeout(
+      timeout
+    );
+  }
+}
+
+export async function getArticleBySlug(
+  slug
+) {
+  const {
+    articles,
+  } =
+    await getNewsroomContent();
+
+  return (
+    articles.find(
+      (article) =>
+        article.slug ===
+        slug
+    ) ||
+    null
+  );
+}
+
+export async function getNewsBySlug(
+  slug
+) {
+  const {
+    news,
+  } =
+    await getNewsroomContent();
+
+  return (
+    news.find(
+      (article) =>
+        article.slug ===
+        slug
+    ) ||
+    null
+  );
+}
+
+export default {
+  getNewsroomContent,
+  getArticleBySlug,
+  getNewsBySlug,
+  normalizeStory,
+};

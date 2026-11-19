@@ -10,7 +10,7 @@ import {
 } from "@/components2/ui/dialog"
 import { Button } from "@/components2/ui/button"
 import { getCourseById } from "@/services/courses"
-import { getModulesByCourse, createModule, publishReviewedModule } from "@/services/modules"
+import { getModulesByCourse, processModule, publishReviewedModule } from "@/services/modules"
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary"
 import { toast } from "@/components2/ui/use-toast"
 import UploadModuleLoading from "@/components2/ui/UploadModuleLoading"
@@ -38,7 +38,7 @@ export function checkVideoDuration(file, maxSeconds = 600) {
 }
 
 function slugify(str) {
-  return str
+  return String(str || "")
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "")
@@ -66,7 +66,6 @@ export default function UploadContentModal({
 
   const lastModule = modules?.[modules.length - 1]
 
-  // Load course data
   useEffect(() => {
     if (!courseId || !open) return
 
@@ -77,7 +76,7 @@ export default function UploadContentModal({
           getModulesByCourse(courseId),
         ])
         setCourse(courseRes?.data ?? courseRes)
-        setModules(modulesRes || [])
+        setModules(Array.isArray(modulesRes) ? modulesRes : [])
       } catch (error) {
         console.error("Failed to load course data:", error)
         toast("Error", { description: "Failed to load course data" })
@@ -87,7 +86,7 @@ export default function UploadContentModal({
     loadData()
   }, [courseId, open])
 
-  // Load draft if exists
+  // Load draft
   useEffect(() => {
     if (!draft) return
     try {
@@ -98,6 +97,7 @@ export default function UploadContentModal({
     } catch {
       console.warn("Failed to parse draft data")
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft])
 
   const saveDraft = () => {
@@ -108,6 +108,10 @@ export default function UploadContentModal({
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!title.trim() || !description.trim()) {
+      toast("Missing fields", { description: "Title and description are required." })
+      return
+    }
     if (!videoFile) {
       toast("Missing video", { description: "Please select a video file" })
       return
@@ -125,15 +129,13 @@ export default function UploadContentModal({
       return
     }
 
-    const renamedFile = new File([videoFile], `${slugify(title)}.mp4`, {
-      type: videoFile.type,
-    })
+    const renamedFile = new File([videoFile], `${slugify(title)}.mp4`, { type: videoFile.type })
 
     const moduleData = {
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       course_id: courseId,
-      order: modules.length + 1,
+      order: (modules?.length || 0) + 1,
       created_at: new Date().toISOString(),
     }
 
@@ -141,24 +143,33 @@ export default function UploadContentModal({
       setIsUploading(true)
       setCurrentStep("uploading")
 
-      // ✅ Compress before upload
+      // ✅ Compress then upload
       const compressedFile = await compressVideo(renamedFile)
       const videoUrl = await uploadToCloudinary(compressedFile)
 
+      // ✅ Process: real transcript + quiz from backend
       setCurrentStep("transcribing")
-      const res = await createModule({ ...moduleData, video_url: videoUrl })
+      const processed = await processModule({
+        ...moduleData,
+        video_url: videoUrl,
+      })
 
       setCurrentStep("quiz")
 
       setReviewData({
-        module: { ...moduleData, video_url: videoUrl },
-        transcript: res?.transcript || "",
-        quiz: res?.quiz_questions || [],
+        module: { ...moduleData, video_url: videoUrl, caption_url: processed?.caption_url || null },
+        transcript: processed?.transcript || "",
+        quiz: processed?.quiz_questions || [],
+        meta: {
+          duration_sec: processed?.duration_sec || 0,
+          language: processed?.language || "en",
+        },
       })
 
       setCurrentStep("complete")
     } catch (err) {
-      toast("Upload failed", { description: err.message })
+      console.error(err)
+      toast("Upload failed", { description: err?.response?.data?.error || err.message })
     } finally {
       setIsUploading(false)
     }
@@ -174,7 +185,7 @@ export default function UploadContentModal({
       await publishReviewedModule({
         ...reviewData.module,
         transcript: reviewData.transcript,
-        quiz: reviewData.quiz,
+        quiz: reviewData.quiz, // backend publish expects "quiz"
       })
 
       onDraftClear?.()
@@ -183,7 +194,7 @@ export default function UploadContentModal({
     } catch (error) {
       console.error("Publish failed:", error)
       toast("Publish failed", {
-        description: error.message || "Check your connection and try again",
+        description: error?.response?.data?.error || error.message || "Check your connection and try again",
       })
     } finally {
       setIsUploading(false)
@@ -218,19 +229,17 @@ export default function UploadContentModal({
 
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden">
-          {/* Header */}
           <DialogHeader className="px-6 pt-6 pb-4 bg-white/70 backdrop-blur-xl border-b border-white/10">
             <DialogTitle className="text-xl font-bold text-[#2C365E]">
               Upload Module{" "}
               <span className="text-[#EA7125]">{course?.title ? `→ ${course.title}` : ""}</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-[#2C365E]/70">
-              Add a new lesson, generate transcript + quiz, then publish.
+              Add a lesson, generate transcript + quiz, review, then publish.
             </DialogDescription>
           </DialogHeader>
 
           <div className="px-6 py-5 bg-white/45 backdrop-blur-xl">
-            {/* Course info */}
             <div className="mb-5 rounded-2xl border border-white/15 bg-white/55 backdrop-blur-xl p-4 text-sm text-[#2C365E]/75">
               <p>
                 📚 <strong className="text-[#2C365E]">{modules.length}</strong> modules in this course
@@ -272,13 +281,13 @@ export default function UploadContentModal({
                   />
                 </div>
 
-                {/* Dropzone */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-[#2C365E]">Video File</label>
 
-                  <label className="group flex flex-col items-center justify-center w-full h-36 rounded-2xl cursor-pointer
-                    border border-dashed border-[#2C365E]/20 bg-white/55 backdrop-blur-xl
-                    hover:bg-white/70 transition"
+                  <label
+                    className="group flex flex-col items-center justify-center w-full h-36 rounded-2xl cursor-pointer
+                      border border-dashed border-[#2C365E]/20 bg-white/55 backdrop-blur-xl
+                      hover:bg-white/70 transition"
                   >
                     <div className="text-3xl">🎬</div>
                     <p className="mt-2 text-sm text-[#2C365E]/70">
@@ -318,35 +327,24 @@ export default function UploadContentModal({
                 </div>
               </form>
             ) : (
-              // ✅ Review Screen (height locked, scroll content, sticky footer)
               <div className="rounded-2xl border border-white/15 bg-white/55 backdrop-blur-xl overflow-hidden">
                 <div className="max-h-[62vh] overflow-y-auto p-4 space-y-6">
-                  {/* Transcript */}
                   <div>
-                    <h3 className="text-base font-semibold text-[#2C365E] mb-2">
-                      📝 Transcript
-                    </h3>
+                    <h3 className="text-base font-semibold text-[#2C365E] mb-2">📝 Transcript</h3>
                     <div className="rounded-2xl border border-white/15 bg-white/60 p-4 text-sm text-[#2C365E]/80 whitespace-pre-wrap">
-                      {reviewData.transcript}
+                      {reviewData.transcript || "No transcript returned."}
                     </div>
                   </div>
 
-                  {/* Quiz */}
                   <div>
-                    <h3 className="text-base font-semibold text-[#2C365E] mb-2">
-                      📚 Quiz Questions
-                    </h3>
+                    <h3 className="text-base font-semibold text-[#2C365E] mb-2">📚 Quiz Questions</h3>
 
                     {Array.isArray(reviewData?.quiz) && reviewData.quiz.length > 0 ? (
                       <div className="space-y-3">
                         {reviewData.quiz.map((q, idx) => (
-                          <div
-                            key={idx}
-                            className="rounded-2xl border border-white/15 bg-white/60 p-4"
-                          >
+                          <div key={idx} className="rounded-2xl border border-white/15 bg-white/60 p-4">
                             <p className="font-semibold text-sm text-[#2C365E] mb-2">
-                              <span className="text-[#EA7125]">Q{idx + 1}:</span>{" "}
-                              {q.question_text}
+                              <span className="text-[#EA7125]">Q{idx + 1}:</span> {q.question_text}
                             </p>
                             <ul className="space-y-2">
                               {q.choices.map((choice, i) => {
@@ -355,9 +353,7 @@ export default function UploadContentModal({
                                   <li
                                     key={i}
                                     className={`rounded-xl border border-white/10 px-3 py-2 text-sm flex items-center gap-2 ${
-                                      correct
-                                        ? "bg-emerald-500/10"
-                                        : "bg-white/40"
+                                      correct ? "bg-emerald-500/10" : "bg-white/40"
                                     }`}
                                   >
                                     {correct ? (
@@ -374,9 +370,7 @@ export default function UploadContentModal({
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-[#2C365E]/60 italic py-2">
-                        No quiz generated for this module.
-                      </p>
+                      <p className="text-sm text-[#2C365E]/60 italic py-2">No quiz generated for this module.</p>
                     )}
                   </div>
                 </div>
@@ -394,7 +388,7 @@ export default function UploadContentModal({
                     onClick={handlePublish}
                     disabled={isUploading}
                     className="rounded-xl text-white px-5"
-                    style={{ backgroundColor: "rgba(44,54,94,0.92)" }} // navy publish
+                    style={{ backgroundColor: "rgba(44,54,94,0.92)" }}
                   >
                     {isUploading ? "Publishing..." : "Publish Module"}
                   </Button>

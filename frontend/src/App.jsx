@@ -72,7 +72,7 @@ import About from './components2/pages/platform/About';
 import Magazine from './components2/pages/platform/NewsRoom.jsx/Magazine';
 import ArticlePage from './components2/pages/platform/NewsRoom.jsx/ArticlePage';
 import News from './components2/pages/platform/NewsRoom.jsx/News';
-
+import CreatorRevenueAnalytics from './components2/pages/CreatorRevenueAnalytics';
 
 import DualLandingPage from './components2/pages/DualLandingPage';
 
@@ -179,6 +179,7 @@ i18n.changeLanguage(preferredLanguage);
 
             <Route path="/magazine" element={<Magazine />} />
             <Route path="/news" element={<News />} />
+            <Route path="/articles/:slug" element={<ArticlePage />} />
             <Route path="/article/:slug" element={<ArticlePage />} />
             <Route path="/news/:slug" element={<NewsPage />} />
             {/* Amaider Auth */}
@@ -235,8 +236,11 @@ i18n.changeLanguage(preferredLanguage);
           <Route path="/learner/*" element={<LearnerDashboard />} />
         )}
         
-
-
+        <Route path="/creator/revenue" element={
+        <ProtectedRoute allowedRoles={['creator']}>
+          <CreatorRevenueAnalytics />
+        </ProtectedRoute>
+        }/>
           <Route path="/creator/dashboard" element={
         <ProtectedRoute allowedRoles={['creator']}>
           <CreatorDashboard />

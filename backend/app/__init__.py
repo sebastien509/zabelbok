@@ -7,6 +7,9 @@ from app.extensions import db, migrate, bcrypt, jwt
 import yaml
 import logging
 import re
+from werkzeug.exceptions import HTTPException
+from flask import jsonify
+
 
 def create_app():
     load_dotenv()
@@ -113,11 +116,12 @@ def create_app():
     from app.routes.enrollments_routes import enrollment_bp
     from app.routes.payment_routes import payment_bp
     from app.routes.webhook_routes import webhook_bp
+    from app.routes.revenue_routes import revenue_bp
 
     for bp in [auth_bp, course_bp, lecture_bp, book_bp, exercise_bp,
                message_bp, offline_bp, quiz_bp, result_bp, school_bp,
                notification_bp, analytics_bp, progress_bp, module_bp,
-               upload_bp, enrollment_bp, payment_bp, webhook_bp]:
+               upload_bp, enrollment_bp, payment_bp, webhook_bp, revenue_bp]:
         app.register_blueprint(bp)
         app.logger.info(f"📦 Registered blueprint: {bp.name}")
 
@@ -125,10 +129,25 @@ def create_app():
     @app.get("/health")
     def health():
         return {"ok": True, "service": "api"}, 200
+    
+
+
 
     @app.errorhandler(Exception)
     def handle_exception(e):
-        app.logger.exception(f"❗️Unhandled Exception: {str(e)}")
-        return {"error": "Internal server error"}, 500
+        # ✅ Let Flask/Werkzeug handle HTTP errors properly
+        if isinstance(e, HTTPException):
+            return e
+
+        # your existing logging
+        try:
+            app.logger.exception("❗️Unhandled Exception")
+        except Exception:
+            pass
+
+        return jsonify({"error": "Internal Server Error"}), 500
+
+
+
 
     return app

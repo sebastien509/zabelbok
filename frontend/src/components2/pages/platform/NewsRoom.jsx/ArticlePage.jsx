@@ -1,82 +1,316 @@
-import { useParams, Link } from 'react-router-dom';
-import SEO from '@/components2/SEO';
-import { Layout } from './Magazine';
-import articlesData from './articles.json';
-import { useMemo } from 'react';
+import {
+  useMemo,
+} from "react";
 
-// Helper component for rendering content blocks
-function ContentBlock({ block }) {
-  if (typeof block === 'string') {
-    // Simple paragraph with basic bold support
-    const html = block.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    return <p dangerouslySetInnerHTML={{ __html: html }} />;
+import {
+  Link,
+  useParams,
+} from "react-router-dom";
+
+import SEO from "@/components2/SEO";
+
+import useNewsroomContent from "@/hook/useNewsroomContent";
+
+import {
+  Layout,
+} from "./Magazine";
+
+import StoryMedia from "./StoryMedia";
+
+/* ============================================================
+   CONTENT
+============================================================ */
+
+function inlineMarkup(
+  value = ""
+) {
+  return String(
+    value
+  ).replace(
+    /\*\*(.*?)\*\*/g,
+    "<strong>$1</strong>"
+  );
+}
+
+function ContentBlock({
+  block,
+}) {
+  if (
+    typeof block ===
+    "string"
+  ) {
+    return (
+      <p
+        dangerouslySetInnerHTML={{
+          __html:
+            inlineMarkup(
+              block
+            ),
+        }}
+      />
+    );
   }
 
-  switch (block.type) {
-    case 'list':
+  if (!block) {
+    return null;
+  }
+
+  switch (
+    block.type
+  ) {
+    case "list":
       return (
         <ul className="my-4 space-y-2">
-          {block.items.map((item, index) => (
-            <li key={index} className="flex items-start">
-              <span className="mr-2 mt-1.5 h-1.5 w-1.5 rounded-full bg-brand flex-shrink-0" />
-              <span>{item}</span>
-            </li>
-          ))}
+          {(
+            block.items ||
+            []
+          ).map(
+            (
+              item,
+              index
+            ) => (
+              <li
+                key={
+                  index
+                }
+                className="flex items-start"
+              >
+                <span className="mr-2 mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand" />
+
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      inlineMarkup(
+                        item
+                      ),
+                  }}
+                />
+              </li>
+            )
+          )}
         </ul>
       );
-    
-    case 'quote':
+
+    case "quote":
       return (
-        <blockquote className="border-l-4 border-brand pl-4 my-6 italic text-gray-700 text-lg">
-          {block.content}
+        <blockquote className="my-6 border-l-4 border-brand pl-4 text-lg italic text-gray-700">
+          {
+            block.content
+          }
         </blockquote>
       );
-    
-    case 'emphasis':
-      const html = block.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    case "emphasis":
       return (
-        <p 
-          className="text-lg font-semibold text-blackOlive my-4"
-          dangerouslySetInnerHTML={{ __html: html }}
+        <p
+          className="my-4 text-lg font-semibold text-blackOlive"
+          dangerouslySetInnerHTML={{
+            __html:
+              inlineMarkup(
+                block.content
+              ),
+          }}
         />
       );
-    
+
     default:
       return null;
   }
 }
 
-// Helper component for rendering sections
-function ArticleSection({ section }) {
+function ArticleSection({
+  section,
+}) {
+  if (!section) {
+    return null;
+  }
+
   return (
     <section className="my-8">
-      <h2 className="text-2xl font-bold text-blackOlive mb-4">
-        {section.title}
-      </h2>
+      {section.title && (
+        <h2 className="mb-4 text-2xl font-bold text-blackOlive">
+          {
+            section.title
+          }
+        </h2>
+      )}
+
       <div className="space-y-4">
-        {section.content.map((block, index) => (
-          <ContentBlock key={index} block={block} />
-        ))}
+        {(
+          section.content ||
+          []
+        ).map(
+          (
+            block,
+            index
+          ) => (
+            <ContentBlock
+              key={
+                index
+              }
+              block={
+                block
+              }
+            />
+          )
+        )}
       </div>
     </section>
   );
 }
 
-export default function ArticlePage() {
-  const { slug } = useParams();
-  const articles = articlesData?.articles ?? [];
+function ArticleBody({
+  article,
+}) {
+  const content =
+    article?.content;
 
-  const article = useMemo(
-    () => articles.find(a => a.slug === slug),
-    [articles, slug]
-  );
+  /*
+   * Existing E-strateji structured articles.
+   */
+  if (
+    content &&
+    typeof content ===
+      "object"
+  ) {
+    return (
+      <>
+        <div className="mb-8 space-y-4">
+          {(
+            content.introduction ||
+            []
+          ).map(
+            (
+              block,
+              index
+            ) => (
+              <ContentBlock
+                key={
+                  index
+                }
+                block={
+                  block
+                }
+              />
+            )
+          )}
+        </div>
+
+        {(
+          content.sections ||
+          []
+        ).map(
+          (
+            section,
+            index
+          ) => (
+            <ArticleSection
+              key={
+                index
+              }
+              section={
+                section
+              }
+            />
+          )
+        )}
+      </>
+    );
+  }
+
+  /*
+   * InthraCore / API body.
+   */
+  if (
+    typeof content ===
+    "string"
+  ) {
+    return (
+      <div className="space-y-5">
+        {content
+          .split(
+            /\n\s*\n/
+          )
+          .filter(Boolean)
+          .map(
+            (
+              paragraph,
+              index
+            ) => (
+              <p
+                key={
+                  index
+                }
+                className="leading-8 text-gray-700"
+              >
+                {
+                  paragraph
+                }
+              </p>
+            )
+          )}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+/* ============================================================
+   ARTICLE
+============================================================ */
+
+export default function ArticlePage() {
+  const {
+    slug,
+  } =
+    useParams();
+
+  const {
+    articles,
+    loading,
+  } =
+    useNewsroomContent();
+
+  const article =
+    useMemo(
+      () =>
+        articles.find(
+          (item) =>
+            item.slug ===
+            slug
+        ),
+      [
+        articles,
+        slug,
+      ]
+    );
+
+  if (
+    loading &&
+    !article
+  ) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-4xl px-4 py-20 text-center text-gray-500">
+          Loading article…
+        </div>
+      </Layout>
+    );
+  }
 
   if (!article) {
     return (
       <Layout>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h1 className="text-2xl font-bold text-blackOlive mb-4">Article Not Found</h1>
-          <Link to="/magazine" className="text-brand hover:text-brand-80">
+        <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6 lg:px-8">
+          <h1 className="mb-4 text-2xl font-bold text-blackOlive">
+            Article Not Found
+          </h1>
+
+          <Link
+            to="/magazine"
+            className="text-brand hover:text-brand-80"
+          >
             Back to Magazine
           </Link>
         </div>
@@ -84,123 +318,172 @@ export default function ArticlePage() {
     );
   }
 
+  const initials =
+    String(
+      article.author ||
+      "E-strateji"
+    )
+      .split(
+        /\s+/
+      )
+      .filter(Boolean)
+      .slice(
+        0,
+        2
+      )
+      .map(
+        (name) =>
+          name[0]
+      )
+      .join("")
+      .toUpperCase();
+
   return (
     <Layout>
       <SEO
         title={`${article.title} - E-stratèji Magazine`}
-        description={article.excerpt}
+        description={
+          article.excerpt
+        }
         canonical={`/articles/${slug}`}
         type="article"
-        publishedTime={article.date}
-        author={article.author}
-        tags={article.keywords}
+        publishedTime={
+          article.date
+        }
+        author={
+          article.author
+        }
+        tags={
+          article.keywords
+        }
       />
 
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-w-0">
-        {/* Breadcrumb */}
-        <nav className="mb-8">
-          <Link to="/magazine" className="text-brand hover:text-brand-80">
+      <article className="mx-auto min-w-0 max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        <nav className="mb-8 text-sm">
+          <Link
+            to="/magazine"
+            className="text-brand hover:text-brand-80"
+          >
             Magazine
           </Link>
-          <span className="mx-2 text-gray-400">/</span>
-          <span className="text-gray-600">{article.title}</span>
+
+          <span className="mx-2 text-gray-400">
+            /
+          </span>
+
+          <span className="text-gray-600">
+            {
+              article.title
+            }
+          </span>
         </nav>
 
-        {/* Article Header */}
         <header className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">
-              {article.category}
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-green-600 px-3 py-1 text-sm text-white">
+              {
+                article.category
+              }
             </span>
-            <span className="text-gray-500">
-              {article.date} • {article.read_time} min read
+
+            <span className="text-sm text-gray-500">
+              {
+                article.date
+              }
+
+              {article.read_time
+                ? ` • ${article.read_time} min read`
+                : ""}
             </span>
           </div>
-          <h1 className="text-4xl font-bold text-blackOlive mb-4">{article.title}</h1>
-          <p className="text-xl text-gray-600 mb-6">{article.excerpt}</p>
+
+          <h1 className="mb-4 text-3xl font-bold leading-tight text-blackOlive sm:text-4xl">
+            {
+              article.title
+            }
+          </h1>
+
+          <p className="mb-6 text-lg leading-relaxed text-gray-600 sm:text-xl">
+            {
+              article.excerpt
+            }
+          </p>
+
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              <span className="text-gray-600 text-sm font-medium">
-                {article.author.split(' ').map(n => n[0]).join('')}
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+              <span className="text-sm font-medium text-gray-600">
+                {
+                  initials
+                }
               </span>
             </div>
+
             <div>
-              <p className="font-medium text-blackOlive">{article.author}</p>
-              <p className="text-sm text-gray-500">{article.position}</p>
+              <p className="font-medium text-blackOlive">
+                {
+                  article.author
+                }
+              </p>
+
+              {article.position && (
+                <p className="text-sm text-gray-500">
+                  {
+                    article.position
+                  }
+                </p>
+              )}
             </div>
           </div>
         </header>
 
-        {/* Featured Image */}
-        {article.featured_image && (
-          <div className="mb-8 max-h-[500px] rounded-lg overflow-hidden">
-            <img
-              src={article.featured_image}
-              alt={article.title}
-              className="w-full min-h-64 object-cover"
-              data-preload="false"
-              loading="lazy"
-            />
-          </div>
-        )}
+        <StoryMedia
+          story={
+            article
+          }
+          className="mb-8 aspect-[16/9] rounded-xl"
+        />
 
-        {/* Article Content */}
-        <div className="article-content">
-          {/* Introduction */}
-          <div className="space-y-4 mb-8">
-            {article.content.introduction.map((block, index) => (
-              <ContentBlock key={index} block={block} />
-            ))}
-          </div>
-
-          {/* Sections */}
-          {article.content.sections.map((section, index) => (
-            <ArticleSection key={index} section={section} />
-          ))}
+        <div className="article-content mb-10">
+          <ArticleBody
+            article={
+              article
+            }
+          />
         </div>
 
-        {/* Article Footer */}
-        <footer className="pt-8 border-t border-gray-200">
-          <div className="flex flex-wrap gap-4 mb-6">
-            {(article.keywords ?? []).map((keyword) => (
-              <span
-                key={keyword}
-                className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
-              >
-                #{keyword}
-              </span>
-            ))}
+        <footer className="border-t border-gray-200 pt-8">
+          <div className="mb-6 flex flex-wrap gap-2">
+            {(
+              article.keywords ||
+              []
+            ).map(
+              (keyword) => (
+                <span
+                  key={
+                    keyword
+                  }
+                  className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
+                >
+                  #
+                  {
+                    keyword
+                  }
+                </span>
+              )
+            )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 text-gray-600 hover:text-brand transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
-                <span>Like</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:text-brand transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-                <span>Share</span>
-              </button>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-gray-500">
+              {article.source ===
+              "inthracore"
+                ? "Published via InthraCore"
+                : "E-strateji Magazine"}
             </div>
 
             <Link
               to="/magazine"
-              className="bg-brand-80 text-white px-6 py-2 rounded-md hover:bg-brand-60 transition-colors"
+              className="inline-flex items-center justify-center rounded-md bg-brand-80 px-6 py-2 text-white transition-colors hover:bg-brand-60"
             >
               Back to Magazine
             </Link>

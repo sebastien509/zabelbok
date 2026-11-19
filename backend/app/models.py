@@ -64,14 +64,22 @@ class User(db.Model):
         cascade="all, delete-orphan",
     )
 
-
+    enrolled_courses = db.relationship(
+        "Course",
+        secondary="enrollments",
+        primaryjoin="User.id == Enrollment.user_id",
+        secondaryjoin="Course.id == Enrollment.course_id",
+        viewonly=True,
+        lazy="select",
+    )
 
     # Courses authored (for professors/creators)
     courses_authored = db.relationship(
-        'Course',
-        backref=db.backref('author', lazy=True),
-        foreign_keys='Course.professor_id',
-        lazy=True
+        "Course",
+        back_populates="professor",
+        foreign_keys="Course.professor_id",
+        lazy=True,
+        cascade="all, delete-orphan",
     )
 
     # Password helpers
@@ -157,6 +165,11 @@ class Course(db.Model):
     school_id = db.Column(db.Integer, db.ForeignKey("schools.id"), nullable=False)
     professor_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    stripe_link = db.Column(db.String(255), nullable=True)
+
+    published = db.Column(db.Boolean, nullable=False, default=False)
+    # status = db.Column(db.String(20), default="draft")  # draft | published
+    # published_at = db.Column(db.DateTime, nullable=True)
 
     # Monetization (platform-led)
     is_paid = db.Column(db.Boolean, nullable=False, default=False)
@@ -165,7 +178,7 @@ class Course(db.Model):
     revenue_share_pct = db.Column(db.Numeric(5, 4), nullable=False, default=Decimal("0.8800"))
     stripe_product_id = db.Column(db.String(120))
     stripe_price_id = db.Column(db.String(120))
-
+    intro_url = db.Column(db.String(255))
     # Content relationships
     modules = db.relationship("Module", backref="course", lazy=True)
     lectures = db.relationship("Lecture", backref="course", lazy=True)
@@ -176,8 +189,8 @@ class Course(db.Model):
     # Professor relationship (ONLY ONCE)
     professor = db.relationship(
         "User",
+        back_populates="courses_authored",
         foreign_keys=[professor_id],
-        overlaps="author,courses_authored,professor,courses",
     )
 
     # Enrollment relationships (Enrollment is a model)
@@ -271,8 +284,10 @@ class Course(db.Model):
             "professor_name": self.professor.full_name if self.professor else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "student_count": len(self.students),
+            "stripe_link": self.stripe_link,
             "is_paid": self.is_paid,
             "currency": self.currency,
+            "intro_url": self.intro_url ,
             "price_cents": self.price_cents if self.is_paid else 0,
         }
 
@@ -286,11 +301,14 @@ class Course(db.Model):
             "professor_name": self.professor.full_name if self.professor else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "student_count": len(self.students),
+            "intro_url": self.intro_url ,
+
             "payments": {
                 "is_paid": self.is_paid,
                 "currency": self.currency,
                 "price_cents": self.price_cents,
                 "revenue_share_pct": float(self.revenue_share_pct) if self.revenue_share_pct is not None else None,
+                "stripe_link": self.stripe_link,
                 "snapshot": self._payments_snapshot(),
             },
         }
@@ -322,6 +340,7 @@ class Course(db.Model):
                 "is_paid": self.is_paid,
                 "currency": self.currency,
                 "price_cents": self.price_cents,
+                "stripe_link": self.stripe_link,
                 "revenue_share_pct": float(self.revenue_share_pct) if self.revenue_share_pct is not None else None,
             },
         }

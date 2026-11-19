@@ -111,7 +111,15 @@ export async function updateProfile(data) {
   }
 }
 
-export const getAllCreators = () => api.get('/auth/creators');
+export const getAllCreators = async (params) => {
+  const res = await api.get("/auth/creators", { params });
+  const data = res.data;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.creators)) return data.creators;
+  return [];
+};
+
 export const getMe = () => api.get('/auth/me').then((res) => res.data);
 
 

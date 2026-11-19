@@ -26,7 +26,6 @@ export const getAllCourses = async (params) => {
 };
 
 // Single course (details). Keeps the exact shape returned by backend route.
-export const getCourseById = (id) => api.get(`/courses/${id}`);
 export const getCourseDetails = (id) => api.get(`/courses/${id}`);
 
 // Courses for the current professor (your route already scopes by role).
@@ -37,10 +36,11 @@ export const getCoursesByProfessor = async (/* id unused; kept for compat */) =>
 };
 
 // School-scoped (private) — normalize to array even if API returns {items, meta}
-export const getCoursesBySchool = async (schoolId = 1, params) => {
-  const res = await withParams(`/courses/school/${schoolId}`, params);
-  return toArray(res.data);
-};
+export async function getCoursesBySchool(schoolId) {
+  const res = await api.get(`/courses/school/${schoolId}`);
+  return res.data; // ✅ IMPORTANT
+}
+
 
 // Public lists — normalize to array
 export const getPublicCoursesByCreator = async (professor_id, params) => {
@@ -64,13 +64,31 @@ export async function getMyCourses(params) {
   }
 }
 
+export const getCourseBundleMeta = (id) =>
+  api.get(`/courses/${id}/bundle-meta`).then(r => r.data);
+
+
 // --- Mutations --------------------------------------------------
 
 // Create / Update / Delete (unchanged signatures)
-export const createCourse = (payload) => api.post('/courses', payload);
-export const updateCourse = (id, payload) => api.put(`/courses/${id}`, payload);
-export const deleteCourse = (id) => api.delete(`/courses/${id}`);
+export const createCourse = async (payload) => {
+  const res = await api.post("/courses", payload);
+  return res.data; // ✅ normalize to data
+};
+export const updateCourse = async (id, payload) => {
+  const res = await api.put(`/courses/${id}`, payload);
+  return res.data;
+};
 
+export const deleteCourse = async (id) => {
+  const res = await api.delete(`/courses/${id}`);
+  return res.data;
+};
+
+export const getCourseById = async (id) => {
+  const res = await api.get(`/courses/${id}`);
+  return res.data;
+};
 // Enroll students (unchanged)
 export const enrollStudentsToCourse = (courseId, studentIds) =>
   api.post(`/courses/${courseId}/enroll`, { student_ids: studentIds });

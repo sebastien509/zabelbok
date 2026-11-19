@@ -670,7 +670,7 @@ export default function CreatorOnboarding() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="space-y-6"
+                className="space-y-6 z-20"
               >
                 <h2 className="text-xl font-semibold" style={{ color: BRAND.navy }}>Publish</h2>
                 <p className="text-sm" style={{ color: withA(BRAND.navy, 0.7) }}>
@@ -703,7 +703,7 @@ export default function CreatorOnboarding() {
                   <Button
                     onClick={handlePublish}
                     disabled={busy}
-                    className="rounded-lg"
+                    className="rounded-lg z-50"
                     style={{ background: BRAND.absoluteBlack, color: '#fff' }}
                   >
                     {busy ? 'Publishing…' : 'Publish'}

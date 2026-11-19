@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.models import Course, User, Enrollment
 from app.utils.roles import role_required
+from sqlalchemy.exc import IntegrityError
 
 course_bp = Blueprint("course", __name__, url_prefix="/courses")
 
@@ -56,6 +57,7 @@ def create_course():
 
     title = data.get("title")
     description = data.get("description")
+    intro_url = data.get("intro_url")
     # Default to user's school unless provided
     school_id = data.get("school_id", user.school_id)
 
@@ -78,13 +80,19 @@ def create_course():
         currency=currency,
         price_cents=price_cents,
         revenue_share_pct=revenue_share_pct,
+        intro_url=intro_url
         # published defaults to False
     )
     db.session.add(course)
     db.session.commit()
 
     # Return the creator-safe view
-    return jsonify({"msg": "Course created", "course": course.to_creator_dict()}), 201
+    # Return the creator-safe view
+    return jsonify({
+        "msg": "Course created",
+        "course_id": course.id,
+        "course": course.to_creator_dict()
+    }), 201
 
 
 # ================== UPDATE COURSE (metadata & pricing) ==================
@@ -121,6 +129,40 @@ def update_course(course_id):
 
     db.session.commit()
     return jsonify({"msg": "Course updated", "course": course.to_creator_dict()}), 200
+
+@course_bp.route("/<int:course_id>/bundle-meta", methods=["GET"])
+@jwt_required()
+def course_bundle_meta(course_id):
+    user = get_current_user()
+    course = (
+        Course.query
+        .options(joinedload(Course.professor), joinedload(Course.modules))
+        .get_or_404(course_id)
+    )
+
+    if user.role == "student" and not course.is_accessible_by(user.id):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    modules_meta = [{
+        "id": m.id,
+        "course_id": m.course_id,
+        "title": m.title,
+        "description": m.description,
+        "order": m.order,
+        "duration": getattr(m, "duration", None) or getattr(m, "duration_sec", None),
+        "video_url": getattr(m, "video_url", None),
+        "caption_url": getattr(m, "caption_url", None),
+        "quiz_id": getattr(m, "quiz_id", None),
+        "created_at": m.created_at.isoformat() if getattr(m, "created_at", None) else None,
+    } for m in (course.modules or [])]
+
+    course_dict = course.to_dict(include_nested=False)
+    course_dict["professor_name"] = course.professor.full_name if course.professor else None
+
+    return jsonify({
+        "course": course_dict,
+        "modules": sorted(modules_meta, key=lambda x: x.get("order") or 0),
+    }), 200
 
 
 # ================== QUICK PRICING PATCH ==================
@@ -215,6 +257,70 @@ def get_all_courses():
         }), 200
 
 
+
+@course_bp.route("/<int:course_id>/enroll", methods=["POST"])
+@jwt_required()
+@role_required("professor", "admin")
+def enroll_students(course_id):
+    user = get_current_user()
+    course = Course.query.get_or_404(course_id)
+
+    if course.professor_id != user.id and user.role != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.get_json() or {}
+    student_ids = data.get("student_ids", [])
+    if not isinstance(student_ids, list):
+        return jsonify({"error": "student_ids must be a list"}), 400
+
+    enrolled, skipped = [], []
+
+    for sid in student_ids:
+        try:
+            sid = int(sid)
+        except Exception:
+            skipped.append(sid)
+            continue
+
+        student = User.query.get(sid)
+        if not student or student.role != "student":
+            skipped.append(sid)
+            continue
+        if student.school_id != course.school_id:
+            skipped.append(sid)
+            continue
+
+        # create enrollment row (unique constraint prevents duplicates)
+        e = Enrollment(user_id=student.id, course_id=course.id)
+        db.session.add(e)
+        try:
+            db.session.flush()
+            enrolled.append(student.id)
+        except IntegrityError:
+            db.session.rollback()
+            skipped.append(student.id)
+
+    db.session.commit()
+    return jsonify({
+        "msg": f"{len(enrolled)} students enrolled",
+        "enrolled_student_ids": enrolled,
+        "skipped_student_ids": skipped
+    }), 200
+
+def to_dict(self, include_nested=False, include_students=False):
+    data = {...}
+    if include_nested:
+        data.update({
+            "lectures": [l.to_dict() for l in self.lectures],
+            "books": [b.to_dict() for b in self.books],
+            "quizzes": [q.to_dict() for q in self.quizzes],
+            "exercises": [e.to_dict() for e in self.exercises],
+            "modules": [m.to_dict() for m in self.modules],
+        })
+        if include_students:
+            data["students"] = [s.to_dict() for s in self.students]
+    return data
+
 # ================== GET SINGLE COURSE (role-aware) ==================
 @course_bp.route("/<int:course_id>", methods=["GET"])
 @jwt_required()
@@ -233,9 +339,9 @@ def get_course_details(course_id):
 
     # Student access check (enrolled)
     if user.role == "student":
-        # Using Course.is_accessible_by helper from your model
         if course.is_accessible_by(user.id):
-            return jsonify(course.to_dict(include_nested=True)), 200
+            return jsonify(course.to_dict(include_nested=True, include_students=False)), 200
+
         return jsonify({"error": "Unauthorized"}), 403
 
     # Fallback
@@ -243,38 +349,38 @@ def get_course_details(course_id):
 
 
 # ================== ENROLL STUDENTS (owner only) ==================
-@course_bp.route("/<int:course_id>/enroll", methods=["POST"])
-@jwt_required()
-@role_required("professor", "admin")
-def enroll_students(course_id):
-    user = get_current_user()
-    course = Course.query.get_or_404(course_id)
+# @course_bp.route("/<int:course_id>/enroll", methods=["POST"])
+# @jwt_required()
+# @role_required("professor", "admin")
+# def enroll_students(course_id):
+#     user = get_current_user()
+#     course = Course.query.get_or_404(course_id)
 
-    if course.professor_id != user.id and user.role != "admin":
-        return jsonify({"error": "Unauthorized"}), 403
+#     if course.professor_id != user.id and user.role != "admin":
+#         return jsonify({"error": "Unauthorized"}), 403
 
-    data = request.get_json() or {}
-    student_ids = data.get("student_ids", [])
-    if not isinstance(student_ids, list):
-        return jsonify({"error": "student_ids must be a list"}), 400
+#     data = request.get_json() or {}
+#     student_ids = data.get("student_ids", [])
+#     if not isinstance(student_ids, list):
+#         return jsonify({"error": "student_ids must be a list"}), 400
 
-    enrolled = []
-    for sid in student_ids:
-        student = User.query.get(sid)
-        if not student or student.role != "student":
-            continue
-        # must be same school
-        if student.school_id != course.school_id:
-            continue
-        if student not in course.students:
-            course.students.append(student)
-            enrolled.append(sid)
+#     enrolled = []
+#     for sid in student_ids:
+#         student = User.query.get(sid)
+#         if not student or student.role != "student":
+#             continue
+#         # must be same school
+#         if student.school_id != course.school_id:
+#             continue
+#         if student not in course.students:
+#             course.students.append(student)
+#             enrolled.append(sid)
 
-    db.session.commit()
-    return jsonify({
-        "msg": f"{len(enrolled)} students enrolled",
-        "enrolled_student_ids": enrolled
-    }), 200
+#     db.session.commit()
+#     return jsonify({
+#         "msg": f"{len(enrolled)} students enrolled",
+#         "enrolled_student_ids": enrolled
+#     }), 200
 
 
 # ================== STUDENTS GROUPED BY COURSE (owner only) ==================
@@ -354,13 +460,24 @@ def publish_course(course_id):
     if course.professor_id != user.id and user.role != "admin":
         return jsonify({"error": "Unauthorized"}), 403
 
-    # Optional guardrails
-    if not course.title or not (course.modules and len(course.modules) > 0):
-        return jsonify({"error": "Course must have a title and at least one module"}), 400
+    data = request.get_json(silent=True) or {}   # ✅ prevents 415
 
+    is_paid = bool(data.get("is_paid", False))
+    price_cents = int(data.get("price_cents") or 0)
+    currency = (data.get("currency") or "usd").lower()
+
+    if is_paid and price_cents <= 0:
+        return jsonify({"error": "Paid course requires price_cents > 0"}), 400
+
+    course.is_paid = is_paid
+    course.price_cents = price_cents
+    course.currency = currency
     course.published = True
+
     db.session.commit()
-    return jsonify({"msg": "Course published", "course": course.to_creator_dict()}), 200
+    return jsonify(course.to_dict()), 200
+
+
 
 
 @course_bp.route("/<int:course_id>/unpublish", methods=["POST"])

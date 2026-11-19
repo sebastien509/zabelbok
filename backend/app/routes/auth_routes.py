@@ -1,12 +1,14 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app.extensions import db, bcrypt
-from app.models import User, StudentSubmission, Course, Enrollment  # ⬅️ removed course_students, added Enrollment
+from app.models import User, StudentSubmission, Course, Enrollment, Module  # ⬅️ removed course_students, added Enrollment
 from flasgger import swag_from
 from datetime import timedelta, datetime
 from sqlalchemy.exc import IntegrityError
 from app.utils.roles import role_required
 from app.utils.logger import log_event
+from sqlalchemy import func, case, distinct, and_
+from decimal import Decimal
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -40,7 +42,6 @@ def register():
         new_user = User(
             full_name=full_name,
             email=email,
-            # ✅ FIXED: Use bcrypt instead of werkzeug
             password_hash=bcrypt.generate_password_hash(password).decode('utf-8'),
             role=role,
             school_id=school_id,
@@ -75,7 +76,7 @@ def slug_available(slug):
 @auth_bp.route('/me/style', methods=['PUT'])
 @jwt_required()
 def update_style():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -170,48 +171,231 @@ def get_current_user_view():
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict())  # returns full profile including theme, banner_url, etc.
 
+
 @auth_bp.route('/me/courses', methods=['GET'])
 @jwt_required()
 @swag_from({
     'tags': ['Dashboard'],
     'summary': "Get user's related courses",
     'description': 'Students see enrolled courses, professors see authored courses.',
-    'responses': {
-        200: {'description': 'List of related courses'}
-    },
+    'responses': {200: {'description': 'List of related courses'}},
     'security': [{'Bearer': []}]
 })
 def get_user_courses():
+    """
+    Returns creator/professor-authored courses OR student-related courses.
+    Adds creator-dashboard fields:
+      - published (draft vs published)
+      - pricing: is_paid, price_cents, currency, revenue_share_pct
+      - enrolled_count, paid_students
+      - gross_cents, creator_revenue_cents, platform_revenue_cents (best-effort, based on Enrollment fields)
+      - module_count
+    """
+    from sqlalchemy import func, case, literal
+    from decimal import Decimal, ROUND_HALF_UP
+
     user_id = int(get_jwt_identity())
     user = User.query.get_or_404(user_id)
 
+    # -----------------------------
+    # Helpers (safe across schemas)
+    # -----------------------------
+    def _has(model, name: str) -> bool:
+        return hasattr(model, name) and getattr(model, name) is not None
+
+    def _paid_condition():
+        """
+        Build a SQLAlchemy boolean expression that represents 'this enrollment is paid'
+        using whichever field(s) your Enrollment model actually has.
+        """
+        if _has(Enrollment, "is_paid"):
+            return Enrollment.is_paid.is_(True)
+
+        if _has(Enrollment, "payment_status"):
+            return Enrollment.payment_status.in_(["paid", "succeeded", "complete"])
+
+        if _has(Enrollment, "paid_at"):
+            return Enrollment.paid_at.isnot(None)
+
+        if _has(Enrollment, "amount_paid_cents"):
+            return Enrollment.amount_paid_cents > 0
+
+        if _has(Enrollment, "price_cents"):
+            return Enrollment.price_cents > 0
+
+        return literal(False)
+
+    def _gross_cents_expr():
+        """
+        Build a SQLAlchemy expression for total gross revenue (cents) from enrollments
+        using whichever money column exists on Enrollment.
+        """
+        if _has(Enrollment, "amount_paid_cents"):
+            return func.coalesce(func.sum(Enrollment.amount_paid_cents), 0)
+
+        if _has(Enrollment, "price_cents"):
+            return func.coalesce(func.sum(Enrollment.price_cents), 0)
+
+        return literal(0)
+
+    def _safe_int(x, default=0):
+        try:
+            return int(x)
+        except Exception:
+            return default
+
+    def _decimal_pct(x):
+        try:
+            return Decimal(str(x))
+        except Exception:
+            return Decimal("0.8800")  # fallback default if your column is missing/None
+
+    # -----------------------------
+    # Course selection logic
+    # -----------------------------
     if user.role == 'professor':
         if user.school_id == 1:  # Creator
             courses = Course.query.filter_by(professor_id=user.id, school_id=1).all()
         else:
             courses = Course.query.filter_by(professor_id=user.id).all()
+
     elif user.role == 'student':
-        if user.school_id == 1:  # Learner
-            # (optional) just learners at school 1; adjust if you only want enrolled:
-            # courses = user.enrolled_courses
+        if user.school_id == 1:  # Learner (your current behavior returns all courses at school 1)
             courses = Course.query.filter_by(school_id=1).all()
         else:
+            # enrolled courses
             courses = user.enrolled_courses
+
     else:
         courses = []
 
-    return jsonify([
-        {
+    if not courses:
+        return jsonify([]), 200
+
+    course_ids = [c.id for c in courses]
+
+    # -----------------------------
+    # Aggregates (modules + enrollments)
+    # -----------------------------
+    # Module counts (avoid len(c.modules) N+1)
+    module_counts = {}
+    try:
+        module_rows = (
+            db.session.query(
+                Module.course_id.label("course_id"),
+                func.count(Module.id).label("module_count")
+            )
+            .filter(Module.course_id.in_(course_ids))
+            .group_by(Module.course_id)
+            .all()
+        )
+        module_counts = {r.course_id: _safe_int(r.module_count) for r in module_rows}
+    except Exception:
+        # If Module model name differs in your codebase, this prevents crashing.
+        module_counts = {c.id: len(getattr(c, "modules", []) or []) for c in courses}
+
+    # Enrollment aggregates (enrolled_count + paid_students + gross_cents)
+    enrollment_stats = {cid: {"enrolled_count": 0, "paid_students": 0, "gross_cents": 0} for cid in course_ids}
+    try:
+        paid_cond = _paid_condition()
+        gross_expr = _gross_cents_expr()
+
+        enroll_rows = (
+            db.session.query(
+                Enrollment.course_id.label("course_id"),
+                func.count(func.distinct(Enrollment.student_id)).label("enrolled_count"),
+                func.sum(case((paid_cond, 1), else_=0)).label("paid_students"),
+                gross_expr.label("gross_cents"),
+            )
+            .filter(Enrollment.course_id.in_(course_ids))
+            .group_by(Enrollment.course_id)
+            .all()
+        )
+
+        for r in enroll_rows:
+            enrollment_stats[r.course_id] = {
+                "enrolled_count": _safe_int(r.enrolled_count),
+                "paid_students": _safe_int(r.paid_students),
+                "gross_cents": _safe_int(r.gross_cents),
+            }
+    except Exception:
+        # If Enrollment table/fields differ, don't crash endpoint
+        pass
+
+    # -----------------------------
+    # Response shaping
+    # -----------------------------
+    result = []
+    for c in courses:
+        # pricing fields (best effort—works whether your Course has these or not)
+        is_paid = bool(getattr(c, "is_paid", False))
+        price_cents = _safe_int(getattr(c, "price_cents", 0))
+        currency = (getattr(c, "currency", "usd") or "usd").lower()
+        published = bool(getattr(c, "published", False))
+
+        # revenue share
+        revenue_share_pct = _decimal_pct(getattr(c, "revenue_share_pct", Decimal("0.8800")))
+
+        stats = enrollment_stats.get(c.id, {"enrolled_count": 0, "paid_students": 0, "gross_cents": 0})
+        gross_cents = _safe_int(stats.get("gross_cents", 0))
+
+        # creator/platform split (in cents) — safe decimal math
+        creator_rev = (Decimal(gross_cents) * revenue_share_pct).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        creator_revenue_cents = int(creator_rev)
+        platform_revenue_cents = max(0, gross_cents - creator_revenue_cents)
+
+        # modules list (keep for your current UI; if too heavy, remove or return only minimal fields)
+        modules_list = []
+        try:
+            modules_list = [m.to_dict() for m in (getattr(c, "modules", []) or [])]
+        except Exception:
+            modules_list = []
+
+        # students list (can be heavy; keep if you really need it)
+        students_list = []
+        try:
+            students_list = [s.to_dict() for s in (getattr(c, "students", []) or [])]
+        except Exception:
+            students_list = []
+
+        result.append({
             "id": c.id,
             "title": c.title,
             "description": c.description,
-            "modules": [m.to_dict() for m in c.modules],
-            "students": [s.to_dict() for s in c.students],
-            "module_count": len(c.modules),
-            "student_count": len(c.students)
-        }
-        for c in courses
-    ])
+
+            # status flags for dashboard
+            "published": published,
+            "status": "Published" if published else "Draft",
+
+            # pricing block
+            "is_paid": is_paid,
+            "price_cents": price_cents,
+            "currency": currency,
+            "revenue_share_pct": str(revenue_share_pct),  # keep as string to avoid float issues
+
+            # enrollment + revenue stats
+            "student_count": _safe_int(stats.get("enrolled_count", 0)),
+            "paid_students": _safe_int(stats.get("paid_students", 0)),
+            "gross_cents": gross_cents,
+            "creator_revenue_cents": creator_revenue_cents,
+            "platform_revenue_cents": platform_revenue_cents,
+
+            # modules info
+            "module_count": module_counts.get(c.id, 0),
+            "modules": modules_list,
+
+            # optional (remove if payload too large)
+            "students": students_list,
+        })
+
+    # sort newest first if you have created_at
+    try:
+        result.sort(key=lambda x: (x.get("published", False), x.get("id", 0)), reverse=True)
+    except Exception:
+        pass
+
+    return jsonify(result), 200
+
 
 @auth_bp.route('/me/submissions', methods=['GET'])
 @jwt_required()
@@ -323,16 +507,161 @@ def update_my_profile():
         db.session.rollback()
         return jsonify({"error": "Update failed", "details": str(e)}), 500
 
-@auth_bp.route('/creators', methods=['GET'])
+# @auth_bp.route('/creators', methods=['GET'])
+# @jwt_required()
+# def get_all_creators():
+#     creators = User.query.filter_by(role='professor', school_id=1).all()
+#     return jsonify([{
+#         'id': u.id,
+#         'full_name': u.full_name,
+#         'bio': u.bio,
+#         'profile_image_url': u.profile_image_url,
+#         'banner_url':u.banner_url,
+#         'slug': u.slug
+#     } for u in creators]), 200
+
+
+def as_bool(v, default=False):
+    if v is None:
+        return default
+    if isinstance(v, bool):
+        return v
+    return str(v).lower() in {"1", "true", "yes", "y", "on"}
+
+from flask import jsonify, request
+from flask_jwt_extended import jwt_required
+
+
+
+@auth_bp.route("/creators", methods=["GET"])
 @jwt_required()
-def get_all_creators():
-    creators = User.query.filter_by(role='professor', school_id=1).all()
-    return jsonify([{
-        'id': u.id,
-        'full_name': u.full_name,
-        'bio': u.bio,
-        'profile_image_url': u.profile_image_url
-    } for u in creators]), 200
+def get_creators():
+    """
+    GET /auth/creators?school_id=1&page=1&per_page=20&include_top_courses=1&top_n=3
+
+    Returns:
+    - creator-safe profile fields
+    - published_courses_count
+    - unique_learners_count (distinct enrolled students across their published courses)
+    - optional: top published courses (public dict)
+    """
+
+    school_id = request.args.get("school_id", type=int)  # optional
+    page = request.args.get("page", default=1, type=int)
+    per_page = min(100, max(1, request.args.get("per_page", default=20, type=int)))
+
+    include_top = as_bool(request.args.get("include_top_courses", "1"), True)
+    top_n = min(10, max(0, request.args.get("top_n", default=3, type=int)))
+
+    # -------------------------
+    # Aggregated creators query
+    # -------------------------
+    q = (
+        db.session.query(
+            User.id.label("id"),
+            User.full_name.label("full_name"),
+            User.bio.label("bio"),
+            User.profile_image_url.label("profile_image_url"),
+            User.banner_url.label("banner_url"),
+            User.slug.label("slug"),
+            User.school_id.label("school_id"),
+            func.count(distinct(Course.id)).label("published_courses_count"),
+            func.count(distinct(Enrollment.user_id)).label("unique_learners_count"),
+        )
+        .select_from(User)
+        .outerjoin(
+            Course,
+            and_(
+                Course.professor_id == User.id,
+                Course.published.is_(True),  # only published courses count
+            ),
+        )
+        .outerjoin(
+            Enrollment,
+            Enrollment.course_id == Course.id,  # enrollments for those published courses
+        )
+        .filter(User.role.in_(["professor", "creator"]))  # adjust to your roles
+    )
+
+    if school_id:
+        q = q.filter(User.school_id == school_id)
+
+    q = q.group_by(User.id).order_by(
+        func.count(distinct(Course.id)).desc(),
+        User.full_name.asc(),
+    )
+
+    # -------------------------
+    # Total count (pagination)
+    # -------------------------
+    total = int(db.session.query(func.count()).select_from(q.subquery()).scalar() or 0)
+    pages = (total + per_page - 1) // per_page if per_page else 1
+
+    rows = (
+        q.limit(per_page)
+        .offset((page - 1) * per_page)
+        .all()
+    )
+
+    creator_ids = [int(r.id) for r in rows]
+
+    # -------------------------
+    # Optional: top courses map
+    # -------------------------
+    top_courses_map = {cid: [] for cid in creator_ids}
+
+    if include_top and top_n > 0 and creator_ids:
+        # fetch a pool then slice per creator
+        pool = per_page * top_n * 3
+
+        courses = (
+            Course.query
+            .filter(
+                Course.professor_id.in_(creator_ids),
+                Course.published.is_(True),
+            )
+            .order_by(Course.professor_id.asc(), Course.created_at.desc())
+            .limit(pool)
+            .all()
+        )
+
+        for c in courses:
+            pid = int(c.professor_id)
+            if pid in top_courses_map and len(top_courses_map[pid]) < top_n:
+                top_courses_map[pid].append(c.to_public_dict())
+
+    # -------------------------
+    # Build response
+    # -------------------------
+    items = []
+    for r in rows:
+        payload = {
+            "id": int(r.id),
+            "full_name": r.full_name,
+            "bio": r.bio,
+            "profile_image_url": r.profile_image_url,
+            "banner_url": r.banner_url,
+            "slug": r.slug,
+            "school_id": int(r.school_id) if r.school_id is not None else None,
+            "published_courses_count": int(r.published_courses_count or 0),
+            "unique_learners_count": int(r.unique_learners_count or 0),
+        }
+
+        if include_top:
+            payload["top_courses"] = top_courses_map.get(int(r.id), [])
+
+        items.append(payload)
+
+    return jsonify({
+        "items": items,
+        "meta": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "pages": pages,
+        }
+    }), 200
+
 
 @auth_bp.route('/creators/<int:user_id>', methods=['GET'])
 @jwt_required()

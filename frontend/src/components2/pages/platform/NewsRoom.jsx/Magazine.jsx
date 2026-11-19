@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 import { Footer } from '../../LandingPage';
 import FeaturedSection from './FeaturedSection';
 import ArticleGrid from './ArticleGrid';
-import articlesData from './articles.json';
-import newsroomData from './newsroom.json';
 import { useEffect, useRef, useState } from "react";
+import useNewsroomContent from '@/hook/useNewsroomContent';
 
 
 export function Layout({ children }) {
@@ -448,9 +447,17 @@ export function Sidebar({ isOpen, onClose }) {
 }
 // Enhanced Magazine Page with proper sidebar integration
 export default function MagazinePage() {
-  const articles = articlesData?.articles ?? [];
-  const news = newsroomData?.newsroom ?? [];
-  const mainStory = articles.at(-1) ?? null;
+  const {
+    articles,
+    news,
+    loading,
+  } = useNewsroomContent();
+
+  /*
+   * newsroom service sorts newest first.
+   */
+  const mainStory =
+    articles[0] ?? null;
 
   // Combine articles and news for featured section (first 2 articles)
   const featuredArticles = articles.slice(0, 2);
@@ -462,33 +469,6 @@ export default function MagazinePage() {
   
   // Latest news (first 3 news items)
   const latestNews = news.slice(0, 3);
-   const latestaArticles = [
-    {
-      id: 1,
-      title: "Preserving Caribbean History Through Digital Archives",
-      excerpt: "How local historians are using technology to document and share the rich cultural heritage of Caribbean nations for future generations.",
-      image: "/images/caribbean-history.jpg",
-      category: "History",
-      date: "2024-01-14",
-      author: "Dr. Marcus Johnson",
-      slug: "preserving-caribbean-history",
-      readTime: "6 min read",
-      tags: ["History", "Culture", "Digital Preservation"]
-    },
-    {
-      id: 2,
-      title: "The Rise of Caribbean EdTech Startups",
-      excerpt: "Meet the innovators creating educational technology solutions tailored specifically for Caribbean learning environments and challenges.",
-      image: "/images/edtech-caribbean.jpg",
-      category: "Technology",
-      date: "2024-01-13",
-      author: "Sarah Thompson",
-      slug: "rise-caribbean-edtech",
-      readTime: "5 min read",
-      tags: ["EdTech", "Startups", "Innovation"]
-    }
-  ];
-  
   // const mainStory = {
   //   id: 1,
   //   title: "Digital Education Revolution in the Caribbean",
@@ -501,6 +481,34 @@ export default function MagazinePage() {
   //   readTime: "8 min read",
   //   tags: ["Education", "Technology", "Caribbean", "Innovation"]
   // };
+  if (
+    loading &&
+    !mainStory
+  ) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-4xl px-4 py-24 text-center text-gray-500">
+          Loading magazine…
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!mainStory) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-4xl px-4 py-24 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Magazine
+          </h1>
+          <p className="mt-3 text-gray-600">
+            No published stories are available yet.
+          </p>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <SEO
@@ -602,7 +610,7 @@ export default function MagazinePage() {
 
   <div className="flex flex-col sm:flex-row gap-3">
     <Link 
-      to={`/article/${mainStory.slug}`}
+      to={`/articles/${mainStory.slug}`}
       className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 text-center"
     >
       Read Full Story

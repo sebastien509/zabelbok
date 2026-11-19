@@ -17,7 +17,7 @@ export default function FeaturedSection({ articles }) {
               <span className="text-gray-500 text-sm">{article.date}</span>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              <Link to={`/article/${article.slug}`} className="hover:text-green-600 transition-colors">
+              <Link to={`/articles/${article.slug}`} className="hover:text-green-600 transition-colors">
                 {article.title}
               </Link>
             </h3>
@@ -25,7 +25,7 @@ export default function FeaturedSection({ articles }) {
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">By {article.author}</span>
               <Link 
-                to={`/article/${article.slug}`}
+                to={`/articles/${article.slug}`}
                 className="text-green-600 hover:text-green-700 font-medium"
               >
                 Read Story →

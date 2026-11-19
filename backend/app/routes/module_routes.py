@@ -3,6 +3,11 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flasgger import swag_from
 from werkzeug.exceptions import BadRequest
+import json
+import tempfile
+import subprocess
+from openai import OpenAI
+import os
 
 from app.extensions import db
 from app.models import (
@@ -324,6 +329,161 @@ def log_offline_module(module_id):
 
 
 # ================== MODULE PIPELINE (PROCESS → PUBLISH) ==================
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+TRANSCRIBE_MODEL = os.getenv("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe")
+QUIZ_MODEL = os.getenv("OPENAI_QUIZ_MODEL", "gpt-4o-mini")
+
+def _download_to_tmp(url: str, suffix: str = ".mp4") -> str:
+    """
+    Download a remote file to a temp path and return the file path.
+    """
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as f:
+        tmp_path = f.name
+
+    with requests.get(url, stream=True, timeout=60) as r:
+        r.raise_for_status()
+        with open(tmp_path, "wb") as out:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    out.write(chunk)
+
+    return tmp_path
+
+def _ffmpeg_extract_audio_mp3(video_path: str) -> str:
+    """
+    Extract audio from video as low-bitrate mono MP3 to stay under API limits.
+    """
+    out_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3").name
+
+    # 32k mono MP3 is tiny and good enough for speech
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-vn",
+        "-ac", "1",
+        "-ar", "16000",
+        "-b:a", "32k",
+        out_path
+    ]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    return out_path
+
+def _ffprobe_duration_sec(video_path: str) -> int:
+    """
+    Get duration in seconds via ffprobe (best-effort).
+    """
+    try:
+        cmd = [
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            video_path
+        ]
+        out = subprocess.check_output(cmd).decode("utf-8").strip()
+        return int(float(out))
+    except Exception:
+        return 0
+
+def transcribe_video_url(video_url: str) -> tuple[str, int, str]:
+    """
+    Returns: (transcript, duration_sec, language)
+    """
+    if not os.getenv("OPENAI_API_KEY"):
+        raise BadRequest("OPENAI_API_KEY is not set on the backend.")
+
+    video_path = None
+    audio_path = None
+    try:
+        video_path = _download_to_tmp(video_url, suffix=".mp4")
+        duration_sec = _ffprobe_duration_sec(video_path)
+
+        # extract audio
+        audio_path = _ffmpeg_extract_audio_mp3(video_path)
+
+        # transcribe (OpenAI Audio API)
+        # Supported transcription models include gpt-4o-mini-transcribe, gpt-4o-transcribe, whisper-1
+        # :contentReference[oaicite:2]{index=2}
+        with open(audio_path, "rb") as f:
+            t = openai_client.audio.transcriptions.create(
+                model=TRANSCRIBE_MODEL,
+                file=f
+            )
+
+        # SDK returns either a string or an object depending on model/SDK version.
+        transcript = getattr(t, "text", None) or str(t)
+
+        # language can be inferred; keep "en" as best-effort unless you add language detection
+        language = "en"
+
+        return transcript.strip(), duration_sec, language
+
+    finally:
+        for p in (audio_path, video_path):
+            if p and os.path.exists(p):
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+
+def generate_quiz_with_llm(transcript: str) -> list[dict]:
+    """
+    Returns list of:
+    [{question_text, choices:[...], correct_answer:<exact choice string>}]
+    """
+    if not transcript or len(transcript.strip()) < 40:
+        return []
+
+    prompt = f"""
+You are generating a quiz from a course transcript.
+
+Rules:
+- Output MUST be valid JSON only (no markdown).
+- Generate 5 multiple-choice questions.
+- Each question must have exactly 4 choices.
+- correct_answer MUST be EXACTLY one of the choices (string match).
+- Keep questions grounded in the transcript (no external facts).
+
+Return JSON as:
+{{
+  "quiz_questions": [
+    {{
+      "question_text": "...",
+      "choices": ["A", "B", "C", "D"],
+      "correct_answer": "..."
+    }}
+  ]
+}}
+
+TRANSCRIPT:
+{transcript}
+""".strip()
+
+    # Using Responses API (recommended in current OpenAI docs patterns)
+    # :contentReference[oaicite:3]{index=3}
+    resp = openai_client.responses.create(
+        model=QUIZ_MODEL,
+        input=prompt,
+    )
+
+    text = resp.output_text
+    data = json.loads(text)
+    quiz = data.get("quiz_questions", [])
+
+    # hard sanitize
+    cleaned = []
+    for q in quiz:
+        qt = q.get("question_text")
+        choices = q.get("choices")
+        ca = q.get("correct_answer")
+        if not qt or not isinstance(choices, list) or len(choices) != 4:
+            continue
+        if ca not in choices:
+            continue
+        cleaned.append({"question_text": qt, "choices": choices, "correct_answer": ca})
+    return cleaned
+
+
 @module_bp.route("/process", methods=["POST"])
 @jwt_required()
 @role_required("professor")
@@ -336,26 +496,23 @@ def process_module():
     try:
         validate_payload(data, ["title", "description", "course_id", "order", "created_at", "video_url"])
 
-        # Optional reachability check (skip failures to avoid false negatives with CDNs)
-        if not isinstance(data["video_url"], str) or not data["video_url"].startswith(("http://", "https://")):
+        video_url = data["video_url"]
+        if not isinstance(video_url, str) or not video_url.startswith(("http://", "https://")):
             return json_error("Invalid 'video_url'.", 422)
-        _ = head_ok(data["video_url"])  # don't fail if False; frontend can still proceed
 
-        # Lightweight metadata (stub)
-        duration_sec = 60 * 3
-        language = "en"
+        # best-effort reachability (don’t fail hard)
+        _ = head_ok(video_url)
 
-        # Transcription pipeline
-        audio_source = extract_audio_url(data["video_url"])
-        transcript = generate_transcript(audio_source)
+        # ✅ REAL transcript from video
+        transcript, duration_sec, language = transcribe_video_url(video_url)
 
-        # Captions upload (stubbed URL)
+        # ✅ captions from real transcript (you can replace upload_text_to_cloudinary with real Cloudinary raw upload)
         public_id_prefix = f"modules/{uuid.uuid4().hex}_captions"
         vtt_text = generate_captions_vtt(transcript)
         caption_url = upload_text_to_cloudinary(vtt_text, public_id_prefix)
 
-        # Quiz generation
-        quiz_questions = generate_quiz(transcript)
+        # ✅ quiz from LLM using transcript
+        quiz_questions = generate_quiz_with_llm(transcript)
 
         return jsonify({
             "transcript": transcript,
@@ -367,9 +524,12 @@ def process_module():
 
     except BadRequest as e:
         return json_error(str(e), 422)
+    except subprocess.CalledProcessError:
+        return json_error("ffmpeg failed extracting audio. Ensure ffmpeg is installed on the server.", 500)
+    except json.JSONDecodeError:
+        return json_error("Quiz generation returned invalid JSON. Try again or adjust the prompt.", 500)
     except Exception as e:
         return json_error("Unexpected error while processing module.", 500, detail=str(e))
-
 
 @module_bp.route("/publish", methods=["POST"])
 @jwt_required()

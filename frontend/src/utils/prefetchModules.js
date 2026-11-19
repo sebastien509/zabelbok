@@ -1,37 +1,48 @@
-import { ModuleDB } from '@/utils/ModuleDB';
-import { getModuleById } from '@/services/modules';
+// utils/prefetchModules.js
+import { ModuleDB } from "@/utils/ModuleDB"
+import { getModuleById } from "@/services/modules"
+
+function unwrapAxios(res) {
+  return res?.data ?? res
+}
 
 /**
- * Prefetch and store the metadata + video blob for the provided modules
- * @param {Array} modules - Array of modules (must include `id`)
- * @param {number} limit - Max number of modules to prefetch
+ * Prefetch modules + store meta + blob to IndexedDB
+ * @param {Array} modules - course modules [{id, order, ...}]
+ * @param {number} limit - how many to prefetch
+ * @param {number|null} fromOrder - prefetch modules after this order (optional)
  */
-export async function prefetchModules(modules = [], limit = 2) {
-  const targets = modules.slice(0, limit);
+export async function prefetchModules(modules = [], limit = 2, fromOrder = null) {
+  if (!navigator.onLine) return
+
+  // sort by order to be deterministic
+  const sorted = [...modules].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+  const targets =
+    fromOrder === null
+      ? sorted.slice(0, limit)
+      : sorted.filter((m) => (m.order ?? 0) > fromOrder).slice(0, limit)
 
   for (const mod of targets) {
     try {
-      const alreadySaved = await ModuleDB.get(mod.id);
-      if (alreadySaved?.blob) {
-        console.log(`📦 Module ${mod.id} already cached.`);
-        continue;
-      }
+      const meta = await ModuleDB.getMeta(mod.id)
+      const hasBlob = await ModuleDB.hasBlob(mod.id)
+      if (meta && hasBlob) continue
 
-      const fullMod = await getModuleById(mod.id);
-      if (!fullMod?.video_url) {
-        console.warn(`⚠️ Skipping module ${mod.id} — no video URL.`);
-        continue;
-      }
+      const res = await getModuleById(mod.id)
+      const full = unwrapAxios(res)
+      if (!full?.video_url) continue
 
-      await ModuleDB.addModuleMeta(fullMod);
+      await ModuleDB.addModuleMeta(full)
 
-      const res = await fetch(fullMod.video_url);
-      const blob = await res.blob();
-      await ModuleDB.addVideoBlob(mod.id, blob);
+      const r = await fetch(full.video_url)
+      if (!r.ok) throw new Error(`fetch failed ${r.status}`)
+      const blob = await r.blob()
+      await ModuleDB.addVideoBlob(full.id, blob)
 
-      console.log(`✅ Prefetched module: ${fullMod.title}`);
-    } catch (err) {
-      console.error(`❌ Error prefetching module ${mod.id}:`, err);
+      console.log(`✅ Prefetched (durable): ${full.title}`)
+    } catch (e) {
+      console.warn(`⚠️ Prefetch failed for module ${mod.id}:`, e)
     }
   }
 }

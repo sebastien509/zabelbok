@@ -25,8 +25,7 @@ from datetime import datetime
 from flasgger import swag_from
 from app.extensions import db
 from jinja2 import Template
-from app.models import OfflineModuleLog  # Make sure it's imported
-
+from app.models import OfflineModuleLog  
 
 
 offline_bp = Blueprint('offline', __name__, url_prefix='/offline')
