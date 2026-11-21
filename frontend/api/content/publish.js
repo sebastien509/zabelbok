@@ -15,6 +15,16 @@ function bearerToken(request) {
     : "";
 }
 
+function tokenFingerprint(value) {
+  if (!value) return null;
+
+  return crypto
+    .createHash("sha256")
+    .update(String(value).trim())
+    .digest("hex")
+    .slice(0, 12);
+}
+
 function safeEqual(left, right) {
   if (!left || !right) return false;
 
@@ -151,7 +161,9 @@ export default async function handler(request, response) {
   }
 
   const expectedToken =
-    process.env.ESTRATEJI_PUBLISH_TOKEN || "";
+    String(
+      process.env.ESTRATEJI_PUBLISH_TOKEN || ""
+    ).trim();
 
   if (!expectedToken) {
     return json(response, 503, {
@@ -161,7 +173,19 @@ export default async function handler(request, response) {
     });
   }
 
-  if (!safeEqual(bearerToken(request), expectedToken)) {
+  const receivedToken =
+    bearerToken(request);
+
+  if (!safeEqual(receivedToken, expectedToken)) {
+    console.warn("[estrateji-auth-debug]", {
+      expectedPresent: Boolean(expectedToken),
+      expectedLength: expectedToken.length,
+      expectedFingerprint: tokenFingerprint(expectedToken),
+      receivedPresent: Boolean(receivedToken),
+      receivedLength: receivedToken.length,
+      receivedFingerprint: tokenFingerprint(receivedToken),
+    });
+
     return json(response, 401, {
       success: false,
       code: "UNAUTHORIZED",
