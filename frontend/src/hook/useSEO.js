@@ -12,9 +12,9 @@ export function useSEO({
 } = {}) {
   
   useEffect(() => {
-    const siteTitle = 'Magazine Platform';
+    const siteTitle = 'E-strateji';
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-    const siteUrl = 'https://yourdomain.com';
+    const siteUrl = 'https://www.estrateji.com';
     const fullCanonical = canonical ? `${siteUrl}${canonical}` : siteUrl;
 
     // Update title
@@ -49,7 +49,7 @@ export function useSEO({
     // Cleanup function
     return () => {
       // Reset to defaults if needed
-      document.title = 'Magazine Platform - Insights & Innovation';
+      document.title = 'E-strateji';
     };
   }, [title, description, canonical, image, type, publishedTime, author, tags]);
 }

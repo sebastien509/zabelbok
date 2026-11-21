@@ -13,6 +13,7 @@ import {
 
 import News from "./News";
 import StoryMedia from "./StoryMedia";
+import MarkdownBody from "./MarkdownBody";
 
 export default function NewsPage() {
   const {
@@ -72,16 +73,6 @@ export default function NewsPage() {
       </Layout>
     );
   }
-
-  const paragraphs =
-    typeof article.content ===
-      "string"
-      ? article.content
-          .split(
-            /\n\s*\n/
-          )
-          .filter(Boolean)
-      : [];
 
   const initials =
     String(
@@ -209,24 +200,14 @@ export default function NewsPage() {
           className="mb-8 aspect-[16/9] rounded-xl"
         />
 
-        <div className="prose prose-lg mb-8 max-w-none">
-          {paragraphs.map(
-            (
-              paragraph,
-              index
-            ) => (
-              <p
-                key={
-                  index
-                }
-                className="mb-4 leading-relaxed text-gray-700"
-              >
-                {
-                  paragraph
-                }
-              </p>
-            )
-          )}
+        <div className="mb-8">
+          <MarkdownBody
+            content={
+              typeof article.content === "string"
+                ? article.content
+                : ""
+            }
+          />
         </div>
 
         <footer className="border-t border-gray-200 pt-8">

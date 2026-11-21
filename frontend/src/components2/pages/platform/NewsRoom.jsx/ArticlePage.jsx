@@ -16,6 +16,7 @@ import {
 } from "./Magazine";
 
 import StoryMedia from "./StoryMedia";
+import MarkdownBody from "./MarkdownBody";
 
 /* ============================================================
    CONTENT
@@ -226,30 +227,11 @@ function ArticleBody({
     "string"
   ) {
     return (
-      <div className="space-y-5">
-        {content
-          .split(
-            /\n\s*\n/
-          )
-          .filter(Boolean)
-          .map(
-            (
-              paragraph,
-              index
-            ) => (
-              <p
-                key={
-                  index
-                }
-                className="leading-8 text-gray-700"
-              >
-                {
-                  paragraph
-                }
-              </p>
-            )
-          )}
-      </div>
+      <MarkdownBody
+        content={
+          content
+        }
+      />
     );
   }
 

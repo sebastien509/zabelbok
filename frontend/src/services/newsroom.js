@@ -18,6 +18,10 @@ const INTHRACORE_FEED_URL =
 const INTHRACORE_FEED_TIMEOUT_MS =
   7000;
 
+const ESTRATEJI_RECEIVER_CONTENT_URL =
+  import.meta.env.VITE_ESTRATEJI_CONTENT_URL ||
+  "/api/content";
+
 /* ============================================================
    NORMALIZATION
 ============================================================ */
@@ -508,156 +512,123 @@ function normalizePayload(
   };
 }
 
-export async function getNewsroomContent() {
-  const local =
-    getLocalNewsroomContent();
+async function fetchNewsroomPayload(
+  url,
+  timeoutMs = INTHRACORE_FEED_TIMEOUT_MS
+) {
+  if (!url) return null;
 
-  /*
-   * No InthraCore URL configured:
-   * E-strateji remains fully local.
-   */
-  if (
-    !INTHRACORE_FEED_URL
-  ) {
-    return local;
-  }
-
-  const controller =
-    new AbortController();
-
-  const timeout =
-    setTimeout(
-      () =>
-        controller.abort(),
-      INTHRACORE_FEED_TIMEOUT_MS
-    );
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    timeoutMs
+  );
 
   try {
-    const response =
-      await fetch(
-        INTHRACORE_FEED_URL,
-        {
-          method:
-            "GET",
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
 
-          headers: {
-            Accept:
-              "application/json",
-          },
-
-          signal:
-            controller.signal,
-        }
-      );
-
-    if (
-      !response.ok
-    ) {
-      throw new Error(
-        `InthraCore feed returned ${response.status}`
-      );
+    if (!response.ok) {
+      throw new Error(`${url} returned ${response.status}`);
     }
 
-    const payload =
-      await response.json();
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
-    const live =
-      normalizePayload(
-        payload
+function mergeStories(fallback, incoming, sourceLabel) {
+  const map = new Map();
+
+  fallback.forEach((item) => {
+    if (item?.slug) map.set(item.slug, item);
+  });
+
+  incoming.forEach((item) => {
+    if (item?.slug) {
+      map.set(item.slug, {
+        ...item,
+        source: item.source || sourceLabel,
+      });
+    }
+  });
+
+  return newestFirst([...map.values()]);
+}
+
+export async function getNewsroomContent() {
+  const local = getLocalNewsroomContent();
+
+  let result = {
+    ...local,
+    source: "local",
+  };
+
+  if (INTHRACORE_FEED_URL) {
+    try {
+      const payload = await fetchNewsroomPayload(
+        INTHRACORE_FEED_URL
       );
 
-    /*
-     * Merge by slug.
-     *
-     * Existing E-strateji JSON is the base.
-     * InthraCore overwrites the same slug.
-     */
-    const merge = (
-      fallback,
-      incoming
-    ) => {
-      const map =
-        new Map();
+      const live = normalizePayload(payload);
 
-      fallback.forEach(
-        (item) => {
-          if (
-            item?.slug
-          ) {
-            map.set(
-              item.slug,
-              item
-            );
-          }
-        }
-      );
-
-      incoming.forEach(
-        (item) => {
-          if (
-            item?.slug
-          ) {
-            map.set(
-              item.slug,
-              {
-                ...item,
-
-                source:
-                  item.source ||
-                  "inthracore",
-              }
-            );
-          }
-        }
-      );
-
-      return newestFirst(
-        [
-          ...map.values(),
-        ]
-      );
-    };
-
-    return {
-      articles:
-        merge(
-          local.articles,
-          live.articles
+      result = {
+        articles: mergeStories(
+          result.articles,
+          live.articles,
+          "inthracore-feed"
         ),
-
-      news:
-        merge(
-          local.news,
-          live.news
+        news: mergeStories(
+          result.news,
+          live.news,
+          "inthracore-feed"
         ),
+        source: "hybrid",
+      };
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.info(
+          "[newsroom] InthraCore feed unavailable",
+          error?.message || ""
+        );
+      }
+    }
+  }
 
-      source:
-        live.articles.length ||
-        live.news.length
-          ? "hybrid"
-          : "local",
+  try {
+    const payload = await fetchNewsroomPayload(
+      ESTRATEJI_RECEIVER_CONTENT_URL
+    );
+
+    const received = normalizePayload(payload);
+
+    result = {
+      articles: mergeStories(
+        result.articles,
+        received.articles,
+        "inthracore"
+      ),
+      news: mergeStories(
+        result.news,
+        received.news,
+        "inthracore"
+      ),
+      source: "receiver",
     };
   } catch (error) {
-    /*
-     * InthraCore can be unavailable without taking
-     * the E-strateji magazine offline.
-     */
-    if (
-      import.meta.env.DEV
-    ) {
+    if (import.meta.env.DEV) {
       console.info(
-        "[newsroom] InthraCore unavailable; using local JSON",
-        error?.message ||
-        ""
+        "[newsroom] local receiver store unavailable",
+        error?.message || ""
       );
     }
-
-    return local;
-  } finally {
-    clearTimeout(
-      timeout
-    );
   }
+
+  return result;
 }
 
 export async function getArticleBySlug(
