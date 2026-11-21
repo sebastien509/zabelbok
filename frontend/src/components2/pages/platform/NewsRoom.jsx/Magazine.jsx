@@ -2,7 +2,7 @@ import SEO from '@/components2/SEO';
 import { Link } from 'react-router-dom';
 import { Footer } from '../../LandingPage';
 import FeaturedSection from './FeaturedSection';
-import ArticleGrid from './ArticleGrid';
+import ArticleGrid from './ArticleGrid'; 
 import { useEffect, useRef, useState } from "react";
 import useNewsroomContent from '@/hook/useNewsroomContent';
 
